@@ -8,12 +8,10 @@
 #include <directxmath.h>
 #include <chrono>
 
-
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "d3dcompiler.lib")
 #pragma comment(lib, "dxguid.lib")
-
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lparam)
 {
@@ -33,7 +31,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lparam)
 	}
 	}
 }
-
 
 int main()
 {
@@ -58,7 +55,6 @@ int main()
 
 	RegisterClassEx(&wc);
 
-
 	auto screenWidth = 800;
 	auto screenHeight = 800;
 
@@ -70,12 +66,16 @@ int main()
 	auto posX = (GetSystemMetrics(SM_CXSCREEN) - screenWidth) / 2;
 	auto posY = (GetSystemMetrics(SM_CYSCREEN) - screenHeight) / 2;
 
-	HWND hWnd = CreateWindowEx(WS_EX_APPWINDOW, applicationName, applicationName,
+	HWND hWnd = CreateWindowEx(
+		WS_EX_APPWINDOW, 
+		applicationName, 
+		applicationName,
 		dwStyle,
 		posX, posY,
 		windowRect.right - windowRect.left,
 		windowRect.bottom - windowRect.top,
-		nullptr, nullptr, hInstance, nullptr);
+		nullptr, nullptr, hInstance, nullptr
+	);
 
 	ShowWindow(hWnd, SW_SHOW);
 	SetForegroundWindow(hWnd);
@@ -92,7 +92,7 @@ int main()
 	swapDesc.BufferCount = 2;
 	swapDesc.BufferDesc.Width = screenWidth;
 	swapDesc.BufferDesc.Height = screenHeight;
-	swapDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	swapDesc.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
 	swapDesc.BufferDesc.RefreshRate.Numerator = 60;
 	swapDesc.BufferDesc.RefreshRate.Denominator = 1;
 	swapDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
@@ -104,7 +104,6 @@ int main()
 	swapDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 	swapDesc.SampleDesc.Count = 1;
 	swapDesc.SampleDesc.Quality = 0;
-
 
 	Microsoft::WRL::ComPtr<ID3D11Device> device;
 	ID3D11DeviceContext* context;
@@ -122,7 +121,8 @@ int main()
 		&swapChain,
 		&device,
 		nullptr,
-		&context);
+		&context
+	);
 
 	if (FAILED(res))
 	{
@@ -133,10 +133,10 @@ int main()
 	res = swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backTex);	// __uuidof(ID3D11Texture2D)
 	res = device->CreateRenderTargetView(backTex, nullptr, &rtv);
 
-
 	ID3DBlob* vertexBC = nullptr;
 	ID3DBlob* errorVertexCode = nullptr;
-	res = D3DCompileFromFile(L"./shaders/FirstShader.hlsl",
+	res = D3DCompileFromFile(
+		L"./shaders/FirstShader.hlsl",
 		nullptr,
 		nullptr,
 		"VSMain",
@@ -144,16 +144,15 @@ int main()
 		D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,
 		0,
 		&vertexBC,
-		&errorVertexCode);
+		&errorVertexCode
+	);
 
 	if (FAILED(res)) {
 		if (errorVertexCode) {
 			char* compileErrors = (char*)(errorVertexCode->GetBufferPointer());
 
 			std::cout << compileErrors << std::endl;
-		}
-		else
-		{
+		} else {
 			MessageBox(hWnd, L"FirstShader.hlsl", L"Missing Shader File", MB_OK);
 		}
 
@@ -164,19 +163,30 @@ int main()
 
 	ID3DBlob* pixelBC;
 	ID3DBlob* errorPixelCode;
-	res = D3DCompileFromFile(L"./shaders/FirstShader.hlsl", Shader_Macros /*macros*/, nullptr /*include*/, "PSMain", "ps_5_0", D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION, 0, &pixelBC, &errorPixelCode);
+	res = D3DCompileFromFile(
+		L"./shaders/FirstShader.hlsl", 
+		Shader_Macros, 
+		nullptr, "PSMain", 
+		"ps_5_0", 
+		D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION, 
+		0, 
+		&pixelBC, 
+		&errorPixelCode
+	);
 
 	ID3D11VertexShader* vertexShader;
 	ID3D11PixelShader* pixelShader;
 	device->CreateVertexShader(
 		vertexBC->GetBufferPointer(),
 		vertexBC->GetBufferSize(),
-		nullptr, &vertexShader);
+		nullptr, &vertexShader
+	);
 
 	device->CreatePixelShader(
 		pixelBC->GetBufferPointer(),
 		pixelBC->GetBufferSize(),
-		nullptr, &pixelShader);
+		nullptr, &pixelShader
+	);
 
 	D3D11_INPUT_ELEMENT_DESC inputElements[] = {
 		D3D11_INPUT_ELEMENT_DESC {
@@ -186,7 +196,9 @@ int main()
 			0,
 			0,
 			D3D11_INPUT_PER_VERTEX_DATA,
-			0},
+			0
+		},
+
 		D3D11_INPUT_ELEMENT_DESC {
 			"COLOR",
 			0,
@@ -194,7 +206,8 @@ int main()
 			0,
 			D3D11_APPEND_ALIGNED_ELEMENT,
 			D3D11_INPUT_PER_VERTEX_DATA,
-			0}
+			0
+		}
 	};
 
 	ID3D11InputLayout* layout;
@@ -203,15 +216,15 @@ int main()
 		2,
 		vertexBC->GetBufferPointer(),
 		vertexBC->GetBufferSize(),
-		&layout);
+		&layout
+	);
 
 	DirectX::XMFLOAT4 points[8] = {
 		DirectX::XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f),	DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),
-		DirectX::XMFLOAT4(-0.5f, -0.5f, 0.5f, 1.0f),	DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f),
+		DirectX::XMFLOAT4(-0.5f, -0.5f, 0.5f, 1.0f),DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f),
 		DirectX::XMFLOAT4(0.5f, -0.5f, 0.5f, 1.0f),	DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),
 		DirectX::XMFLOAT4(-0.5f, 0.5f, 0.5f, 1.0f),	DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 	};
-
 
 	D3D11_BUFFER_DESC vertexBufDesc = {};
 	vertexBufDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -248,8 +261,6 @@ int main()
 
 	UINT strides[] = { 32 };
 	UINT offsets[] = { 0 };
-
-
 
 	CD3D11_RASTERIZER_DESC rastDesc = {};
 	rastDesc.CullMode = D3D11_CULL_NONE;
@@ -297,9 +308,8 @@ int main()
 		context->VSSetShader(vertexShader, nullptr, 0);
 		context->PSSetShader(pixelShader, nullptr, 0);
 
-
-		auto	curTime = std::chrono::steady_clock::now();
-		float	deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(curTime - PrevTime).count() / 1000000.0f;
+		auto curTime = std::chrono::steady_clock::now();
+		float deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(curTime - PrevTime).count() / 1000000.0f;
 		PrevTime = curTime;
 
 		totalTime += deltaTime;
