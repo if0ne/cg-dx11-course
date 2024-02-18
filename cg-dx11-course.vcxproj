@@ -127,7 +127,21 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Game.cpp" />
+    <ClCompile Include="src\InputDevice.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\RenderContext.cpp" />
+    <ClCompile Include="src\TriangleComponent.cpp" />
+    <ClCompile Include="src\Window.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\InputDevice.h" />
+    <ClInclude Include="src\GameComponent.h" />
+    <ClInclude Include="src\Game.h" />
+    <ClInclude Include="src\Keys.h" />
+    <ClInclude Include="src\RenderContext.h" />
+    <ClInclude Include="src\Window.h" />
+    <ClInclude Include="src\TriangleComponent.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
