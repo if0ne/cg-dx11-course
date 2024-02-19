@@ -15,7 +15,9 @@ Game::Game() {
     components_ = {};
 
     isExitRequested_ = false;
+
     totalTime_ = 0.0;
+    lag_  = 0.0;
     prevTime_ = std::chrono::steady_clock::now();
 }
 
@@ -25,6 +27,20 @@ void Game::Initialize() {
 
     for (auto& cmp : components_) {
         cmp->Initialize();
+    }
+}
+
+void Game::ProcessInput() {
+    MSG msg = {};
+
+    while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+
+        if (msg.message == WM_QUIT) {
+            isExitRequested_ = true;
+            break;
+        }
     }
 }
 
@@ -63,6 +79,7 @@ void Game::UpdateInternal() {
     float deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(curTime - prevTime_).count() / 1000000.0f;
     prevTime_ = curTime;
 
+    lag_ += deltaTime;
     totalTime_ += deltaTime;
     frameCount_++;
 
@@ -94,26 +111,21 @@ void Game::DestroyResources() {
 }
 
 void Game::Run() {
-    MSG msg = {};
-
     Initialize();
 
     while (!isExitRequested_) {
-        while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
+        UpdateInternal();
 
-        if (msg.message == WM_QUIT) {
-            isExitRequested_ = true;
-        }
+        ProcessInput();
 
-        Update();
+        while (lag_ >= kMsPerFrame) {
+            Update();
+            lag_ -= kMsPerFrame;
+        }
+        
         PrepareFrame();
         Draw();
         EndFrame();
-
-        UpdateInternal();
     }
 
     DestroyResources();

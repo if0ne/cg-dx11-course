@@ -15,6 +15,8 @@ class InputDevice;
 class Game
 {
 private:
+    const float kMsPerFrame = 1000 / 60;
+
     static Game* instance_;
     std::vector<std::shared_ptr<GameComponent>> components_;
 
@@ -23,12 +25,15 @@ private:
     InputDevice* inputDevice_;
 
     float totalTime_;
+    float lag_;
     std::chrono::time_point<std::chrono::steady_clock> prevTime_;
+
     uint32_t frameCount_ = 0;
 
     bool isExitRequested_;
 
     void Initialize();
+    void ProcessInput();
     void PrepareFrame();
     void Draw();
     void Update();
