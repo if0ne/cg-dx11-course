@@ -25,7 +25,7 @@ private:
     InputDevice* inputDevice_;
 
     float totalTime_;
-    float lag_;
+    float deltaTime_;
     std::chrono::time_point<std::chrono::steady_clock> prevTime_;
 
     uint32_t frameCount_ = 0;

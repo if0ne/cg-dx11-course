@@ -17,7 +17,7 @@ Game::Game() {
     isExitRequested_ = false;
 
     totalTime_ = 0.0;
-    lag_  = 0.0;
+    deltaTime_  = 0.0;
     prevTime_ = std::chrono::steady_clock::now();
 }
 
@@ -70,17 +70,16 @@ void Game::Draw() {
 
 void Game::Update() {
     for (auto& comp : components_) {
-        comp->Update();
+        comp->Update(deltaTime_);
     }
 }
 
 void Game::UpdateInternal() {
     auto curTime = std::chrono::steady_clock::now();
-    float deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(curTime - prevTime_).count() / 1000000.0f;
+    deltaTime_ = std::chrono::duration_cast<std::chrono::microseconds>(curTime - prevTime_).count() / 1000000.0f;
     prevTime_ = curTime;
 
-    lag_ += deltaTime;
-    totalTime_ += deltaTime;
+    totalTime_ += deltaTime_;
     frameCount_++;
 
     if (totalTime_ > 1.0f) {
@@ -117,12 +116,7 @@ void Game::Run() {
         UpdateInternal();
 
         ProcessInput();
-
-        while (lag_ >= kMsPerFrame) {
-            Update();
-            lag_ -= kMsPerFrame;
-        }
-        
+        Update();
         PrepareFrame();
         Draw();
         EndFrame();

@@ -28,7 +28,7 @@ public:
     TriangleComponent(Game& ctx);
 
     virtual void Initialize();
-    virtual void Update();
+    virtual void Update(float deltaTime);
     virtual void Draw();
     virtual void Reload();
     virtual void DestroyResources();

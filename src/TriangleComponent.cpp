@@ -120,7 +120,7 @@ void TriangleComponent::Initialize() {
     ctx_.GetRenderContext().GetDevice()->CreateRasterizerState(&rastDesc, &rastState_);
 }
 
-void TriangleComponent::Update() {
+void TriangleComponent::Update(float deltaTime) {
 
 }
 
