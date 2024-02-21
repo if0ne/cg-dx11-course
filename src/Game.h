@@ -32,6 +32,7 @@ private:
 
     bool isExitRequested_;
 
+    Game();
     void Initialize();
     void ProcessInput();
     void PrepareFrame();
@@ -42,8 +43,6 @@ private:
     void DestroyResources();
 
 public:
-    Game();
-
     void Run();
     void Exit();
     void PushComponent(std::shared_ptr<GameComponent>&& component);
@@ -61,6 +60,10 @@ public:
     }
 
     static Game& GetSingleton() {
+        if (instance_ == nullptr) {
+            instance_ = new Game();
+        }
+
         return *instance_;
     }
 };

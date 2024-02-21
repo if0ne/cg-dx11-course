@@ -8,7 +8,7 @@
 
 class Game;
 
-class TriangleComponent : public GameComponent
+class SquareComponent : public GameComponent
 {
 private:
     ID3D11InputLayout* layout_;
@@ -25,7 +25,7 @@ private:
 
     DirectX::XMFLOAT4 points_[8];
 public:
-    TriangleComponent(Game& ctx);
+    SquareComponent();
 
     virtual void Initialize();
     virtual void Update(float deltaTime);

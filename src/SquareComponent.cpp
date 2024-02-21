@@ -1,9 +1,9 @@
-#include "TriangleComponent.h"
+#include "SquareComponent.h"
 
 #include "Game.h"
 #include "RenderContext.h"
 
-TriangleComponent::TriangleComponent(Game& ctx) : GameComponent(ctx) {
+SquareComponent::SquareComponent() : GameComponent() {
     points_[0] = DirectX::XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
     points_[1] = DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
     points_[2] = DirectX::XMFLOAT4(-0.5f, -0.5f, 0.5f, 1.0f);
@@ -14,7 +14,7 @@ TriangleComponent::TriangleComponent(Game& ctx) : GameComponent(ctx) {
     points_[7] = DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 }
 
-void TriangleComponent::Initialize() {
+void SquareComponent::Initialize() {
     D3DCompileFromFile(
         L"./shaders/FirstShader.hlsl",
         nullptr,
@@ -120,11 +120,11 @@ void TriangleComponent::Initialize() {
     ctx_.GetRenderContext().GetDevice()->CreateRasterizerState(&rastDesc, &rastState_);
 }
 
-void TriangleComponent::Update(float deltaTime) {
+void SquareComponent::Update(float deltaTime) {
 
 }
 
-void TriangleComponent::Draw() {
+void SquareComponent::Draw() {
     UINT strides[] = { 32 };
     UINT offsets[] = { 0 };
 
@@ -138,10 +138,10 @@ void TriangleComponent::Draw() {
     ctx_.GetRenderContext().GetContext()->DrawIndexed(6, 0, 0);
 }
 
-void TriangleComponent::Reload() {
+void SquareComponent::Reload() {
 
 }
 
-void TriangleComponent::DestroyResources() {
+void SquareComponent::DestroyResources() {
 
 }

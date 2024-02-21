@@ -5,7 +5,7 @@ class GameComponent
 {
 protected:
     Game& ctx_;
-    GameComponent(Game& ctx) : ctx_(ctx) {}
+    GameComponent();
 
 public:
     virtual void Initialize() = 0;
