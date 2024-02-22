@@ -41,12 +41,6 @@ void Window::Initialize(RenderContext& renderCtx) {
 		nullptr, nullptr, hInstance_, nullptr
 	);
 
-	ShowWindow(hWnd_, SW_SHOW);
-	SetForegroundWindow(hWnd_);
-	SetFocus(hWnd_);
-
-	ShowCursor(true);
-
 	DXGI_SWAP_CHAIN_DESC1 swapDesc = {};
 	swapDesc.BufferCount = 2;
 	swapDesc.Width = width_;
@@ -64,6 +58,27 @@ void Window::Initialize(RenderContext& renderCtx) {
 	renderCtx.GetFactory()->CreateSwapChainForHwnd(renderCtx.GetDevice(), hWnd_, &swapDesc, nullptr, nullptr, &swapchain_);
 	swapchain_->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backBuffer_);
 	renderCtx.GetDevice()->CreateRenderTargetView(backBuffer_, nullptr, &renderView_);
+}
+
+void Window::Show() {
+	ShowWindow(hWnd_, SW_SHOW);
+	SetForegroundWindow(hWnd_);
+	SetFocus(hWnd_);
+	ShowCursor(true);
+}
+
+void Window::ProcessEvent() {
+	MSG msg = {};
+
+	while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+
+		if (msg.message == WM_QUIT) {
+			Game::GetSingleton().Exit();
+			break;
+		}
+	}
 }
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lparam) {
@@ -110,6 +125,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lparam)
 
 		delete[] lpb;
 		return DefWindowProc(hwnd, umessage, wparam, lparam);
+	}
+	case WM_CLOSE:
+	{
+		Game::GetSingleton().Exit();
 	}
 	default:
 	{

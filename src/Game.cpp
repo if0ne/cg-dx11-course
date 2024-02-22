@@ -31,17 +31,7 @@ void Game::Initialize() {
 }
 
 void Game::ProcessInput() {
-    MSG msg = {};
-
-    while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
-
-        if (msg.message == WM_QUIT) {
-            isExitRequested_ = true;
-            break;
-        }
-    }
+    window_->ProcessEvent();
 }
 
 void Game::PrepareFrame() {
@@ -111,6 +101,7 @@ void Game::DestroyResources() {
 
 void Game::Run() {
     Initialize();
+    window_->Show();
 
     while (!isExitRequested_) {
         UpdateInternal();

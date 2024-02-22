@@ -30,6 +30,8 @@ public:
     Window(uint32_t width, uint32_t height) : width_(width), height_(height) {}
 
 	void Initialize(RenderContext& renderCtx);
+	void ProcessEvent();
+	void Show();
 
 	void DestroyResources() {
 		renderView_->Release();
