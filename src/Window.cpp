@@ -3,6 +3,8 @@
 #include "Game.h"
 #include "InputDevice.h"
 
+LRESULT CALLBACK WndProc(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lparam);
+
 void Window::Initialize(RenderContext& renderCtx) {
 	LPCWSTR applicationName = L"My3DApp";
 	hInstance_ = GetModuleHandle(nullptr);
@@ -73,22 +75,12 @@ void Window::ProcessEvent() {
 	while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
-
-		if (msg.message == WM_QUIT) {
-			Game::GetSingleton().Exit();
-			break;
-		}
 	}
 }
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lparam) {
 	switch (umessage)
 	{
-	case WM_KEYDOWN:
-	{
-		if (static_cast<unsigned int>(wparam) == 27) PostQuitMessage(0);
-		return 0;
-	}
 	case WM_INPUT:
 	{
 		UINT dwSize = 0;

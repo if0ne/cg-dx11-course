@@ -1,17 +1,19 @@
 #include "SquareComponent.h"
 
 #include "Game.h"
+#include "InputDevice.h"
+#include "Keys.h"
 #include "RenderContext.h"
 
-SquareComponent::SquareComponent() : GameComponent() {
-    points_[0] = DirectX::XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
-    points_[1] = DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
-    points_[2] = DirectX::XMFLOAT4(-0.5f, -0.5f, 0.5f, 1.0f);
-    points_[3] = DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
-    points_[4] = DirectX::XMFLOAT4(0.5f, -0.5f, 0.5f, 1.0f);
-    points_[5] = DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
-    points_[6] = DirectX::XMFLOAT4(-0.5f, 0.5f, 0.5f, 1.0f);
-    points_[7] = DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+SquareComponent::SquareComponent(float offset) : GameComponent() {
+    points_[0] = DirectX::XMFLOAT4(0.5f + offset, 0.5f + offset, 0.5f, 1.0f);
+    points_[1] = DirectX::XMFLOAT4(1.0f + offset, 0.0f + offset, 0.0f, 1.0f);
+    points_[2] = DirectX::XMFLOAT4(-0.5f + offset, -0.5f + offset, 0.5f, 1.0f);
+    points_[3] = DirectX::XMFLOAT4(0.0f + offset, 0.0f + offset, 1.0f, 1.0f);
+    points_[4] = DirectX::XMFLOAT4(0.5f + offset, -0.5f + offset, 0.5f, 1.0f);
+    points_[5] = DirectX::XMFLOAT4(0.0f + offset, 1.0f + offset, 0.0f, 1.0f);
+    points_[6] = DirectX::XMFLOAT4(-0.5f + offset, 0.5f + offset, 0.5f, 1.0f);
+    points_[7] = DirectX::XMFLOAT4(1.0f + offset, 1.0f + offset, 1.0f, 1.0f);
 }
 
 void SquareComponent::Initialize() {
@@ -27,12 +29,11 @@ void SquareComponent::Initialize() {
         nullptr
     );
 
-    D3D_SHADER_MACRO Shader_Macros[] = { "TEST", "1", "TCOLOR", "float4(0.0f, 1.0f, 0.0f, 1.0f)", nullptr, nullptr };
-
     D3DCompileFromFile(
         L"./shaders/FirstShader.hlsl",
-        Shader_Macros,
-        nullptr, "PSMain",
+        nullptr,
+        nullptr, 
+        "PSMain",
         "ps_5_0",
         D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,
         0,
@@ -121,7 +122,9 @@ void SquareComponent::Initialize() {
 }
 
 void SquareComponent::Update(float deltaTime) {
-
+    if (ctx_.GetInputDevice().IsKeyDown(Keys::Escape)) {
+        ctx_.Exit();
+    }
 }
 
 void SquareComponent::Draw() {

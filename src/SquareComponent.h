@@ -25,7 +25,7 @@ private:
 
     DirectX::XMFLOAT4 points_[8];
 public:
-    SquareComponent();
+    SquareComponent(float offset);
 
     virtual void Initialize();
     virtual void Update(float deltaTime);

@@ -24,6 +24,7 @@ Game::Game() {
 void Game::Initialize() {
     renderCtx_->Initialize();
     window_->Initialize(*renderCtx_);
+    inputDevice_->Initialize();
 
     for (auto& cmp : components_) {
         cmp->Initialize();
@@ -38,7 +39,7 @@ void Game::PrepareFrame() {
     auto rt = window_->GetRenderTarget();
     renderCtx_->GetContext()->OMSetRenderTargets(1, &rt, nullptr);
 
-    float color[] = { totalTime_, 0.1f, 0.1f, 1.0f };
+    float color[] = { 0.1f, 0.1f, 0.1f, 1.0f };
     renderCtx_->GetContext()->ClearRenderTargetView(rt, color);
 
     D3D11_VIEWPORT viewport = {};

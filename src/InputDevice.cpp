@@ -1,8 +1,29 @@
 #include "InputDevice.h"
 
+#include <iostream>
 #include <unordered_map>
 
 #include "Game.h"
+
+void InputDevice::Initialize() {
+	RAWINPUTDEVICE Rid[2];
+
+	Rid[0].usUsagePage = 0x01;
+	Rid[0].usUsage = 0x02;
+	Rid[0].dwFlags = 0;
+	Rid[0].hwndTarget = ctx_.GetWindow().GetDescriptor();
+
+	Rid[1].usUsagePage = 0x01;
+	Rid[1].usUsage = 0x06;
+	Rid[1].dwFlags = 0;
+	Rid[1].hwndTarget = ctx_.GetWindow().GetDescriptor();
+
+	if (RegisterRawInputDevices(Rid, 2, sizeof(Rid[0])) == FALSE)
+	{
+		auto errorCode = GetLastError();
+		std::cout << "ERROR: " << errorCode << std::endl;
+	}
+}
 
 void InputDevice::OnKeyDown(KeyboardInputEventArgs args) {
 	bool Break = args.Flags & 0x01;

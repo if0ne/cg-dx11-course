@@ -64,6 +64,8 @@ public:
         return keys_->count(key);
     }
 
+	void Initialize();
+
 	// For internal logic
 	void OnKeyDown(KeyboardInputEventArgs args);
 	void OnMouseMove(RawMouseEventArgs args);

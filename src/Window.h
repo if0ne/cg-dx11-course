@@ -10,7 +10,6 @@
 #include "RenderContext.h"
 
 class Game;
-LRESULT CALLBACK WndProc(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lparam);
 
 class Window
 {

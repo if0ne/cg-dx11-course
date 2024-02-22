@@ -10,9 +10,11 @@
 
 int main()
 {
-	std::shared_ptr<SquareComponent> cmp = std::make_shared<SquareComponent>();
+	std::shared_ptr<SquareComponent> cmp1 = std::make_shared<SquareComponent>(0.0);
+	std::shared_ptr<SquareComponent> cmp2 = std::make_shared<SquareComponent>(0.25);
 
-	Game::GetSingleton().PushComponent(std::move(cmp));
+	Game::GetSingleton().PushComponent(std::move(cmp1));
+	Game::GetSingleton().PushComponent(std::move(cmp2));
 
 	Game::GetSingleton().Run();
 }
