@@ -8,9 +8,17 @@
 
 class Game;
 
+struct ConstData {
+    DirectX::XMFLOAT4 offset;
+};
+
 class SquareComponent : public GameComponent
 {
 private:
+    float x_;
+    float y_;
+    float speed_;
+
     ID3D11InputLayout* layout_;
     ID3D11VertexShader* vertexShader_;
     ID3D11PixelShader* pixelShader_;
@@ -22,6 +30,7 @@ private:
 
     ID3D11Buffer* vb_;
     ID3D11Buffer* ib_;
+    ID3D11Buffer* constBuffer_;
 
     DirectX::XMFLOAT4 points_[8];
 public:

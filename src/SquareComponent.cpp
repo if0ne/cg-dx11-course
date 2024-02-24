@@ -14,6 +14,10 @@ SquareComponent::SquareComponent(float offset) : GameComponent() {
     points_[5] = DirectX::XMFLOAT4(0.0f + offset, 1.0f + offset, 0.0f, 1.0f);
     points_[6] = DirectX::XMFLOAT4(-0.5f + offset, 0.5f + offset, 0.5f, 1.0f);
     points_[7] = DirectX::XMFLOAT4(1.0f + offset, 1.0f + offset, 1.0f, 1.0f);
+
+    x_ = 0.0;
+    y_ = 0.0;
+    speed_ = 0.1;
 }
 
 void SquareComponent::Initialize() {
@@ -119,9 +123,35 @@ void SquareComponent::Initialize() {
     rastDesc.FillMode = D3D11_FILL_SOLID;
 
     ctx_.GetRenderContext().GetDevice()->CreateRasterizerState(&rastDesc, &rastState_);
+
+    D3D11_BUFFER_DESC constBufDesc = {};
+    constBufDesc.Usage = D3D11_USAGE_DYNAMIC;
+    constBufDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    constBufDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    constBufDesc.MiscFlags = 0;
+    constBufDesc.StructureByteStride = 0;
+    constBufDesc.ByteWidth = sizeof(ConstData);
+
+    ctx_.GetRenderContext().GetDevice()->CreateBuffer(&constBufDesc, nullptr, &constBuffer_);
 }
 
 void SquareComponent::Update(float deltaTime) {
+    if (ctx_.GetInputDevice().IsKeyDown(Keys::D)) {
+        x_ += speed_ * deltaTime;
+    }
+
+    if (ctx_.GetInputDevice().IsKeyDown(Keys::A)) {
+        x_ -= speed_ * deltaTime;
+    }
+
+    if (ctx_.GetInputDevice().IsKeyDown(Keys::W)) {
+        y_ += speed_ * deltaTime;
+    }
+
+    if (ctx_.GetInputDevice().IsKeyDown(Keys::S)) {
+        y_ -= speed_ * deltaTime;
+    }
+
     if (ctx_.GetInputDevice().IsKeyDown(Keys::Escape)) {
         ctx_.Exit();
     }
@@ -138,6 +168,16 @@ void SquareComponent::Draw() {
     ctx_.GetRenderContext().GetContext()->IASetVertexBuffers(0, 1, &vb_, strides, offsets);
     ctx_.GetRenderContext().GetContext()->VSSetShader(vertexShader_, nullptr, 0);
     ctx_.GetRenderContext().GetContext()->PSSetShader(pixelShader_, nullptr, 0);
+    ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(0, 1, &constBuffer_);
+
+    D3D11_MAPPED_SUBRESOURCE res = {};
+    ctx_.GetRenderContext().GetContext()->Map(constBuffer_, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
+    ConstData data = {};
+    data.offset = { x_, y_, 0.0, 0.0 };
+
+    memcpy(res.pData, &data, sizeof(ConstData));
+    ctx_.GetRenderContext().GetContext()->Unmap(constBuffer_, 0);
+
     ctx_.GetRenderContext().GetContext()->DrawIndexed(6, 0, 0);
 }
 

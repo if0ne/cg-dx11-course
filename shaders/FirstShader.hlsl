@@ -1,3 +1,13 @@
+struct ConstantData
+{
+    float4 offset;
+};
+
+cbuffer ConstBuf : register(b0)
+{
+    ConstantData ConstData;
+}
+
 struct VS_IN
 {
     float4 pos : POSITION0;
@@ -14,7 +24,7 @@ PS_IN VSMain(VS_IN input)
 {
     PS_IN output = (PS_IN) 0;
 	
-    output.pos = input.pos;
+    output.pos = input.pos + ConstData.offset;
     output.col = input.col;
 	
     return output;
