@@ -1,26 +1,31 @@
-#include "SquareComponent.h"
+#include "RacketComponent.h"
 
-#include "Game.h"
-#include "InputDevice.h"
-#include "Keys.h"
-#include "RenderContext.h"
+#include "../Game.h"
+#include "../InputDevice.h"
+#include "../Keys.h"
+#include "../RenderContext.h"
 
-SquareComponent::SquareComponent(float offset) : GameComponent() {
-    points_[0] = DirectX::XMFLOAT4(0.5f + offset, 0.5f + offset, 0.5f, 1.0f);
-    points_[1] = DirectX::XMFLOAT4(1.0f + offset, 0.0f + offset, 0.0f, 1.0f);
-    points_[2] = DirectX::XMFLOAT4(-0.5f + offset, -0.5f + offset, 0.5f, 1.0f);
-    points_[3] = DirectX::XMFLOAT4(0.0f + offset, 0.0f + offset, 1.0f, 1.0f);
-    points_[4] = DirectX::XMFLOAT4(0.5f + offset, -0.5f + offset, 0.5f, 1.0f);
-    points_[5] = DirectX::XMFLOAT4(0.0f + offset, 1.0f + offset, 0.0f, 1.0f);
-    points_[6] = DirectX::XMFLOAT4(-0.5f + offset, 0.5f + offset, 0.5f, 1.0f);
-    points_[7] = DirectX::XMFLOAT4(1.0f + offset, 1.0f + offset, 1.0f, 1.0f);
+#include "RenderMisc.h"
 
-    x_ = 0.0;
-    y_ = 0.0;
+RacketComponent::RacketComponent(float x, float y, Keys upKey, Keys downKey) : GameComponent() {
+    points_[0] = DirectX::XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
+    points_[1] = DirectX::XMFLOAT4(0.2f, 0.0f, 0.0f, 1.0f);
+    points_[2] = DirectX::XMFLOAT4(-0.1f, -0.1f, 0.1f, 1.0f);
+    points_[3] = DirectX::XMFLOAT4(0.0f, 0.0f, 0.2f, 1.0f);
+    points_[4] = DirectX::XMFLOAT4(0.1f, -0.1f, 0.1f, 1.0f);
+    points_[5] = DirectX::XMFLOAT4(0.0f, 0.2f, 0.0f, 1.0f);
+    points_[6] = DirectX::XMFLOAT4(-0.1f, 0.1f, 0.1f, 1.0f);
+    points_[7] = DirectX::XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
+
+    x_ = x;
+    y_ = y;
     speed_ = 0.1;
+
+    upKey_ = upKey;
+    downKey_ = downKey;
 }
 
-void SquareComponent::Initialize() {
+void RacketComponent::Initialize() {
     D3DCompileFromFile(
         L"./shaders/FirstShader.hlsl",
         nullptr,
@@ -36,7 +41,7 @@ void SquareComponent::Initialize() {
     D3DCompileFromFile(
         L"./shaders/FirstShader.hlsl",
         nullptr,
-        nullptr, 
+        nullptr,
         "PSMain",
         "ps_5_0",
         D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,
@@ -130,34 +135,22 @@ void SquareComponent::Initialize() {
     constBufDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
     constBufDesc.MiscFlags = 0;
     constBufDesc.StructureByteStride = 0;
-    constBufDesc.ByteWidth = sizeof(ConstData);
+    constBufDesc.ByteWidth = sizeof(Position);
 
     ctx_.GetRenderContext().GetDevice()->CreateBuffer(&constBufDesc, nullptr, &constBuffer_);
 }
 
-void SquareComponent::Update(float deltaTime) {
-    if (ctx_.GetInputDevice().IsKeyDown(Keys::D)) {
-        x_ += speed_ * deltaTime;
-    }
-
-    if (ctx_.GetInputDevice().IsKeyDown(Keys::A)) {
-        x_ -= speed_ * deltaTime;
-    }
-
-    if (ctx_.GetInputDevice().IsKeyDown(Keys::W)) {
+void RacketComponent::Update(float deltaTime) {
+    if (ctx_.GetInputDevice().IsKeyDown(upKey_)) {
         y_ += speed_ * deltaTime;
     }
 
-    if (ctx_.GetInputDevice().IsKeyDown(Keys::S)) {
+    if (ctx_.GetInputDevice().IsKeyDown(downKey_)) {
         y_ -= speed_ * deltaTime;
-    }
-
-    if (ctx_.GetInputDevice().IsKeyDown(Keys::Escape)) {
-        ctx_.Exit();
     }
 }
 
-void SquareComponent::Draw() {
+void RacketComponent::Draw() {
     UINT strides[] = { 32 };
     UINT offsets[] = { 0 };
 
@@ -172,19 +165,19 @@ void SquareComponent::Draw() {
 
     D3D11_MAPPED_SUBRESOURCE res = {};
     ctx_.GetRenderContext().GetContext()->Map(constBuffer_, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
-    ConstData data = {};
-    data.offset = { x_, y_, 0.0, 0.0 };
+    Position data = {};
+    data.v = { x_, y_, 0.0, 0.0 };
 
-    memcpy(res.pData, &data, sizeof(ConstData));
+    memcpy(res.pData, &data, sizeof(Position));
     ctx_.GetRenderContext().GetContext()->Unmap(constBuffer_, 0);
 
     ctx_.GetRenderContext().GetContext()->DrawIndexed(6, 0, 0);
 }
 
-void SquareComponent::Reload() {
+void RacketComponent::Reload() {
 
 }
 
-void SquareComponent::DestroyResources() {
+void RacketComponent::DestroyResources() {
 
 }

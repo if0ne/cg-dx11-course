@@ -1,23 +1,25 @@
 #pragma once
-#include "GameComponent.h"
+#include "../GameComponent.h"
+#include "../Keys.h"
 
 #include <d3d.h>
 #include <d3d11.h>
 #include <d3dcompiler.h>
 #include <directxmath.h>
 
-class Game;
-
-struct ConstData {
-    DirectX::XMFLOAT4 offset;
-};
-
-class SquareComponent : public GameComponent
+class RacketComponent : public GameComponent
 {
 private:
     float x_;
     float y_;
+
+    float w_;
+    float h_;
+
     float speed_;
+
+    Keys upKey_;
+    Keys downKey_;
 
     ID3D11InputLayout* layout_;
     ID3D11VertexShader* vertexShader_;
@@ -33,8 +35,9 @@ private:
     ID3D11Buffer* constBuffer_;
 
     DirectX::XMFLOAT4 points_[8];
+
 public:
-    SquareComponent(float offset);
+    RacketComponent(float x, float y, Keys upKey, Keys downKey);
 
     virtual void Initialize();
     virtual void Update(float deltaTime);

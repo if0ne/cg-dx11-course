@@ -4,17 +4,15 @@
 #pragma comment(lib, "dxguid.lib")
 
 #include "Game.h"
-#include "SquareComponent.h"
+#include "PingPong/PingPongGame.h"
 
 #include <memory>
 
 int main()
 {
-	std::shared_ptr<SquareComponent> cmp1 = std::make_shared<SquareComponent>(0.0);
-	std::shared_ptr<SquareComponent> cmp2 = std::make_shared<SquareComponent>(0.25);
+	std::shared_ptr<PingPongGame> game = std::make_shared<PingPongGame>();
 
-	Game::GetSingleton().PushComponent(std::move(cmp1));
-	Game::GetSingleton().PushComponent(std::move(cmp2));
+	Game::GetSingleton().PushComponent(std::move(game));
 
 	Game::GetSingleton().Run();
 }

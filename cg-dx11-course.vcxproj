@@ -127,22 +127,27 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\PingPong\BallComponent.cpp" />
+    <ClCompile Include="src\PingPong\RacketComponent.cpp" />
+    <ClCompile Include="src\PingPong\PingPongGame.cpp" />
     <ClCompile Include="src\Game.cpp" />
     <ClCompile Include="src\GameComponent.cpp" />
     <ClCompile Include="src\InputDevice.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\RenderContext.cpp" />
-    <ClCompile Include="src\SquareComponent.cpp" />
     <ClCompile Include="src\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\PingPong\BallComponent.h" />
+    <ClInclude Include="src\PingPong\RacketComponent.h" />
+    <ClInclude Include="src\PingPong\PingPongGame.h" />
     <ClInclude Include="src\InputDevice.h" />
     <ClInclude Include="src\GameComponent.h" />
     <ClInclude Include="src\Game.h" />
     <ClInclude Include="src\Keys.h" />
+    <ClInclude Include="src\PingPong\RenderMisc.h" />
     <ClInclude Include="src\RenderContext.h" />
     <ClInclude Include="src\Window.h" />
-    <ClInclude Include="src\SquareComponent.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -30,10 +30,16 @@
     <ClCompile Include="src\RenderContext.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="src\SquareComponent.cpp">
+    <ClCompile Include="src\GameComponent.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="src\GameComponent.cpp">
+    <ClCompile Include="src\PingPong\PingPongGame.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PingPong\RacketComponent.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PingPong\BallComponent.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>
@@ -47,9 +53,6 @@
     <ClInclude Include="src\Window.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="src\SquareComponent.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
     <ClInclude Include="src\RenderContext.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
@@ -57,6 +60,18 @@
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="src\Keys.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PingPong\PingPongGame.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PingPong\RacketComponent.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PingPong\BallComponent.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PingPong\RenderMisc.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>
