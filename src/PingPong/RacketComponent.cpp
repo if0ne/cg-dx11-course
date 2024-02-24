@@ -8,18 +8,18 @@
 #include "RenderMisc.h"
 
 RacketComponent::RacketComponent(float x, float y, Keys upKey, Keys downKey) : GameComponent() {
-    points_[0] = DirectX::XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
+    points_[0] = DirectX::XMFLOAT4(0.1f, 0.1f, 0.0f, 1.0f);
     points_[1] = DirectX::XMFLOAT4(0.2f, 0.0f, 0.0f, 1.0f);
-    points_[2] = DirectX::XMFLOAT4(-0.1f, -0.1f, 0.1f, 1.0f);
-    points_[3] = DirectX::XMFLOAT4(0.0f, 0.0f, 0.2f, 1.0f);
-    points_[4] = DirectX::XMFLOAT4(0.1f, -0.1f, 0.1f, 1.0f);
+    points_[2] = DirectX::XMFLOAT4(-0.1f, -0.1f, 0.0f, 1.0f);
+    points_[3] = DirectX::XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
+    points_[4] = DirectX::XMFLOAT4(0.1f, -0.1f, 0.0f, 1.0f);
     points_[5] = DirectX::XMFLOAT4(0.0f, 0.2f, 0.0f, 1.0f);
-    points_[6] = DirectX::XMFLOAT4(-0.1f, 0.1f, 0.1f, 1.0f);
-    points_[7] = DirectX::XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
+    points_[6] = DirectX::XMFLOAT4(-0.1f, 0.1f, 0.0f, 1.0f);
+    points_[7] = DirectX::XMFLOAT4(0.2f, 0.2f, 0.0f, 1.0f);
 
     x_ = x;
     y_ = y;
-    speed_ = 0.1;
+    speed_ = 1.0;
 
     upKey_ = upKey;
     downKey_ = downKey;
@@ -27,7 +27,7 @@ RacketComponent::RacketComponent(float x, float y, Keys upKey, Keys downKey) : G
 
 void RacketComponent::Initialize() {
     D3DCompileFromFile(
-        L"./shaders/FirstShader.hlsl",
+        L"./shaders/PingPong.hlsl",
         nullptr,
         nullptr,
         "VSMain",
@@ -39,7 +39,7 @@ void RacketComponent::Initialize() {
     );
 
     D3DCompileFromFile(
-        L"./shaders/FirstShader.hlsl",
+        L"./shaders/PingPong.hlsl",
         nullptr,
         nullptr,
         "PSMain",
@@ -63,30 +63,20 @@ void RacketComponent::Initialize() {
     );
 
     D3D11_INPUT_ELEMENT_DESC inputElements[] = {
-    D3D11_INPUT_ELEMENT_DESC {
-        "POSITION",
-        0,
-        DXGI_FORMAT_R32G32B32A32_FLOAT,
-        0,
-        0,
-        D3D11_INPUT_PER_VERTEX_DATA,
-        0
-    },
-
-    D3D11_INPUT_ELEMENT_DESC {
-        "COLOR",
-        0,
-        DXGI_FORMAT_R32G32B32A32_FLOAT,
-        0,
-        D3D11_APPEND_ALIGNED_ELEMENT,
-        D3D11_INPUT_PER_VERTEX_DATA,
-        0
-    }
+        D3D11_INPUT_ELEMENT_DESC {
+            "POSITION",
+            0,
+            DXGI_FORMAT_R32G32B32A32_FLOAT,
+            0,
+            0,
+            D3D11_INPUT_PER_VERTEX_DATA,
+            0
+        }
     };
 
     ctx_.GetRenderContext().GetDevice()->CreateInputLayout(
         inputElements,
-        2,
+        1,
         vertexBC_->GetBufferPointer(),
         vertexBC_->GetBufferSize(),
         &layout_
@@ -179,5 +169,13 @@ void RacketComponent::Reload() {
 }
 
 void RacketComponent::DestroyResources() {
-
+    layout_->Release();
+    vertexShader_->Release();
+    pixelShader_->Release();
+    vertexBC_->Release();
+    pixelBC_->Release();
+    rastState_->Release();
+    vb_->Release();
+    ib_->Release();
+    constBuffer_->Release();
 }
