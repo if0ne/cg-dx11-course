@@ -1,25 +1,37 @@
 #include "RacketComponent.h"
 
+#include <DirectXCollision.h>
+
 #include "../Game.h"
 #include "../InputDevice.h"
 #include "../Keys.h"
 #include "../RenderContext.h"
 #include "../Window.h"
 
+#include "PingPongGame.h"
 #include "RenderMisc.h"
 
-RacketComponent::RacketComponent(float x, float y, Keys upKey, Keys downKey) : GameComponent() {
-    points_[0] = DirectX::XMFLOAT4(0.00f, 0.00f, 0.0f, 1.0f);
-    points_[1] = DirectX::XMFLOAT4(0.05f, 0.0f, 0.0f, 1.0f);
-    points_[2] = DirectX::XMFLOAT4(0.05f, -0.2f, 0.0f, 1.0f);
-    points_[3] = DirectX::XMFLOAT4(0.00f, -0.2f, 0.0f, 1.0f);
-
+RacketComponent::RacketComponent(
+    float x, 
+    float y, 
+    Keys upKey,
+    Keys downKey, 
+    PingPongGame& parent
+) : parent_(parent), GameComponent() {
     x_ = x;
     y_ = y;
     speed_ = 1.0;
 
     upKey_ = upKey;
     downKey_ = downKey;
+
+    w_ = 0.05;
+    h_ = 0.2;
+
+    points_[0] = DirectX::XMFLOAT4(0.00f, 0.00f, 0.0f, 1.0f);
+    points_[1] = DirectX::XMFLOAT4(w_, 0.0f, 0.0f, 1.0f);
+    points_[2] = DirectX::XMFLOAT4(w_, -h_, 0.0f, 1.0f);
+    points_[3] = DirectX::XMFLOAT4(0.00f, -h_, 0.0f, 1.0f);
 }
 
 void RacketComponent::Initialize() {
@@ -129,11 +141,19 @@ void RacketComponent::Initialize() {
 
 void RacketComponent::Update(float deltaTime) {
     if (ctx_.GetInputDevice().IsKeyDown(upKey_)) {
-        y_ += speed_ * deltaTime;
+        if (!GetNextBoundingBox().Intersects(parent_.GetWallTop())) {
+            y_ += speed_ * deltaTime;
+        }
+        
+        dirY_ = 1.0;
     }
 
     if (ctx_.GetInputDevice().IsKeyDown(downKey_)) {
-        y_ -= speed_ * deltaTime;
+        if (!GetNextBoundingBox().Intersects(parent_.GetWallDown())) {
+            y_ -= speed_ * deltaTime;
+        }
+
+        dirY_ = -1.0;
     }
 }
 
@@ -176,4 +196,28 @@ void RacketComponent::DestroyResources() {
     vb_->Release();
     ib_->Release();
     constBuffer_->Release();
+}
+
+DirectX::BoundingBox RacketComponent::GetNextBoundingBox() {
+    DirectX::BoundingBox rect{};
+
+    float y = y_ + dirY_ * speed_ * Game::GetSingleton().GetDeltaTime();
+
+    rect.Center.x = x_ + w_ / 2;
+    rect.Center.y = y - h_ / 2;
+    rect.Extents.x = w_;
+    rect.Extents.y = h_;
+
+    return rect;
+}
+
+DirectX::BoundingBox RacketComponent::GetBoundingBox() {
+    DirectX::BoundingBox rect{};
+
+    rect.Center.x = x_ + w_ / 2;
+    rect.Center.y = y_ - h_ / 2;
+    rect.Extents.x = w_;
+    rect.Extents.y = h_;
+
+    return rect;
 }

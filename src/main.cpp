@@ -10,6 +10,8 @@
 
 int main()
 {
+	srand(time(0));
+
 	std::shared_ptr<PingPongGame> game = std::make_shared<PingPongGame>();
 
 	Game::GetSingleton().PushComponent(std::move(game));

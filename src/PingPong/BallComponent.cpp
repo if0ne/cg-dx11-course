@@ -1,20 +1,26 @@
 #include "BallComponent.h"
 
+#include <DirectXCollision.h>
+
 #include "../Game.h"
 #include "../RenderContext.h"
 #include "../Window.h"
 
+#include "PingPongGame.h"
 #include "RenderMisc.h"
 
-BallComponent::BallComponent() : GameComponent() {
-    points_[0] = DirectX::XMFLOAT4(0.00f, 0.00f, 0.0f, 1.0f);
-    points_[1] = DirectX::XMFLOAT4(0.05f, 0.0f, 0.0f, 1.0f);
-    points_[2] = DirectX::XMFLOAT4(0.05f, -0.05f, 0.0f, 1.0f);
-    points_[3] = DirectX::XMFLOAT4(0.00f, -0.05f, 0.0f, 1.0f);
-
+BallComponent::BallComponent(PingPongGame& parent) : parent_(parent), GameComponent() {
     x_ = 0.0;
     y_ = 0.0;
     speed_ = 0.5;
+
+    w_ = 0.05;
+    h_ = 0.05;
+
+    points_[0] = DirectX::XMFLOAT4(0.00f, 0.00f, 0.0f, 1.0f);
+    points_[1] = DirectX::XMFLOAT4(w_, 0.0f, 0.0f, 1.0f);
+    points_[2] = DirectX::XMFLOAT4(w_, -h_, 0.0f, 1.0f);
+    points_[3] = DirectX::XMFLOAT4(0.00f, -h_, 0.0f, 1.0f);
 }
 
 void BallComponent::Initialize() {
@@ -125,8 +131,42 @@ void BallComponent::Initialize() {
 }
 
 void BallComponent::Update(float deltaTime) {
-    x_ += dirX_ * speed_ * deltaTime;
-    y_ += dirY_ * speed_ * deltaTime;
+    auto bb = GetNextBoundingBox();
+
+    auto topWall = parent_.GetWallTop();
+    auto bottomWall = parent_.GetWallDown();
+
+    auto goalOne = parent_.GetGoalPlayerOne();
+    auto goalTwo = parent_.GetGoalPlayerTwo();
+
+    auto playerOne = parent_.GetRacketComponentPlayerOne();
+    auto playerTwo = parent_.GetRacketComponentPlayerTwo();
+
+    if (bb.Intersects(playerOne.GetBoundingBox()) ||
+        bb.Intersects(playerTwo.GetBoundingBox())) 
+    {
+        dirX_ = -dirX_;
+    }
+
+    if (bb.Intersects(goalOne)) {
+        parent_.IncreasePlayerTwoScore();
+        Reload();
+    }
+
+    if (bb.Intersects(goalTwo)) {
+        parent_.IncreasePlayerOneScore();
+        Reload();
+    }
+
+    if (!bb.Intersects(topWall) &&
+        !bb.Intersects(bottomWall)
+    ) {
+        x_ += dirX_ * speed_ * deltaTime;
+        y_ += dirY_ * speed_ * deltaTime;
+    } else {
+        dirY_ = -dirY_;
+    }
+
 }
 
 void BallComponent::Draw() {
@@ -158,8 +198,9 @@ void BallComponent::Reload() {
     x_ = 0.0;
     y_ = 0.0;
 
-    dirX_ = rand() % 2 == 0 ? 1 : -1 ;
-    dirY_ = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+    speed_ = 0.5;
+    dirX_ = rand() % 2 == 0 ? 1 : -1;
+    dirY_ = rand() % 2 == 0 ? 1 : -1;
 }
 
 void BallComponent::DestroyResources() {
@@ -172,4 +213,18 @@ void BallComponent::DestroyResources() {
     vb_->Release();
     ib_->Release();
     constBuffer_->Release();
+}
+
+DirectX::BoundingBox BallComponent::GetNextBoundingBox() {
+    DirectX::BoundingBox rect{};
+
+    float x = x_ + dirX_ * speed_ * Game::GetSingleton().GetDeltaTime();
+    float y = y_ + dirY_ * speed_ * Game::GetSingleton().GetDeltaTime();
+
+    rect.Center.x = x + w_ / 2;
+    rect.Center.y = y - h_ / 2;
+    rect.Extents.x = w_;
+    rect.Extents.y = h_;
+
+    return rect;
 }

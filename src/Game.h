@@ -66,5 +66,9 @@ public:
 
         return *instance_;
     }
+
+    float GetDeltaTime() {
+        return deltaTime_;
+    }
 };
 

@@ -5,6 +5,9 @@
 #include <d3d11.h>
 #include <d3dcompiler.h>
 #include <directxmath.h>
+#include <DirectXCollision.h>
+
+class PingPongGame;
 
 class BallComponent : public GameComponent
 {
@@ -19,6 +22,8 @@ private:
 
     float dirX_;
     float dirY_;
+
+    PingPongGame& parent_;
 
     ID3D11InputLayout* layout_;
     ID3D11VertexShader* vertexShader_;
@@ -35,12 +40,14 @@ private:
 
     DirectX::XMFLOAT4 points_[4];
 public:
-    BallComponent();
+    BallComponent(PingPongGame& parent);
 
     virtual void Initialize();
     virtual void Update(float deltaTime);
     virtual void Draw();
     virtual void Reload();
     virtual void DestroyResources();
+
+    DirectX::BoundingBox GetNextBoundingBox();
 };
 

@@ -6,6 +6,9 @@
 #include <d3d11.h>
 #include <d3dcompiler.h>
 #include <directxmath.h>
+#include <DirectXCollision.h>
+
+class PingPongGame;
 
 class RacketComponent : public GameComponent
 {
@@ -17,6 +20,9 @@ private:
     float h_;
 
     float speed_;
+    float dirY_;
+
+    PingPongGame& parent_;
 
     Keys upKey_;
     Keys downKey_;
@@ -37,12 +43,15 @@ private:
     DirectX::XMFLOAT4 points_[4];
 
 public:
-    RacketComponent(float x, float y, Keys upKey, Keys downKey);
+    RacketComponent(float x, float y, Keys upKey, Keys downKey, PingPongGame& parent);
 
     virtual void Initialize();
     virtual void Update(float deltaTime);
     virtual void Draw();
     virtual void Reload();
     virtual void DestroyResources();
+
+    DirectX::BoundingBox GetNextBoundingBox();
+    DirectX::BoundingBox GetBoundingBox();
 };
 

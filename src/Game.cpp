@@ -9,7 +9,7 @@ Game* Game::instance_;
 Game::Game() {
     instance_ = this;
     inputDevice_ = new InputDevice(*this);
-    window_ = new Window(800, 600);
+    window_ = new Window(1240, 720);
     renderCtx_ = new RenderContext();
 
     components_ = {};
