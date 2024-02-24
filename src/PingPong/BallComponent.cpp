@@ -2,18 +2,15 @@
 
 #include "../Game.h"
 #include "../RenderContext.h"
+#include "../Window.h"
 
 #include "RenderMisc.h"
 
 BallComponent::BallComponent() : GameComponent() {
-    points_[0] = DirectX::XMFLOAT4(0.05f, 0.05f, 0.0f, 1.0f);
-    points_[1] = DirectX::XMFLOAT4(0.1f, 0.0f, 0.0f, 1.0f);
-    points_[2] = DirectX::XMFLOAT4(-0.05f, -0.05f, 0.0f, 1.0f);
-    points_[3] = DirectX::XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
-    points_[4] = DirectX::XMFLOAT4(0.05f, -0.05f, 0.0f, 1.0f);
-    points_[5] = DirectX::XMFLOAT4(0.0f, 0.1f, 0.0f, 1.0f);
-    points_[6] = DirectX::XMFLOAT4(-0.05f, 0.05f, 0.0f, 1.0f);
-    points_[7] = DirectX::XMFLOAT4(0.1f, 0.1f, 0.0f, 1.0f);
+    points_[0] = DirectX::XMFLOAT4(0.00f, 0.00f, 0.0f, 1.0f);
+    points_[1] = DirectX::XMFLOAT4(0.05f, 0.0f, 0.0f, 1.0f);
+    points_[2] = DirectX::XMFLOAT4(0.05f, -0.05f, 0.0f, 1.0f);
+    points_[3] = DirectX::XMFLOAT4(0.00f, -0.05f, 0.0f, 1.0f);
 
     x_ = 0.0;
     y_ = 0.0;
@@ -92,7 +89,7 @@ void BallComponent::Initialize() {
 
     ctx_.GetRenderContext().GetDevice()->CreateBuffer(&vertexBufDesc, &vertexData, &vb_);
 
-    int indeces[] = { 0,1,2, 1,0,3 };
+    int indeces[] = { 0,1,3, 1,2,3 };
     D3D11_BUFFER_DESC indexBufDesc = {};
     indexBufDesc.Usage = D3D11_USAGE_DEFAULT;
     indexBufDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
@@ -120,7 +117,7 @@ void BallComponent::Initialize() {
     constBufDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
     constBufDesc.MiscFlags = 0;
     constBufDesc.StructureByteStride = 0;
-    constBufDesc.ByteWidth = sizeof(Position);
+    constBufDesc.ByteWidth = sizeof(ConstantData);
 
     ctx_.GetRenderContext().GetDevice()->CreateBuffer(&constBufDesc, nullptr, &constBuffer_);
 
@@ -133,7 +130,7 @@ void BallComponent::Update(float deltaTime) {
 }
 
 void BallComponent::Draw() {
-    UINT strides[] = { 32 };
+    UINT strides[] = { sizeof(DirectX::XMFLOAT4) };
     UINT offsets[] = { 0 };
 
     ctx_.GetRenderContext().GetContext()->RSSetState(rastState_);
@@ -147,10 +144,11 @@ void BallComponent::Draw() {
 
     D3D11_MAPPED_SUBRESOURCE res = {};
     ctx_.GetRenderContext().GetContext()->Map(constBuffer_, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
-    Position data = {};
+    ConstantData data = {};
     data.v = { x_, y_, 0.0, 0.0 };
+    data.aspect = { ctx_.GetWindow().GetAspectRatio(), 0.0, 0.0, 0.0 };
 
-    memcpy(res.pData, &data, sizeof(Position));
+    memcpy(res.pData, &data, sizeof(ConstantData));
     ctx_.GetRenderContext().GetContext()->Unmap(constBuffer_, 0);
 
     ctx_.GetRenderContext().GetContext()->DrawIndexed(6, 0, 0);

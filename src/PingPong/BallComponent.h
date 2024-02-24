@@ -33,7 +33,7 @@ private:
     ID3D11Buffer* ib_;
     ID3D11Buffer* constBuffer_;
 
-    DirectX::XMFLOAT4 points_[8];
+    DirectX::XMFLOAT4 points_[4];
 public:
     BallComponent();
 

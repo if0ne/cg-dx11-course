@@ -1,6 +1,7 @@
 struct Position
 {
     float4 v;
+    float4 aspect;
 };
 
 cbuffer ConstBuf : register(b0)
@@ -22,6 +23,7 @@ PS_IN VSMain(VS_IN input)
 {
     PS_IN output = (PS_IN) 0;
 	
+    input.pos *= float4(1.0, Pos.aspect.x, 1.0, 1.0);
     output.pos = input.pos + Pos.v;
 	
     return output;

@@ -50,6 +50,10 @@ public:
 		return height_;
 	}
 
+	float GetAspectRatio() {
+		return (float)width_ / height_;
+	}
+
 	IDXGISwapChain1* GetSwapchain() {
 		return swapchain_;
 	}
