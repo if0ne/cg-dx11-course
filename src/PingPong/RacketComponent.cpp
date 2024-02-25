@@ -1,7 +1,5 @@
 #include "RacketComponent.h"
 
-#include <DirectXCollision.h>
-
 #include "../Game.h"
 #include "../InputDevice.h"
 #include "../Keys.h"
@@ -10,6 +8,7 @@
 
 #include "PingPongGame.h"
 #include "RenderMisc.h"
+#include "DirectXCollision.h"
 
 RacketComponent::RacketComponent(
     float x, 
@@ -140,8 +139,12 @@ void RacketComponent::Initialize() {
 }
 
 void RacketComponent::Update(float deltaTime) {
+    auto bb = GetNextBoundingBox();
+    auto topWall = parent_.GetWallTop();
+    auto bottomWall = parent_.GetWallBottom();
+
     if (ctx_.GetInputDevice().IsKeyDown(upKey_)) {
-        if (!GetNextBoundingBox().Intersects(parent_.GetWallTop())) {
+        if (!bb.Intersects(topWall)) {
             y_ += speed_ * deltaTime;
         }
         
@@ -149,7 +152,7 @@ void RacketComponent::Update(float deltaTime) {
     }
 
     if (ctx_.GetInputDevice().IsKeyDown(downKey_)) {
-        if (!GetNextBoundingBox().Intersects(parent_.GetWallDown())) {
+        if (!bb.Intersects(bottomWall)) {
             y_ -= speed_ * deltaTime;
         }
 
@@ -205,8 +208,8 @@ DirectX::BoundingBox RacketComponent::GetNextBoundingBox() {
 
     rect.Center.x = x_ + w_ / 2;
     rect.Center.y = y - h_ / 2;
-    rect.Extents.x = w_;
-    rect.Extents.y = h_;
+    rect.Extents.x = w_ / 2;
+    rect.Extents.y = h_ / 2;
 
     return rect;
 }
@@ -216,8 +219,8 @@ DirectX::BoundingBox RacketComponent::GetBoundingBox() {
 
     rect.Center.x = x_ + w_ / 2;
     rect.Center.y = y_ - h_ / 2;
-    rect.Extents.x = w_;
-    rect.Extents.y = h_;
+    rect.Extents.x = w_ / 2;
+    rect.Extents.y = h_ / 2;
 
     return rect;
 }

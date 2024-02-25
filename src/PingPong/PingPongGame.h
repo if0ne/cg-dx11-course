@@ -5,6 +5,8 @@
 #include "RacketComponent.h"
 #include "DirectXCollision.h"
 
+#include "DirectXCollision.h"
+
 class PingPongGame : public GameComponent
 {
 private:
@@ -54,7 +56,7 @@ public:
         return wallTop_;
     }
 
-    DirectX::BoundingBox GetWallDown() {
+    DirectX::BoundingBox GetWallBottom() {
         return wallBottom_;
     }
 

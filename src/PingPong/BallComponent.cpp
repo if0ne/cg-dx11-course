@@ -1,13 +1,12 @@
 #include "BallComponent.h"
 
-#include <DirectXCollision.h>
-
 #include "../Game.h"
 #include "../RenderContext.h"
 #include "../Window.h"
 
 #include "PingPongGame.h"
 #include "RenderMisc.h"
+#include "DirectXCollision.h"
 
 BallComponent::BallComponent(PingPongGame& parent) : parent_(parent), GameComponent() {
     x_ = 0.0;
@@ -134,7 +133,7 @@ void BallComponent::Update(float deltaTime) {
     auto bb = GetNextBoundingBox();
 
     auto topWall = parent_.GetWallTop();
-    auto bottomWall = parent_.GetWallDown();
+    auto bottomWall = parent_.GetWallBottom();
 
     auto goalOne = parent_.GetGoalPlayerOne();
     auto goalTwo = parent_.GetGoalPlayerTwo();
@@ -223,8 +222,8 @@ DirectX::BoundingBox BallComponent::GetNextBoundingBox() {
 
     rect.Center.x = x + w_ / 2;
     rect.Center.y = y - h_ / 2;
-    rect.Extents.x = w_;
-    rect.Extents.y = h_;
+    rect.Extents.x = w_ / 2;
+    rect.Extents.y = h_ / 2;
 
     return rect;
 }
