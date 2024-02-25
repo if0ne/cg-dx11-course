@@ -145,6 +145,7 @@ void BallComponent::Update(float deltaTime) {
         bb.Intersects(playerTwo.GetBoundingBox())) 
     {
         dirX_ = -dirX_;
+        speed_ += 0.1;
     }
 
     if (bb.Intersects(goalOne)) {
