@@ -207,9 +207,9 @@ DirectX::BoundingBox RacketComponent::GetNextBoundingBox() {
     float y = y_ + dirY_ * speed_ * Game::GetSingleton().GetDeltaTime();
 
     rect.Center.x = x_ + w_ / 2;
-    rect.Center.y = y - h_ / 2;
+    rect.Center.y = y - h_ / 2 * Game::GetSingleton().GetWindow().GetAspectRatio();
     rect.Extents.x = w_ / 2;
-    rect.Extents.y = h_ / 2;
+    rect.Extents.y = h_ / 2 * Game::GetSingleton().GetWindow().GetAspectRatio();
 
     return rect;
 }
@@ -218,9 +218,9 @@ DirectX::BoundingBox RacketComponent::GetBoundingBox() {
     DirectX::BoundingBox rect{};
 
     rect.Center.x = x_ + w_ / 2;
-    rect.Center.y = y_ - h_ / 2;
+    rect.Center.y = y_ - h_ / 2 * Game::GetSingleton().GetWindow().GetAspectRatio();
     rect.Extents.x = w_ / 2;
-    rect.Extents.y = h_ / 2;
+    rect.Extents.y = h_ / 2 * Game::GetSingleton().GetWindow().GetAspectRatio();
 
     return rect;
 }
