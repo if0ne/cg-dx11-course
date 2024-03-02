@@ -5,30 +5,20 @@
 
 using namespace DirectX::SimpleMath;
 
-DirectX::SimpleMath::Vector3 CubeComponent::vertices_[8];
-int CubeComponent::indices_[36];
-
-ID3D11Buffer* CubeComponent::vb_;
-ID3D11Buffer* CubeComponent::ib_;
-
 void CubeComponent::Initialize() {
-    if (vb_ != nullptr && ib_ != nullptr) {
-        return;
-    }
+    Vector3 verts[16] = {
+        Vector3(-1.0, -1.0, -1.0), Vector3(0.0, 0.667, 1.0),
+        Vector3(1.0, -1.0, -1.0), Vector3(0.0, 0.667, 1.0),
+        Vector3(1.0, 1.0, -1.0), Vector3(0.0, 0.667, 1.0),
+        Vector3(-1.0, 1.0, -1.0), Vector3(0.0, 0.667, 1.0),
 
-    Vector3 verts[8] = {
-        {Vector3(-1.0, -1.0, -1.0)},
-        {Vector3(1.0, -1.0, -1.0)},
-        {Vector3(1.0, 1.0, -1.0)},
-        {Vector3(-1.0, 1.0, -1.0)},
-
-        {Vector3(-1.0, -1.0, 1.0)},
-        {Vector3(1.0, -1.0, 1.0)},
-        {Vector3(1.0, 1.0, 1.0)},
-        {Vector3(-1.0, 1.0, 1.0)},
+        Vector3(-1.0, -1.0, 1.0), Vector3(0.0, 0.667, 0.0),
+        Vector3(1.0, -1.0, 1.0), Vector3(0.0, 0.667, 0.0),
+        Vector3(1.0, 1.0, 1.0), Vector3(0.0, 0.667, 0.0),
+        Vector3(-1.0, 1.0, 1.0), Vector3(0.0, 0.667, 0.0),
     };
 
-    memcpy(vertices_, verts, sizeof(Vector3) * 8);
+    memcpy(vertices_, verts, sizeof(Vector3) * 16);
 
     int indices[36] =
     {
@@ -94,7 +84,7 @@ void CubeComponent::Update(float deltaTime) {
 }
 
 void CubeComponent::Draw() {
-    UINT strides[] = { sizeof(Vector3) };
+    UINT strides[] = { sizeof(Vector3) * 2 };
     UINT offsets[] = { 0 };
 
     ctx_.GetRenderContext().GetContext()->IASetIndexBuffer(ib_, DXGI_FORMAT_R32_UINT, 0);

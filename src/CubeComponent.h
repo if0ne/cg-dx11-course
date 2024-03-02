@@ -8,11 +8,11 @@
 class CubeComponent : public GameComponent
 {
 private:
-    static DirectX::SimpleMath::Vector3 vertices_[8];
-    static int indices_[36];
+    DirectX::SimpleMath::Vector3 vertices_[16];
+    int indices_[36];
 
-    static ID3D11Buffer* vb_;
-    static ID3D11Buffer* ib_;
+    ID3D11Buffer* vb_;
+    ID3D11Buffer* ib_;
 public:
     CubeComponent() : GameComponent() {
         vb_ = nullptr;

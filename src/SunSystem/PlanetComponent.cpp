@@ -32,12 +32,12 @@ void PlanetComponent::Update(float deltaTime) {
 }
 
 void PlanetComponent::Draw() {
-    auto center = DirectX::SimpleMath::Vector3::Zero - position_;
-    auto quat = DirectX::SimpleMath::Matrix::CreateFromQuaternion(DirectX::SimpleMath::Quaternion::CreateFromAxisAngle(rotation_, angle_));
+    auto scale = DirectX::SimpleMath::Matrix::CreateScale(115.0);
+    auto rotation = DirectX::SimpleMath::Matrix::CreateRotationY(angle_);
+    auto translation = DirectX::SimpleMath::Matrix::CreateTranslation(position_);
 
-    auto rotated = DirectX::SimpleMath::Vector3::Transform(center, quat);
+    auto matrix =  scale * rotation * translation;
 
-    auto matrix = DirectX::SimpleMath::Matrix::CreateTranslation(-rotated);
     game_.UpdateModelBuffer(matrix);
 
     sphere_->Draw();

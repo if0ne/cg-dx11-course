@@ -9,11 +9,11 @@
 class SphereComponent : public GameComponent
 {
 private:
-    static std::vector<DirectX::SimpleMath::Vector3> vertices_;
-    static std::vector<int> indices_;
+    std::vector<DirectX::SimpleMath::Vector3> vertices_;
+    std::vector<int> indices_;
 
-    static ID3D11Buffer* vb_;
-    static ID3D11Buffer* ib_;
+    ID3D11Buffer* vb_;
+    ID3D11Buffer* ib_;
 
     int numSegments_;
 public:

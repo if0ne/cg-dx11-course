@@ -9,17 +9,7 @@
 
 using namespace DirectX::SimpleMath;
 
-std::vector<Vector3> SphereComponent::vertices_;
-std::vector<int> SphereComponent::indices_;
-
-ID3D11Buffer* SphereComponent::vb_;
-ID3D11Buffer* SphereComponent::ib_;
-
 void SphereComponent::Initialize() {
-    if (vb_ != nullptr && ib_ != nullptr) {
-        return;
-    }
-
     float phiInc = M_PI / numSegments_;
     float thetaInc = 2.0 * M_PI / numSegments_;
 
@@ -37,6 +27,12 @@ void SphereComponent::Initialize() {
             Vector3 position = Vector3(cosTheta * sinPhi, sinTheta * sinPhi, cosPhi);
 
             vertices_.push_back(position);
+
+            if (phi % 2 == 0) {
+                vertices_.push_back(Vector3(0.57, 0.61, 0.23));
+            } else {
+                vertices_.push_back(Vector3(0.23, 0.61, 0.83));
+            }
         }
     }
 
@@ -94,7 +90,7 @@ void SphereComponent::Update(float deltaTime) {
 }
 
 void SphereComponent::Draw() {
-    UINT strides[] = { sizeof(Vector3) };
+    UINT strides[] = { sizeof(Vector3) * 2 };
     UINT offsets[] = { 0 };
 
     ctx_.GetRenderContext().GetContext()->IASetIndexBuffer(ib_, DXGI_FORMAT_R32_UINT, 0);

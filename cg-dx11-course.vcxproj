@@ -145,6 +145,7 @@
     <ClCompile Include="src\RenderContext.cpp" />
     <ClCompile Include="src\Window.cpp" />
     <ClCompile Include="src\SunSystem\SunSystemGame.cpp" />
+    <ClCompile Include="src\SunSystem\SunComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\SunSystem\SatelliteComponent.h" />
@@ -166,6 +167,7 @@
     <ClInclude Include="src\RenderContext.h" />
     <ClInclude Include="src\Window.h" />
     <ClInclude Include="src\SunSystem\SunSystemGame.h" />
+    <ClInclude Include="src\SunSystem\SunComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
