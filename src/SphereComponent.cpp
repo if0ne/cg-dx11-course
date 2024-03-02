@@ -15,7 +15,6 @@ std::vector<int> SphereComponent::indices_;
 ID3D11Buffer* SphereComponent::vb_;
 ID3D11Buffer* SphereComponent::ib_;
 
-
 void SphereComponent::Initialize() {
     if (vb_ != nullptr && ib_ != nullptr) {
         return;
@@ -108,4 +107,6 @@ void SphereComponent::Reload() {
 }
 
 void SphereComponent::DestroyResources() {
+    vb_->Release();
+    ib_->Release();
 }

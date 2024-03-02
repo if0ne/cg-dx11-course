@@ -63,10 +63,14 @@ void Window::Initialize(RenderContext& renderCtx) {
 }
 
 void Window::Show() {
+	RECT rect{};
+	GetWindowRect(hWnd_, &rect);
+
 	ShowWindow(hWnd_, SW_SHOW);
 	SetForegroundWindow(hWnd_);
 	SetFocus(hWnd_);
-	ShowCursor(true);
+	ShowCursor(false);
+	ClipCursor(&rect);
 }
 
 void Window::ProcessEvent() {

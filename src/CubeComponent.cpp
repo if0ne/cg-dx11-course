@@ -107,4 +107,6 @@ void CubeComponent::Reload() {
 }
 
 void CubeComponent::DestroyResources() {
+    vb_->Release();
+    ib_->Release();
 }

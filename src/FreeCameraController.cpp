@@ -9,6 +9,8 @@ using namespace DirectX::SimpleMath;
 
 FreeCameraController::FreeCameraController(Camera& camera) : CameraController(camera) {
     velocity_ = 100.0f;
+    yaw_ = 0.0;
+    pitch_ = 0.0;
 
     game_.GetInputDevice().AddMouseMoveListener([this](auto& args) {
         OnMouseMove(args);
@@ -16,7 +18,7 @@ FreeCameraController::FreeCameraController(Camera& camera) : CameraController(ca
 }
 
 void FreeCameraController::Update(float deltaTime) {
-    auto input = game_.GetInputDevice();
+    auto& input = game_.GetInputDevice();
 
     auto rotMat = Matrix::CreateFromYawPitchRoll(yaw_, pitch_, 0);
 
@@ -27,8 +29,8 @@ void FreeCameraController::Update(float deltaTime) {
     if (input.IsKeyDown(Keys::D)) dir += Vector3(0.0, 0.0, 1.0);
     if (input.IsKeyDown(Keys::A)) dir += Vector3(0.0, 0.0, -1.0);
 
-    if (input.IsKeyDown(Keys::Space))       dir += Vector3(0.0, 1.0, 0.0);
-    if (input.IsKeyDown(Keys::LeftControl)) dir += Vector3(0.0, -1.0, 0.0);
+    if (input.IsKeyDown(Keys::Space))   dir += Vector3(0.0, 1.0, 0.0);
+    if (input.IsKeyDown(Keys::C))       dir += Vector3(0.0, -1.0, 0.0);
 
     dir.Normalize();
 

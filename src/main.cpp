@@ -4,7 +4,7 @@
 #pragma comment(lib, "dxguid.lib")
 
 #include "Game.h"
-#include "PingPong/PingPongGame.h"
+#include "SunSystem/SunSystemGame.h"
 
 #include <memory>
 
@@ -12,7 +12,7 @@ int main()
 {
 	srand(time(0));
 
-	std::shared_ptr<PingPongGame> game = std::make_shared<PingPongGame>();
+	std::shared_ptr<SunSystemGame> game = std::make_shared<SunSystemGame>();
 
 	Game::GetSingleton().PushComponent(std::move(game));
 

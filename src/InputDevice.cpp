@@ -66,6 +66,8 @@ void InputDevice::OnMouseMove(RawMouseEventArgs args) {
 	MouseMoveEventArgs moveArgs = { MousePosition, MouseOffset, MouseWheelDelta };
 
 	for (const auto& evt : *mouseMoveEvents_) {
-		evt.second(moveArgs);
+		if (evt.second != nullptr) {
+			evt.second(moveArgs);
+		}
 	}
 }
