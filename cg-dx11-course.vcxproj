@@ -127,6 +127,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\SunSystem\SatelliteComponent.cpp" />
+    <ClCompile Include="src\SunSystem\PlanetComponent.cpp" />
     <ClCompile Include="src\SphereComponent.cpp" />
     <ClCompile Include="src\CubeComponent.cpp" />
     <ClCompile Include="src\OrbitCamera.cpp" />
@@ -145,6 +147,8 @@
     <ClCompile Include="src\SunSystem\SunSystemGame.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\SunSystem\SatelliteComponent.h" />
+    <ClInclude Include="src\SunSystem\PlanetComponent.h" />
     <ClInclude Include="src\SphereComponent.h" />
     <ClInclude Include="src\CubeComponent.h" />
     <ClInclude Include="src\OrbitCamera.h" />

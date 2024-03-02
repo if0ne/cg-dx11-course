@@ -6,10 +6,12 @@
 #include <d3dcompiler.h>
 #include <SimpleMath.h>
 
+#include <vector>
+
 class Camera;
 class CameraController;
 
-class CubeComponent;
+class PlanetComponent;
 
 class SunSystemGame : public GameComponent
 {
@@ -17,8 +19,6 @@ private:
     DirectX::SimpleMath::Vector3 center_;
     Camera* camera_;
     CameraController* cameraController_;
-
-    CubeComponent* cube_;
 
     ID3D11InputLayout* layout_;
     ID3D11VertexShader* vertexShader_;
@@ -29,7 +29,10 @@ private:
 
     ID3D11RasterizerState* rastState_;
 
-    ID3D11Buffer* constBuffer_;
+    ID3D11Buffer* wvpBuffer_;
+    ID3D11Buffer* modelBuffer_;
+
+    std::vector<PlanetComponent*> planets_;
 
 public:
     SunSystemGame();
@@ -40,5 +43,7 @@ public:
     virtual void Draw() override;
     virtual void Reload() override;
     virtual void DestroyResources() override;
+
+    void UpdateModelBuffer(DirectX::SimpleMath::Matrix& matrix);
 };
 

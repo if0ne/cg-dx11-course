@@ -1,11 +1,21 @@
-struct ConstantData
+struct SCameraData
 {
     float4x4 WorldViewProj;
 };
 
-cbuffer ConstBuf : register(b0)
+struct SModelData
 {
-    ConstantData ConstData;
+    float4x4 Transform;
+};
+
+cbuffer Camera : register(b0)
+{
+    SCameraData CameraData;
+}
+
+cbuffer Model : register(b1)
+{
+    SModelData ModelData;
 }
 
 struct VS_IN
@@ -23,7 +33,7 @@ PS_IN VSMain(VS_IN input)
 {
     PS_IN output = (PS_IN) 0;
 	
-    output.pos = mul(float4(input.pos.xyz, 1.0f), ConstData.WorldViewProj);
+    output.pos = mul(float4(input.pos.xyz, 1.0f), mul(ModelData.Transform, CameraData.WorldViewProj));
     output.col = float4(1.0, 1.0, 1.0, 1.0);
 	
     return output;

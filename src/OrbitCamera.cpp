@@ -16,7 +16,7 @@ OrbitCamera::OrbitCamera(Camera& camera, DirectX::SimpleMath::Vector3& target) :
 }
 
 void OrbitCamera::Update(float deltaTime) {
-    auto input = game_.GetInputDevice();
+    auto& input = game_.GetInputDevice();
 
     auto rotQuat = Quaternion::CreateFromYawPitchRoll(yaw_, pitch_, 0.0);
     auto rotMat = Matrix::CreateFromQuaternion(rotQuat);

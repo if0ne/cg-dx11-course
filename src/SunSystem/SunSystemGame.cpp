@@ -1,23 +1,34 @@
 #include "SunSystemGame.h"
 
+#include <SimpleMath.h>
+
 #include "../Game.h"
 #include "../Camera.h"
 #include "../CameraController.h"
 #include "../FreeCameraController.h"
 #include "../OrbitCamera.h"
-#include "../CubeComponent.h"
+
+#include "PlanetComponent.h"
 
 SunSystemGame::SunSystemGame() : GameComponent(), center_(DirectX::SimpleMath::Vector3::Zero) {
     camera_ = new Camera();
     cameraController_ = new FreeCameraController(*camera_);
 
-    cube_ = new CubeComponent();
+    float prevDist = 0.0;
+    for (int i = 0; i < 9; i++) {
+        float distance = prevDist + (rand() % 10 + 5);
+        prevDist += distance;
+        planets_.push_back(new PlanetComponent(*this, DirectX::SimpleMath::Vector3(distance, 0.0, 0.0)));
+    }
 }
 
 SunSystemGame::~SunSystemGame() {
     delete cameraController_;
     delete camera_;
-    delete cube_;
+
+    for (auto planet : planets_) {
+        delete planet;
+    }
 }
 
 void SunSystemGame::Initialize() {
@@ -91,21 +102,29 @@ void SunSystemGame::Initialize() {
     constBufDesc.StructureByteStride = 0;
     constBufDesc.ByteWidth = sizeof(DirectX::SimpleMath::Matrix);
 
-    ctx_.GetRenderContext().GetDevice()->CreateBuffer(&constBufDesc, nullptr, &constBuffer_);
+    ctx_.GetRenderContext().GetDevice()->CreateBuffer(&constBufDesc, nullptr, &wvpBuffer_);
 
-    cube_->Initialize();
+    constBufDesc = {};
+    constBufDesc.Usage = D3D11_USAGE_DYNAMIC;
+    constBufDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    constBufDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    constBufDesc.MiscFlags = 0;
+    constBufDesc.StructureByteStride = 0;
+    constBufDesc.ByteWidth = sizeof(DirectX::SimpleMath::Matrix);
+
+    ctx_.GetRenderContext().GetDevice()->CreateBuffer(&constBufDesc, nullptr, &modelBuffer_);
+
+    for (auto& planet : planets_) {
+        planet->Initialize();
+    }
 }
 
 void SunSystemGame::Update(float deltaTime) {
     cameraController_->Update(deltaTime);
 
-    auto matrix = DirectX::SimpleMath::Matrix::Identity * camera_->GetCameraMatrix();
-
-    D3D11_MAPPED_SUBRESOURCE res = {};
-    ctx_.GetRenderContext().GetContext()->Map(constBuffer_, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
-
-    memcpy(res.pData, &matrix, sizeof(DirectX::SimpleMath::Matrix));
-    ctx_.GetRenderContext().GetContext()->Unmap(constBuffer_, 0);
+    for (auto& planet : planets_) {
+        planet->Update(deltaTime);
+    }
 }
 
 void SunSystemGame::Draw() {
@@ -114,12 +133,26 @@ void SunSystemGame::Draw() {
     ctx_.GetRenderContext().GetContext()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     ctx_.GetRenderContext().GetContext()->VSSetShader(vertexShader_, nullptr, 0);
     ctx_.GetRenderContext().GetContext()->PSSetShader(pixelShader_, nullptr, 0);
-    ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(0, 1, &constBuffer_);
+    ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(0, 1, &wvpBuffer_);
+    ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(1, 1, &modelBuffer_);
 
-    cube_->Draw();
+    auto matrix = camera_->GetCameraMatrix();
+
+    D3D11_MAPPED_SUBRESOURCE res = {};
+    ctx_.GetRenderContext().GetContext()->Map(wvpBuffer_, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
+
+    memcpy(res.pData, &matrix, sizeof(DirectX::SimpleMath::Matrix));
+    ctx_.GetRenderContext().GetContext()->Unmap(wvpBuffer_, 0);
+
+    for (auto& planet : planets_) {
+        planet->Draw();
+    }
 }
 
 void SunSystemGame::Reload() {
+    for (auto& planet : planets_) {
+        planet->Reload();
+    }
 }
 
 void SunSystemGame::DestroyResources() {
@@ -129,7 +162,18 @@ void SunSystemGame::DestroyResources() {
     vertexBC_->Release();
     pixelBC_->Release();
     rastState_->Release();
-    constBuffer_->Release();
+    wvpBuffer_->Release();
+    modelBuffer_->Release();
 
-    cube_->DestroyResources();
+    for (auto& planet : planets_) {
+        planet->DestroyResources();
+    }
+}
+
+void SunSystemGame::UpdateModelBuffer(DirectX::SimpleMath::Matrix& matrix) {
+    D3D11_MAPPED_SUBRESOURCE res = {};
+    ctx_.GetRenderContext().GetContext()->Map(modelBuffer_, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
+
+    memcpy(res.pData, &matrix, sizeof(DirectX::SimpleMath::Matrix));
+    ctx_.GetRenderContext().GetContext()->Unmap(modelBuffer_, 0);
 }
