@@ -95,6 +95,13 @@ void SphereComponent::Update(float deltaTime) {
 }
 
 void SphereComponent::Draw() {
+    UINT strides[] = { sizeof(Vector3) };
+    UINT offsets[] = { 0 };
+
+    ctx_.GetRenderContext().GetContext()->IASetIndexBuffer(ib_, DXGI_FORMAT_R32_UINT, 0);
+    ctx_.GetRenderContext().GetContext()->IASetVertexBuffers(0, 1, &vb_, strides, offsets);
+
+    ctx_.GetRenderContext().GetContext()->DrawIndexed(indices_.size(), 0, 0);
 }
 
 void SphereComponent::Reload() {
