@@ -127,6 +127,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\SphereComponent.cpp" />
+    <ClCompile Include="src\CubeComponent.cpp" />
     <ClCompile Include="src\OrbitCamera.cpp" />
     <ClCompile Include="src\FreeCameraController.cpp" />
     <ClCompile Include="src\CameraController.cpp" />
@@ -143,6 +145,8 @@
     <ClCompile Include="src\SunSystem\SunSystemGame.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\SphereComponent.h" />
+    <ClInclude Include="src\CubeComponent.h" />
     <ClInclude Include="src\OrbitCamera.h" />
     <ClInclude Include="src\FreeCameraController.h" />
     <ClInclude Include="src\CameraController.h" />
