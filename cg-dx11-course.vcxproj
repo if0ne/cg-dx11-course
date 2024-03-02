@@ -127,6 +127,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\OrbitCamera.cpp" />
+    <ClCompile Include="src\FreeCameraController.cpp" />
+    <ClCompile Include="src\CameraController.cpp" />
+    <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\PingPong\BallComponent.cpp" />
     <ClCompile Include="src\PingPong\RacketComponent.cpp" />
     <ClCompile Include="src\PingPong\PingPongGame.cpp" />
@@ -136,8 +140,13 @@
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\RenderContext.cpp" />
     <ClCompile Include="src\Window.cpp" />
+    <ClCompile Include="src\SunSystem\SunSystemGame.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\OrbitCamera.h" />
+    <ClInclude Include="src\FreeCameraController.h" />
+    <ClInclude Include="src\CameraController.h" />
+    <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\PingPong\BallComponent.h" />
     <ClInclude Include="src\PingPong\RacketComponent.h" />
     <ClInclude Include="src\PingPong\PingPongGame.h" />
@@ -148,8 +157,19 @@
     <ClInclude Include="src\PingPong\RenderMisc.h" />
     <ClInclude Include="src\RenderContext.h" />
     <ClInclude Include="src\Window.h" />
+    <ClInclude Include="src\SunSystem\SunSystemGame.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="packages\directxtk_uwp.2024.2.22.1\build\native\directxtk_uwp.targets" Condition="Exists('packages\directxtk_uwp.2024.2.22.1\build\native\directxtk_uwp.targets')" />
   </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>Данный проект ссылается на пакеты NuGet, отсутствующие на этом компьютере. Используйте восстановление пакетов NuGet, чтобы скачать их.  Дополнительную информацию см. по адресу: http://go.microsoft.com/fwlink/?LinkID=322105. Отсутствует следующий файл: {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('packages\directxtk_uwp.2024.2.22.1\build\native\directxtk_uwp.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\directxtk_uwp.2024.2.22.1\build\native\directxtk_uwp.targets'))" />
+  </Target>
 </Project>
