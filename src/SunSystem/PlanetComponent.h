@@ -5,27 +5,31 @@
 #include <vector>
 
 class SunSystemGame;
-//class SatelliteComponent;
-
+class SatelliteComponent;
 class SphereComponent;
 
 class PlanetComponent : public GameComponent
 {
 private:
     SunSystemGame& game_;
-    //std::vector<SatelliteComponent> satellites_;
+    std::vector<SatelliteComponent*> satellites_;
 
     SphereComponent* sphere_;
     
-    DirectX::SimpleMath::Vector3 position_;
-    DirectX::SimpleMath::Vector3 scale_;
+    DirectX::SimpleMath::Vector3 localPosition_;
+    DirectX::SimpleMath::Vector3 globalPosition_;
 
-    DirectX::SimpleMath::Vector3 rotation_;
+    float scale_;
 
-    float angle_;
-    float rotationSpeed_;
+    DirectX::SimpleMath::Vector3 localAxisRotation_;
+
+    float localAngle_;
+    float localRotationSpeed_;
+
+    float globalAngle_;
+    float globalRotationSpeed_;
 public:
-    PlanetComponent(SunSystemGame& game, DirectX::SimpleMath::Vector3 position);
+    PlanetComponent(SunSystemGame& game, float radius, float size);
     ~PlanetComponent();
 
     virtual void Initialize() override;
@@ -33,5 +37,9 @@ public:
     virtual void Draw() override;
     virtual void Reload() override;
     virtual void DestroyResources() override;
+
+    DirectX::SimpleMath::Vector3 GetGlobalPosition() const {
+        return globalPosition_;
+    }
 };
 

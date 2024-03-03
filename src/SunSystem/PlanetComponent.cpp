@@ -1,52 +1,102 @@
 #include "PlanetComponent.h"
 
 #include "../SphereComponent.h"
-#include "SunSystemGame.h"
 
-PlanetComponent::PlanetComponent(SunSystemGame& game, DirectX::SimpleMath::Vector3 position) : 
-    game_(game), 
-    position_(position) 
+#include "SunSystemGame.h"
+#include "SatelliteComponent.h"
+
+using namespace DirectX::SimpleMath;
+
+PlanetComponent::PlanetComponent(SunSystemGame& game, float radius, float size) :
+    game_(game)
 {
     sphere_ = new SphereComponent();
 
-    angle_ = 0.0;
-    rotationSpeed_ = rand() / (float)RAND_MAX;
+    localAngle_ = 0.0;
+    globalAngle_ = 0.0;
+    localRotationSpeed_ = rand() / (float)RAND_MAX * 10.0;
+    globalRotationSpeed_ = rand() / (float)RAND_MAX;
 
-    rotation_ = {
-        0.0,
-        1.0,
-        0.0
-    };
+    scale_ = size;
+    localPosition_ = Vector3(0.0, 0.0, radius);
+    globalPosition_ = Vector3(0.0, 0.0, radius);
+
+    localAxisRotation_ = Vector3(
+        rand() / (float)RAND_MAX,
+        rand() / (float)RAND_MAX,
+        rand() / (float)RAND_MAX
+    );
+
+    localAxisRotation_.Normalize();
+
+    int satelliteCount = rand() % 3 + 1;
+
+    for (int i = 0; i < satelliteCount; i++) {
+        float radius = (rand() / (float)RAND_MAX + 1.0) * size * 2.0;
+        float size = rand() / (float)RAND_MAX * 5.0;
+        satellites_.push_back(new SatelliteComponent(*this, game_, radius, size));
+    }
 }
 
 PlanetComponent::~PlanetComponent() {
     delete sphere_;
+
+    for (auto& sat : satellites_) {
+        delete sat;
+    }
 }
 
 void PlanetComponent::Initialize() {
     sphere_->Initialize();
+
+    for (auto& sat : satellites_) {
+        sat->Initialize();
+    }
 }
 
 void PlanetComponent::Update(float deltaTime) {
-    angle_ += rotationSpeed_ * deltaTime;
+    localAngle_ += localRotationSpeed_ * deltaTime;
+    globalAngle_ += globalRotationSpeed_ * deltaTime;
+
+    auto rotQuat = Quaternion::CreateFromAxisAngle(Vector3::Up, globalAngle_);
+    auto rotMat = Matrix::CreateFromQuaternion(rotQuat);
+
+    globalPosition_ = Vector3::Transform(localPosition_, rotQuat);
+
+    for (auto& sat : satellites_) {
+        sat->Update(deltaTime);
+    }
 }
 
 void PlanetComponent::Draw() {
-    auto scale = DirectX::SimpleMath::Matrix::CreateScale(115.0);
-    auto rotation = DirectX::SimpleMath::Matrix::CreateRotationY(angle_);
-    auto translation = DirectX::SimpleMath::Matrix::CreateTranslation(position_);
+    auto scale = Matrix::CreateScale(scale_);
+    auto rotQuat = Quaternion::CreateFromAxisAngle(localAxisRotation_, localAngle_);
+    auto rotation = Matrix::CreateFromQuaternion(rotQuat);
+    auto translation = Matrix::CreateTranslation(globalPosition_);
 
-    auto matrix = translation;
+    auto matrix = scale * rotation * translation;
 
     game_.UpdateModelBuffer(matrix);
 
     sphere_->Draw();
+
+    for (auto& sat : satellites_) {
+        sat->Draw();
+    }
 }
 
 void PlanetComponent::Reload() {
     sphere_->Reload();
+
+    for (auto& sat : satellites_) {
+        sat->Reload();
+    }
 }
 
 void PlanetComponent::DestroyResources() {
     sphere_->DestroyResources();
+
+    for (auto& sat : satellites_) {
+        sat->DestroyResources();
+    }
 }

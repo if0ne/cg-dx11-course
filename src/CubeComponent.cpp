@@ -22,23 +22,12 @@ void CubeComponent::Initialize() {
 
     int indices[36] =
     {
-        0, 1, 2,
-        0, 2, 3,
-
-        4, 6, 5,
-        4, 7, 6,
-
-        4, 5, 1,
-        4, 1, 0,
-
-        3, 2, 6,
-        3, 6, 7,
-
-        1, 5, 6,
-        1, 6, 2,
-
-        4, 0, 3,
-        4, 3, 7,
+        0, 1, 2, 0, 2, 3,
+        4, 6, 5, 4, 7, 6,
+        4, 5, 1, 4, 1, 0,
+        3, 2, 6, 3, 6, 7,
+        1, 5, 6, 1, 6, 2,
+        4, 0, 3, 4, 3, 7
     };
 
     memcpy(indices_, indices, sizeof(int) * 36);
@@ -49,7 +38,7 @@ void CubeComponent::Initialize() {
     vertexBufDesc.CPUAccessFlags = 0;
     vertexBufDesc.MiscFlags = 0;
     vertexBufDesc.StructureByteStride = 0;
-    vertexBufDesc.ByteWidth = sizeof(Vector3) * 8;
+    vertexBufDesc.ByteWidth = sizeof(Vector3) * 16;
 
     D3D11_SUBRESOURCE_DATA vertexData = {};
     vertexData.pSysMem = vertices_;

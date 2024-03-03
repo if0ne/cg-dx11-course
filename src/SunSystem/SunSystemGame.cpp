@@ -14,11 +14,8 @@ SunSystemGame::SunSystemGame() : GameComponent(), center_(DirectX::SimpleMath::V
     camera_ = new Camera();
     cameraController_ = new OrbitCamera(*camera_, center_);
 
-    float prevDist = 0.0;
-    for (int i = 0; i < 9; i++) {
-        float distance = prevDist + (rand() % 10 + 5);
-        prevDist += distance;
-        planets_.push_back(new PlanetComponent(*this, DirectX::SimpleMath::Vector3(i * 10.0, 0.0, 0.0)));
+    for (int i = 1; i < 10; i++) {
+        planets_.push_back(new PlanetComponent(*this, 15.0 * i, 10.0 * sin(i) + 2.0));
     }
 }
 
@@ -26,7 +23,7 @@ SunSystemGame::~SunSystemGame() {
     delete cameraController_;
     delete camera_;
 
-    for (auto planet : planets_) {
+    for (auto& planet : planets_) {
         delete planet;
     }
 }
