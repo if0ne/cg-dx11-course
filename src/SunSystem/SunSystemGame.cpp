@@ -12,13 +12,13 @@
 
 SunSystemGame::SunSystemGame() : GameComponent(), center_(DirectX::SimpleMath::Vector3::Zero) {
     camera_ = new Camera();
-    cameraController_ = new FreeCameraController(*camera_);
+    cameraController_ = new OrbitCamera(*camera_, center_);
 
     float prevDist = 0.0;
     for (int i = 0; i < 9; i++) {
         float distance = prevDist + (rand() % 10 + 5);
         prevDist += distance;
-        planets_.push_back(new PlanetComponent(*this, DirectX::SimpleMath::Vector3(distance, 0.0, 0.0)));
+        planets_.push_back(new PlanetComponent(*this, DirectX::SimpleMath::Vector3(i * 10.0, 0.0, 0.0)));
     }
 }
 

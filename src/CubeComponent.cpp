@@ -8,43 +8,37 @@ using namespace DirectX::SimpleMath;
 void CubeComponent::Initialize() {
     Vector3 verts[16] = {
         Vector3(-1.0, -1.0, -1.0), Vector3(0.0, 0.667, 1.0),
-        Vector3(1.0, -1.0, -1.0), Vector3(0.0, 0.667, 1.0),
-        Vector3(1.0, 1.0, -1.0), Vector3(0.0, 0.667, 1.0),
         Vector3(-1.0, 1.0, -1.0), Vector3(0.0, 0.667, 1.0),
+        Vector3(1.0, 1.0, -1.0), Vector3(0.0, 0.667, 1.0),
+        Vector3(1.0, -1.0, -1.0), Vector3(0.0, 0.667, 1.0),
 
         Vector3(-1.0, -1.0, 1.0), Vector3(0.0, 0.667, 0.0),
-        Vector3(1.0, -1.0, 1.0), Vector3(0.0, 0.667, 0.0),
-        Vector3(1.0, 1.0, 1.0), Vector3(0.0, 0.667, 0.0),
         Vector3(-1.0, 1.0, 1.0), Vector3(0.0, 0.667, 0.0),
+        Vector3(1.0, 1.0, 1.0), Vector3(0.0, 0.667, 0.0),
+        Vector3(1.0, -1.0, 1.0), Vector3(0.0, 0.667, 0.0),
     };
 
     memcpy(vertices_, verts, sizeof(Vector3) * 16);
 
     int indices[36] =
     {
-        // Перед
         0, 1, 2,
         0, 2, 3,
 
-        // Зад
         4, 6, 5,
         4, 7, 6,
 
-        // Верх
+        4, 5, 1,
+        4, 1, 0,
+
         3, 2, 6,
         3, 6, 7,
 
-        // Низ
-        0, 5, 1,
-        0, 4, 5,
-
-        // Лево
-        0, 7, 4,
-        0, 3, 7,
-
-        // Право
         1, 5, 6,
         1, 6, 2,
+
+        4, 0, 3,
+        4, 3, 7,
     };
 
     memcpy(indices_, indices, sizeof(int) * 36);

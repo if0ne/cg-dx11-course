@@ -9,6 +9,9 @@ using namespace DirectX::SimpleMath;
 
 OrbitCamera::OrbitCamera(Camera& camera, DirectX::SimpleMath::Vector3& target) : CameraController(camera), target_(target) {
     distance_ = 10.0f;
+    cameraPosition_ = Vector3(0.0, 0.0, distance_);
+    yaw_ = 0.0;
+    pitch_ = 0.0;
 
     game_.GetInputDevice().AddMouseMoveListener([this](auto& args) {
         OnMouseMove(args);
@@ -16,14 +19,13 @@ OrbitCamera::OrbitCamera(Camera& camera, DirectX::SimpleMath::Vector3& target) :
 }
 
 void OrbitCamera::Update(float deltaTime) {
-    auto& input = game_.GetInputDevice();
+    cameraPosition_ = Vector3(0.0, 0.0, distance_);
 
-    auto rotQuat = Quaternion::CreateFromYawPitchRoll(yaw_, pitch_, 0.0);
+    auto rotQuat = Quaternion::CreateFromYawPitchRoll(-yaw_, pitch_, 0.0f);
     auto rotMat = Matrix::CreateFromQuaternion(rotQuat);
+    auto newPos = Vector3::Transform(cameraPosition_, rotQuat);
 
-    cameraPosition_ = target_ - rotMat.Backward() * distance_;
-    
-    camera_.SetView(Matrix::CreateLookAt(cameraPosition_, target_, rotMat.Up()));
+    camera_.SetView(Matrix::CreateLookAt(newPos, target_, rotMat.Up()));
 }
 
 void OrbitCamera::OnMouseMove(const MouseMoveEventArgs& args) {

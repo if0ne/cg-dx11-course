@@ -36,7 +36,7 @@ void PlanetComponent::Draw() {
     auto rotation = DirectX::SimpleMath::Matrix::CreateRotationY(angle_);
     auto translation = DirectX::SimpleMath::Matrix::CreateTranslation(position_);
 
-    auto matrix =  scale * rotation * translation;
+    auto matrix = translation;
 
     game_.UpdateModelBuffer(matrix);
 
