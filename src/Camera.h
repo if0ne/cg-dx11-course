@@ -20,15 +20,16 @@ private:
 public:
     Camera();
 
-    DirectX::SimpleMath::Matrix GetCameraMatrix() const;
-    DirectX::SimpleMath::Vector3 GetPosition() const;
-    DirectX::SimpleMath::Vector3 GetForwardVector() const;
-    DirectX::SimpleMath::Vector3 GetUpVector() const;
+    DirectX::SimpleMath::Matrix CameraMatrix() const;
+    DirectX::SimpleMath::Vector3 Position() const;
+    DirectX::SimpleMath::Vector3 ForwardVector() const;
+    DirectX::SimpleMath::Vector3 UpVector() const;
 
-    void SetView(DirectX::SimpleMath::Matrix view) {
+    void View(DirectX::SimpleMath::Matrix view) {
         view_ = view;
     }
 
-    void UpdateProjection();
+    void UpdatePerspectiveProjection();
+    void UpdateOrthoProjection();
 };
 

@@ -10,35 +10,44 @@ Camera::Camera() : game_(Game::GetSingleton()) {
 
     view_ = DirectX::SimpleMath::Matrix::Identity;
 
-    UpdateProjection();
+    UpdatePerspectiveProjection();
 }
 
-DirectX::SimpleMath::Matrix Camera::GetCameraMatrix() const {
+DirectX::SimpleMath::Matrix Camera::CameraMatrix() const {
     return view_ * proj_;
 }
 
-DirectX::SimpleMath::Vector3 Camera::GetPosition() const {
+DirectX::SimpleMath::Vector3 Camera::Position() const {
     DirectX::SimpleMath::Matrix inv;
     view_.Invert(inv);
     return inv.Translation();
 }
 
-DirectX::SimpleMath::Vector3 Camera::GetForwardVector() const {
+DirectX::SimpleMath::Vector3 Camera::ForwardVector() const {
     DirectX::SimpleMath::Matrix inv;
     view_.Invert(inv);
     return inv.Forward();
 }
 
-DirectX::SimpleMath::Vector3 Camera::GetUpVector() const {
+DirectX::SimpleMath::Vector3 Camera::UpVector() const {
     DirectX::SimpleMath::Matrix inv;
     view_.Invert(inv);
     return inv.Up();
 }
 
-void Camera::UpdateProjection() {
+void Camera::UpdatePerspectiveProjection() {
     proj_ = DirectX::SimpleMath::Matrix::CreatePerspectiveFieldOfView(
         fov_,
         game_.GetWindow().GetAspectRatio(),
+        nearPlane_,
+        farPlane_
+    );
+}
+
+void Camera::UpdateOrthoProjection() {
+    proj_ = DirectX::SimpleMath::Matrix::CreateOrthographic(
+        game_.GetWindow().GetWidth(),
+        game_.GetWindow().GetHeight(),
         nearPlane_,
         farPlane_
     );

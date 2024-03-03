@@ -27,7 +27,7 @@ void OrbitCameraController::Update(float deltaTime) {
     auto rotMat = Matrix::CreateFromQuaternion(rotQuat);
     auto newPos = Vector3::Transform(cameraPosition_, rotQuat);
 
-    camera_.SetView(Matrix::CreateLookAt(newPos, target_, rotMat.Up()));
+    camera_.View(Matrix::CreateLookAt(newPos, target_, rotMat.Up()));
 }
 
 void OrbitCameraController::OnMouseMove(const MouseMoveEventArgs& args) {

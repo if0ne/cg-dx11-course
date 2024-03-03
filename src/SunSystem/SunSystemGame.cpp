@@ -159,6 +159,14 @@ void SunSystemGame::Update(float deltaTime) {
         currentCameraController_->Active(true);
     }
 
+    if (ctx_.GetInputDevice().IsKeyDown(Keys::D3)) {
+        camera_->UpdatePerspectiveProjection();
+    }
+
+    if (ctx_.GetInputDevice().IsKeyDown(Keys::D4)) {
+        camera_->UpdateOrthoProjection();
+    }
+
     currentCameraController_->Update(deltaTime);
 
     sun_->Update(deltaTime);
@@ -176,7 +184,7 @@ void SunSystemGame::Draw() {
     ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(0, 1, &wvpBuffer_);
     ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(1, 1, &modelBuffer_);
 
-    auto matrix = camera_->GetCameraMatrix();
+    auto matrix = camera_->CameraMatrix();
 
     D3D11_MAPPED_SUBRESOURCE res = {};
     ctx_.GetRenderContext().GetContext()->Map(wvpBuffer_, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);

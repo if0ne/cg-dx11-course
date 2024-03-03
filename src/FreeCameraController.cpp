@@ -44,7 +44,7 @@ void FreeCameraController::Update(float deltaTime) {
 
     cameraPosition_ = cameraPosition_ + direction * velocity_ * deltaTime;
     
-    camera_.SetView(Matrix::CreateLookAt(cameraPosition_, cameraPosition_ + rotMat.Forward(), rotMat.Up()));
+    camera_.View(Matrix::CreateLookAt(cameraPosition_, cameraPosition_ + rotMat.Forward(), rotMat.Up()));
 }
 
 void FreeCameraController::OnMouseMove(const MouseMoveEventArgs& args) {
