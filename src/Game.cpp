@@ -37,10 +37,15 @@ void Game::ProcessInput() {
 
 void Game::PrepareFrame() {
     auto rt = window_->GetRenderTarget();
-    renderCtx_->GetContext()->OMSetRenderTargets(1, &rt, nullptr);
+    auto ds = window_->GetDepthStencilView();
+
+    renderCtx_->GetContext()->OMSetRenderTargets(1, &rt, ds);
 
     float color[] = { 0.1f, 0.1f, 0.1f, 1.0f };
     renderCtx_->GetContext()->ClearRenderTargetView(rt, color);
+    renderCtx_->GetContext()->ClearDepthStencilView(ds, D3D11_CLEAR_DEPTH, 1.0, 0);
+
+    renderCtx_->ActivateDepthStencilState();
 
     D3D11_VIEWPORT viewport = {};
     viewport.Width = static_cast<float>(window_->GetWidth());

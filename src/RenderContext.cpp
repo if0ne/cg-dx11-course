@@ -13,10 +13,21 @@ void RenderContext::Initialize() {
 
     adapter->Release();
     dxgiDevice->Release();
+
+    D3D11_DEPTH_STENCIL_DESC depthStencilStateDesc {};
+    depthStencilStateDesc.DepthEnable = true;
+    depthStencilStateDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+    depthStencilStateDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+    device_->CreateDepthStencilState(&depthStencilStateDesc, &depthStencilState_);
 }
 
 void RenderContext::DestroyResources() {
     factory_->Release();
     context_->Release();
     device_->Release();
+    depthStencilState_->Release();
+}
+
+void RenderContext::ActivateDepthStencilState() {
+    context_->OMSetDepthStencilState(depthStencilState_, 1);
 }

@@ -25,6 +25,9 @@ private:
 	ID3D11Texture2D* backBuffer_;
 	ID3D11RenderTargetView* renderView_;
 
+	ID3D11Texture2D* depthStencilBuffer_;
+	ID3D11DepthStencilView* depthStencilView_;
+
 public:
     Window(uint32_t width, uint32_t height) : width_(width), height_(height) {}
 
@@ -36,6 +39,8 @@ public:
 		renderView_->Release();
 		backBuffer_->Release();
 		swapchain_->Release();
+		depthStencilBuffer_->Release();
+		depthStencilView_->Release();
 	}
 
 	HWND GetDescriptor() {
@@ -64,5 +69,9 @@ public:
 
 	ID3D11RenderTargetView* GetRenderTarget() {
 		return renderView_;
+	}
+
+	ID3D11DepthStencilView* GetDepthStencilView() {
+		return depthStencilView_;
 	}
 };
