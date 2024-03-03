@@ -1,4 +1,4 @@
-#include "OrbitCamera.h"
+#include "OrbitCameraController.h"
 
 #include "Game.h"
 #include "Camera.h"
@@ -7,7 +7,7 @@
 
 using namespace DirectX::SimpleMath;
 
-OrbitCamera::OrbitCamera(Camera& camera, DirectX::SimpleMath::Vector3& target) : CameraController(camera), target_(target) {
+OrbitCameraController::OrbitCameraController(Camera& camera, DirectX::SimpleMath::Vector3& target) : CameraController(camera), target_(target) {
     distance_ = 10.0f;
     cameraPosition_ = Vector3(0.0, 0.0, distance_);
     yaw_ = 0.0;
@@ -18,7 +18,7 @@ OrbitCamera::OrbitCamera(Camera& camera, DirectX::SimpleMath::Vector3& target) :
     });
 }
 
-void OrbitCamera::Update(float deltaTime) {
+void OrbitCameraController::Update(float deltaTime) {
     cameraPosition_ = Vector3(0.0, 0.0, distance_);
 
     auto rotQuat = Quaternion::CreateFromYawPitchRoll(-yaw_, pitch_, 0.0f);
@@ -28,7 +28,9 @@ void OrbitCamera::Update(float deltaTime) {
     camera_.SetView(Matrix::CreateLookAt(newPos, target_, rotMat.Up()));
 }
 
-void OrbitCamera::OnMouseMove(const MouseMoveEventArgs& args) {
+void OrbitCameraController::OnMouseMove(const MouseMoveEventArgs& args) {
+    if (!isActive_) { return; }
+
     if (game_.GetInputDevice().IsKeyDown(Keys::LeftShift)) return;
 
     yaw_ -= args.Offset.x * 0.003f * sensitivity_;

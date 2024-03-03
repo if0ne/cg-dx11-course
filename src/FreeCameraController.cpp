@@ -46,6 +46,7 @@ void FreeCameraController::Update(float deltaTime) {
 }
 
 void FreeCameraController::OnMouseMove(const MouseMoveEventArgs& args) {
+    if (!isActive_) { return; }
     if (game_.GetInputDevice().IsKeyDown(Keys::LeftShift)) return;
 
     yaw_ -= args.Offset.x * 0.003f * sensitivity_;

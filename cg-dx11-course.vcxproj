@@ -131,7 +131,7 @@
     <ClCompile Include="src\SunSystem\PlanetComponent.cpp" />
     <ClCompile Include="src\SphereComponent.cpp" />
     <ClCompile Include="src\CubeComponent.cpp" />
-    <ClCompile Include="src\OrbitCamera.cpp" />
+    <ClCompile Include="src\OrbitCameraController.cpp" />
     <ClCompile Include="src\FreeCameraController.cpp" />
     <ClCompile Include="src\CameraController.cpp" />
     <ClCompile Include="src\Camera.cpp" />
@@ -151,7 +151,7 @@
     <ClInclude Include="src\SunSystem\PlanetComponent.h" />
     <ClInclude Include="src\SphereComponent.h" />
     <ClInclude Include="src\CubeComponent.h" />
-    <ClInclude Include="src\OrbitCamera.h" />
+    <ClInclude Include="src\OrbitCameraController.h" />
     <ClInclude Include="src\FreeCameraController.h" />
     <ClInclude Include="src\CameraController.h" />
     <ClInclude Include="src\Camera.h" />

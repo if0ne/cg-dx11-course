@@ -54,7 +54,7 @@
     <ClCompile Include="src\FreeCameraController.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="src\OrbitCamera.cpp">
+    <ClCompile Include="src\OrbitCameraController.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="src\CubeComponent.cpp">
@@ -113,7 +113,7 @@
     <ClInclude Include="src\FreeCameraController.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="src\OrbitCamera.h">
+    <ClInclude Include="src\OrbitCameraController.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="src\CubeComponent.h">

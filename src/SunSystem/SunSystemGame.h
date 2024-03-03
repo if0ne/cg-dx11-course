@@ -14,12 +14,18 @@ class CameraController;
 class PlanetComponent;
 class SphereComponent;
 
+class FreeCameraController;
+class OrbitCameraController;
+
 class SunSystemGame : public GameComponent
 {
 private:
     DirectX::SimpleMath::Vector3 center_;
     Camera* camera_;
-    CameraController* cameraController_;
+    CameraController* currentCameraController_;
+
+    FreeCameraController* freeCameraController_;
+    OrbitCameraController* orbitCameraController_;
 
     ID3D11InputLayout* layout_;
     ID3D11VertexShader* vertexShader_;

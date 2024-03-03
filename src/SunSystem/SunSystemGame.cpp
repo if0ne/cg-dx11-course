@@ -3,10 +3,11 @@
 #include <SimpleMath.h>
 
 #include "../Game.h"
+#include "../InputDevice.h"
 #include "../Camera.h"
 #include "../CameraController.h"
 #include "../FreeCameraController.h"
-#include "../OrbitCamera.h"
+#include "../OrbitCameraController.h"
 #include "../SphereComponent.h"
 
 #include "PlanetComponent.h"
@@ -17,7 +18,9 @@ using namespace DirectX::SimpleMath;
 
 SunSystemGame::SunSystemGame() : GameComponent(), center_(DirectX::SimpleMath::Vector3::Zero) {
     camera_ = new Camera();
-    cameraController_ = new OrbitCamera(*camera_, center_);
+    freeCameraController_ = new FreeCameraController(*camera_);
+    orbitCameraController_ = new OrbitCameraController(*camera_, center_);
+    currentCameraController_ = freeCameraController_;
 
     sun_ = new SphereComponent(Vector3(1.0, 0.8, 0.0), Vector3(1.0, 0.5, 0.0));
     sunSize_ = 109.0;
@@ -35,7 +38,7 @@ SunSystemGame::SunSystemGame() : GameComponent(), center_(DirectX::SimpleMath::V
 }
 
 SunSystemGame::~SunSystemGame() {
-    delete cameraController_;
+    delete currentCameraController_;
     delete camera_;
     delete sun_;
 
@@ -144,7 +147,15 @@ void SunSystemGame::Initialize() {
 }
 
 void SunSystemGame::Update(float deltaTime) {
-    cameraController_->Update(deltaTime);
+    if (ctx_.GetInputDevice().IsKeyDown(Keys::D1)) {
+        currentCameraController_ = freeCameraController_;
+    }
+
+    if (ctx_.GetInputDevice().IsKeyDown(Keys::D2)) {
+        currentCameraController_ = orbitCameraController_;
+    }
+
+    currentCameraController_->Update(deltaTime);
 
     sun_->Update(deltaTime);
     for (auto& planet : planets_) {
