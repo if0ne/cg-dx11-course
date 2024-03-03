@@ -7,21 +7,37 @@
 #include "../CameraController.h"
 #include "../FreeCameraController.h"
 #include "../OrbitCamera.h"
+#include "../SphereComponent.h"
 
 #include "PlanetComponent.h"
+
+#include <SimpleMath.h>
+
+using namespace DirectX::SimpleMath;
 
 SunSystemGame::SunSystemGame() : GameComponent(), center_(DirectX::SimpleMath::Vector3::Zero) {
     camera_ = new Camera();
     cameraController_ = new OrbitCamera(*camera_, center_);
 
-    for (int i = 1; i < 10; i++) {
-        planets_.push_back(new PlanetComponent(*this, 15.0 * i, 10.0 * sin(i) + 2.0));
-    }
+    sun_ = new SphereComponent(Vector3(1.0, 0.8, 0.0), Vector3(1.0, 0.5, 0.0));
+    sunSize_ = 109.0;
+    
+    float ed = 20.0f;
+
+    planets_.push_back(new PlanetComponent(*this, 109.0 + 0.38 * ed, 0.38, 0, Vector3(0.8, 0.8, 0.8), Vector3(0.6, 0.6, 0.6)));
+    planets_.push_back(new PlanetComponent(*this, 109.0 + 0.72 * ed, 0.95, 0, Vector3(0.95, 0.7, 0.4), Vector3(0.8, 0.4, 0.1)));
+    planets_.push_back(new PlanetComponent(*this, 109.0 + 1.0 * ed, 1.0, 1, Vector3(0.0, 0.5, 1.0), Vector3(0.0, 0.2, 0.6)));
+    planets_.push_back(new PlanetComponent(*this, 109.0 + 1.52 * ed, 0.53, 2, Vector3(1.0, 0.4, 0.2), Vector3(0.8, 0.2, 0.0)));
+    planets_.push_back(new PlanetComponent(*this, 109.0 + 5.20 * ed, 11.2, 12, Vector3(0.9, 0.7, 0.4), Vector3(0.8, 0.6, 0.2)));
+    planets_.push_back(new PlanetComponent(*this, 109.0 + 9.58 * ed, 9.45, 256, Vector3(0.9, 0.9, 0.7), Vector3(0.8, 0.8, 0.5)));
+    planets_.push_back(new PlanetComponent(*this, 109.0 + 19.22 * ed, 4.0, 5, Vector3(0.7, 0.9, 0.95), Vector3(0.5, 0.8, 0.9)));
+    planets_.push_back(new PlanetComponent(*this, 109.0 + 30.05 * ed, 3.88, 2, Vector3(0.2, 0.4, 0.8), Vector3(0.1, 0.2, 0.6)));
 }
 
 SunSystemGame::~SunSystemGame() {
     delete cameraController_;
     delete camera_;
+    delete sun_;
 
     for (auto& planet : planets_) {
         delete planet;
@@ -120,6 +136,8 @@ void SunSystemGame::Initialize() {
 
     ctx_.GetRenderContext().GetDevice()->CreateBuffer(&constBufDesc, nullptr, &modelBuffer_);
 
+    sun_->Initialize();
+
     for (auto& planet : planets_) {
         planet->Initialize();
     }
@@ -128,6 +146,7 @@ void SunSystemGame::Initialize() {
 void SunSystemGame::Update(float deltaTime) {
     cameraController_->Update(deltaTime);
 
+    sun_->Update(deltaTime);
     for (auto& planet : planets_) {
         planet->Update(deltaTime);
     }
@@ -150,12 +169,17 @@ void SunSystemGame::Draw() {
     memcpy(res.pData, &matrix, sizeof(DirectX::SimpleMath::Matrix));
     ctx_.GetRenderContext().GetContext()->Unmap(wvpBuffer_, 0);
 
+    auto sunMatrix = DirectX::SimpleMath::Matrix::CreateScale(sunSize_);
+    UpdateModelBuffer(sunMatrix);
+    sun_->Draw();
+
     for (auto& planet : planets_) {
         planet->Draw();
     }
 }
 
 void SunSystemGame::Reload() {
+    sun_->Reload();
     for (auto& planet : planets_) {
         planet->Reload();
     }
@@ -171,6 +195,7 @@ void SunSystemGame::DestroyResources() {
     wvpBuffer_->Release();
     modelBuffer_->Release();
 
+    sun_->DestroyResources();
     for (auto& planet : planets_) {
         planet->DestroyResources();
     }

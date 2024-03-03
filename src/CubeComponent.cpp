@@ -7,15 +7,15 @@ using namespace DirectX::SimpleMath;
 
 void CubeComponent::Initialize() {
     Vector3 verts[16] = {
-        Vector3(-1.0, -1.0, -1.0), Vector3(0.0, 0.667, 1.0),
-        Vector3(-1.0, 1.0, -1.0), Vector3(0.0, 0.667, 1.0),
-        Vector3(1.0, 1.0, -1.0), Vector3(0.0, 0.667, 1.0),
-        Vector3(1.0, -1.0, -1.0), Vector3(0.0, 0.667, 1.0),
+        Vector3(-1.0, -1.0, -1.0), Vector3(0.322, 0.322, 0.322),
+        Vector3(-1.0, 1.0, -1.0), Vector3(0.667, 0.667, 0.667),
+        Vector3(1.0, 1.0, -1.0), Vector3(0.322, 0.322, 0.322),
+        Vector3(1.0, -1.0, -1.0), Vector3(0.667, 0.667, 0.667),
 
-        Vector3(-1.0, -1.0, 1.0), Vector3(0.0, 0.667, 0.0),
-        Vector3(-1.0, 1.0, 1.0), Vector3(0.0, 0.667, 0.0),
-        Vector3(1.0, 1.0, 1.0), Vector3(0.0, 0.667, 0.0),
-        Vector3(1.0, -1.0, 1.0), Vector3(0.0, 0.667, 0.0),
+        Vector3(-1.0, -1.0, 1.0), Vector3(0.322, 0.322, 0.322),
+        Vector3(-1.0, 1.0, 1.0), Vector3(0.667, 0.667, 0.667),
+        Vector3(1.0, 1.0, 1.0), Vector3(0.322, 0.322, 0.322),
+        Vector3(1.0, -1.0, 1.0), Vector3(0.667, 0.667, 0.667),
     };
 
     memcpy(vertices_, verts, sizeof(Vector3) * 16);

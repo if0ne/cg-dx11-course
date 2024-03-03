@@ -12,6 +12,7 @@ class Camera;
 class CameraController;
 
 class PlanetComponent;
+class SphereComponent;
 
 class SunSystemGame : public GameComponent
 {
@@ -33,6 +34,9 @@ private:
     ID3D11Buffer* modelBuffer_;
 
     std::vector<PlanetComponent*> planets_;
+
+    SphereComponent* sun_;
+    float sunSize_;
 
 public:
     SunSystemGame();

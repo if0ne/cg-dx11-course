@@ -29,7 +29,14 @@ private:
     float globalAngle_;
     float globalRotationSpeed_;
 public:
-    PlanetComponent(SunSystemGame& game, float radius, float size);
+    PlanetComponent(
+        SunSystemGame& game, 
+        float radius, 
+        float size, 
+        int satelliteCount,
+        DirectX::SimpleMath::Vector3 firstColor,
+        DirectX::SimpleMath::Vector3 secondColor
+    );
     ~PlanetComponent();
 
     virtual void Initialize() override;

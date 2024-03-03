@@ -16,8 +16,18 @@ private:
     ID3D11Buffer* ib_;
 
     int numSegments_;
+
+    DirectX::SimpleMath::Vector3 firstColor_;
+    DirectX::SimpleMath::Vector3 secondColor_;
 public:
-    SphereComponent() : GameComponent() {
+    SphereComponent(
+        DirectX::SimpleMath::Vector3 firstColor,
+        DirectX::SimpleMath::Vector3 secondColor
+    ) : 
+        GameComponent(),
+        firstColor_(firstColor),
+        secondColor_(secondColor)
+    {
         numSegments_ = 20;
         vb_ = nullptr;
         ib_ = nullptr;

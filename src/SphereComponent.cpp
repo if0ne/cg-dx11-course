@@ -29,9 +29,9 @@ void SphereComponent::Initialize() {
             vertices_.push_back(position);
 
             if (phi % 2 == 0) {
-                vertices_.push_back(Vector3(0.57, 0.61, 0.23));
+                vertices_.push_back(firstColor_);
             } else {
-                vertices_.push_back(Vector3(0.23, 0.61, 0.83));
+                vertices_.push_back(secondColor_);
             }
         }
     }

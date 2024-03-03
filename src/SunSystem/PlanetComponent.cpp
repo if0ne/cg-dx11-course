@@ -7,10 +7,17 @@
 
 using namespace DirectX::SimpleMath;
 
-PlanetComponent::PlanetComponent(SunSystemGame& game, float radius, float size) :
+PlanetComponent::PlanetComponent(
+    SunSystemGame& game,
+    float radius,
+    float size,
+    int satelliteCount,
+    DirectX::SimpleMath::Vector3 firstColor,
+    DirectX::SimpleMath::Vector3 secondColor
+) :
     game_(game)
 {
-    sphere_ = new SphereComponent();
+    sphere_ = new SphereComponent(firstColor, secondColor);
 
     localAngle_ = 0.0;
     globalAngle_ = 0.0;
@@ -29,11 +36,9 @@ PlanetComponent::PlanetComponent(SunSystemGame& game, float radius, float size) 
 
     localAxisRotation_.Normalize();
 
-    int satelliteCount = rand() % 3 + 1;
-
     for (int i = 0; i < satelliteCount; i++) {
-        float radius = (rand() / (float)RAND_MAX + 1.0) * size * 2.0;
-        float size = rand() / (float)RAND_MAX * 5.0;
+        float radius = (rand() / (float)RAND_MAX + 1.0) * scale_ * 2.0;
+        float size = (rand() / (float)RAND_MAX + 1) * scale_ / 10;
         satellites_.push_back(new SatelliteComponent(*this, game_, radius, size));
     }
 }
