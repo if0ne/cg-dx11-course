@@ -12,6 +12,8 @@ FreeCameraController::FreeCameraController(Camera& camera) : CameraController(ca
     yaw_ = 0.0;
     pitch_ = 0.0;
 
+    isActive_ = true;
+
     game_.GetInputDevice().AddMouseMoveListener([this](auto& args) {
         OnMouseMove(args);
     });

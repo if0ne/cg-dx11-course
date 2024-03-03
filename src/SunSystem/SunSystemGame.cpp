@@ -148,11 +148,15 @@ void SunSystemGame::Initialize() {
 
 void SunSystemGame::Update(float deltaTime) {
     if (ctx_.GetInputDevice().IsKeyDown(Keys::D1)) {
+        currentCameraController_->Active(false);
         currentCameraController_ = freeCameraController_;
+        currentCameraController_->Active(true);
     }
 
     if (ctx_.GetInputDevice().IsKeyDown(Keys::D2)) {
+        currentCameraController_->Active(false);
         currentCameraController_ = orbitCameraController_;
+        currentCameraController_->Active(true);
     }
 
     currentCameraController_->Update(deltaTime);
