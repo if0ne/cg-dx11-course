@@ -48,6 +48,8 @@ SunSystemGame::~SunSystemGame() {
 }
 
 void SunSystemGame::Initialize() {
+    ctx_.GetWindow().HideWindowCursor();
+
     D3DCompileFromFile(
         L"./shaders/SunSystem.hlsl",
         nullptr,
@@ -165,6 +167,13 @@ void SunSystemGame::Update(float deltaTime) {
 
     if (ctx_.GetInputDevice().IsKeyDown(Keys::D4)) {
         camera_->UpdateOrthoProjection();
+    }
+
+    if (ctx_.GetInputDevice().IsKeyDown(Keys::LeftShift)) {
+        ctx_.GetWindow().ShowWindowCursor();
+    } else {
+        ctx_.GetWindow().HideWindowCursor();
+        ctx_.GetWindow().LockWindowCursor();
     }
 
     currentCameraController_->Update(deltaTime);

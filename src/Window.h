@@ -43,6 +43,10 @@ public:
 		depthStencilView_->Release();
 	}
 
+	void HideWindowCursor();
+	void ShowWindowCursor();
+	void LockWindowCursor();
+
 	HWND GetDescriptor() {
 		return hWnd_;
 	}

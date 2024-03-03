@@ -84,14 +84,29 @@ void Window::Initialize(RenderContext& renderCtx) {
 }
 
 void Window::Show() {
-	RECT rect{};
-	GetWindowRect(hWnd_, &rect);
-
 	ShowWindow(hWnd_, SW_SHOW);
 	SetForegroundWindow(hWnd_);
 	SetFocus(hWnd_);
+}
+
+void Window::HideWindowCursor() {
+	RECT rect{};
+	GetWindowRect(hWnd_, &rect);
 	ShowCursor(false);
 	ClipCursor(&rect);
+}
+
+void Window::ShowWindowCursor() {
+	ShowCursor(true);
+	ClipCursor(nullptr);
+}
+
+void Window::LockWindowCursor() {
+	POINT pt;
+	pt.x = width_ / 2;
+	pt.y = height_ / 2;
+	ClientToScreen(hWnd_, &pt);
+	SetCursorPos(pt.x, pt.y);
 }
 
 void Window::ProcessEvent() {
