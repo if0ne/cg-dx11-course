@@ -48,5 +48,9 @@ public:
     DirectX::SimpleMath::Vector3 GetGlobalPosition() const {
         return globalPosition_;
     }
+
+    DirectX::SimpleMath::Vector3* GetRefGlobalPosition() {
+        return &globalPosition_;
+    }
 };
 

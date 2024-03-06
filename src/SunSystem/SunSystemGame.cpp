@@ -19,7 +19,7 @@ using namespace DirectX::SimpleMath;
 SunSystemGame::SunSystemGame() : GameComponent(), center_(DirectX::SimpleMath::Vector3::Zero) {
     camera_ = new Camera();
     freeCameraController_ = new FreeCameraController(*camera_);
-    orbitCameraController_ = new OrbitCameraController(*camera_, center_);
+    orbitCameraController_ = new OrbitCameraController(*camera_, &center_);
     currentCameraController_ = freeCameraController_;
 
     sun_ = new SphereComponent(Vector3(1.0, 0.8, 0.0), Vector3(1.0, 0.5, 0.0));
@@ -146,6 +146,7 @@ void SunSystemGame::Initialize() {
     for (auto& planet : planets_) {
         planet->Initialize();
     }
+    currentPlanet_ = 0;
 }
 
 void SunSystemGame::Update(float deltaTime) {
@@ -167,6 +168,24 @@ void SunSystemGame::Update(float deltaTime) {
 
     if (ctx_.GetInputDevice().IsKeyDown(Keys::D4)) {
         camera_->UpdateOrthoProjection();
+    }
+
+    if (ctx_.GetInputDevice().IsKeyDown(Keys::D5)) {
+        auto controller = dynamic_cast<OrbitCameraController*>(currentCameraController_);
+
+        if (controller) {
+            controller->Target(&center_);
+        }
+    }
+
+    if (ctx_.GetInputDevice().IsKeyDown(Keys::D6)) {
+        auto controller = dynamic_cast<OrbitCameraController*>(currentCameraController_);
+
+        if (controller) {
+            controller->Target(planets_[currentPlanet_]->GetRefGlobalPosition());
+
+            currentPlanet_ = (currentPlanet_ + 1) % planets_.size();
+        }
     }
 
     if (ctx_.GetInputDevice().IsKeyDown(Keys::LeftShift)) {

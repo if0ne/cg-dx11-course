@@ -24,7 +24,7 @@ void SphereComponent::Initialize() {
             float sinTheta = sinf(thetaAngle);
             float cosTheta = cosf(thetaAngle);
 
-            Vector3 position = Vector3(cosTheta * sinPhi, sinTheta * sinPhi, cosPhi);
+            Vector3 position = Vector3(cosTheta * sinPhi, cosPhi, sinTheta * sinPhi);
 
             vertices_.push_back(position);
 

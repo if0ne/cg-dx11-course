@@ -44,6 +44,7 @@ private:
     SphereComponent* sun_;
     float sunSize_;
 
+    int currentPlanet_;
 public:
     SunSystemGame();
     ~SunSystemGame();
