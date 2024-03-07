@@ -8,9 +8,9 @@
 
 using namespace DirectX::SimpleMath;
 
-OrbitCameraController::OrbitCameraController(Camera& camera, DirectX::SimpleMath::Vector3* target) : CameraController(camera), target_(target) {
+OrbitCameraController::OrbitCameraController(Camera& camera, DirectX::SimpleMath::Vector3 pos, DirectX::SimpleMath::Vector3* target) : CameraController(camera), target_(target) {
     distance_ = 10.0f;
-    cameraPosition_ = Vector3(0.0, 0.0, distance_);
+    cameraPosition_ = pos;
     yaw_ = 0.0;
     pitch_ = 0.0;
 
@@ -22,7 +22,7 @@ OrbitCameraController::OrbitCameraController(Camera& camera, DirectX::SimpleMath
 }
 
 void OrbitCameraController::Update(float deltaTime) {
-    cameraPosition_ = Vector3(0.0, 0.0, distance_);
+    //cameraPosition_ = Vector3(0.0, 0.0, distance_);
 
     auto rotQuat = Quaternion::CreateFromYawPitchRoll(-yaw_, pitch_, 0.0f);
     auto rotMat = Matrix::CreateFromQuaternion(rotQuat);

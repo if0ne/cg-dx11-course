@@ -46,6 +46,7 @@ public:
     void Run();
     void Exit();
     void PushComponent(std::shared_ptr<GameComponent>&& component);
+    void SetViewport(int x, int y, float w, float h);
 
     Window& GetWindow() {
         return *window_;

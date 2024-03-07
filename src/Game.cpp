@@ -46,12 +46,14 @@ void Game::PrepareFrame() {
     renderCtx_->GetContext()->ClearDepthStencilView(ds, D3D11_CLEAR_DEPTH, 1.0, 0);
 
     renderCtx_->ActivateDepthStencilState();
+}
 
+void Game::SetViewport(int x, int y, float w, float h) {
     D3D11_VIEWPORT viewport = {};
-    viewport.Width = static_cast<float>(window_->GetWidth());
-    viewport.Height = static_cast<float>(window_->GetHeight());
-    viewport.TopLeftX = 0;
-    viewport.TopLeftY = 0;
+    viewport.Width = w;
+    viewport.Height = h;
+    viewport.TopLeftX = x;
+    viewport.TopLeftY = y;
     viewport.MinDepth = 0;
     viewport.MaxDepth = 1.0f;
 
@@ -115,6 +117,7 @@ void Game::Run() {
         ProcessInput();
         Update();
         PrepareFrame();
+        SetViewport(0, 0, window_->GetWidth(), window_->GetHeight());
         Draw();
         EndFrame();
     }

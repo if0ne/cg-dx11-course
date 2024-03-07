@@ -19,8 +19,20 @@ using namespace DirectX::SimpleMath;
 SunSystemGame::SunSystemGame() : GameComponent(), center_(DirectX::SimpleMath::Vector3::Zero) {
     camera_ = new Camera();
     freeCameraController_ = new FreeCameraController(*camera_);
-    orbitCameraController_ = new OrbitCameraController(*camera_, &center_);
+    orbitCameraController_ = new OrbitCameraController(*camera_, Vector3(0.0, 0.0, 0.1), &center_);
     currentCameraController_ = freeCameraController_;
+
+    cameraT_ = new Camera();
+    top_ = new OrbitCameraController(*cameraT_, Vector3(0.0, 250.0, 10.0), &center_);
+    top_->Active(false);
+
+    cameraR_ = new Camera();
+    right_ = new OrbitCameraController(*cameraR_, Vector3(250.0, 0.0, 0.0), &center_);
+    right_->Active(false);
+
+    cameraF_ = new Camera();
+    forward_ = new OrbitCameraController(*cameraF_, Vector3(0.0, 0.0, 250.0), &center_);
+    forward_->Active(false);
 
     sun_ = new SphereComponent(Vector3(1.0, 0.8, 0.0), Vector3(1.0, 0.5, 0.0));
     sunSize_ = 109.0;
@@ -196,6 +208,9 @@ void SunSystemGame::Update(float deltaTime) {
     }
 
     currentCameraController_->Update(deltaTime);
+    top_->Update(deltaTime);
+    right_->Update(deltaTime);
+    forward_->Update(deltaTime);
 
     sun_->Update(deltaTime);
     for (auto& planet : planets_) {
@@ -204,6 +219,7 @@ void SunSystemGame::Update(float deltaTime) {
 }
 
 void SunSystemGame::Draw() {
+    ctx_.SetViewport(0, 0, 620, 360);
     ctx_.GetRenderContext().GetContext()->RSSetState(rastState_);
     ctx_.GetRenderContext().GetContext()->IASetInputLayout(layout_);
     ctx_.GetRenderContext().GetContext()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -221,6 +237,81 @@ void SunSystemGame::Draw() {
     ctx_.GetRenderContext().GetContext()->Unmap(wvpBuffer_, 0);
 
     auto sunMatrix = DirectX::SimpleMath::Matrix::CreateScale(sunSize_);
+    UpdateModelBuffer(sunMatrix);
+    sun_->Draw();
+
+    for (auto& planet : planets_) {
+        planet->Draw();
+    }
+
+    ctx_.SetViewport(620, 0, 620, 360);
+    ctx_.GetRenderContext().GetContext()->RSSetState(rastState_);
+    ctx_.GetRenderContext().GetContext()->IASetInputLayout(layout_);
+    ctx_.GetRenderContext().GetContext()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    ctx_.GetRenderContext().GetContext()->VSSetShader(vertexShader_, nullptr, 0);
+    ctx_.GetRenderContext().GetContext()->PSSetShader(pixelShader_, nullptr, 0);
+    ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(0, 1, &wvpBuffer_);
+    ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(1, 1, &modelBuffer_);
+
+    matrix = cameraT_->CameraMatrix();
+
+    res = {};
+    ctx_.GetRenderContext().GetContext()->Map(wvpBuffer_, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
+
+    memcpy(res.pData, &matrix, sizeof(DirectX::SimpleMath::Matrix));
+    ctx_.GetRenderContext().GetContext()->Unmap(wvpBuffer_, 0);
+
+    sunMatrix = DirectX::SimpleMath::Matrix::CreateScale(sunSize_);
+    UpdateModelBuffer(sunMatrix);
+    sun_->Draw();
+
+    for (auto& planet : planets_) {
+        planet->Draw();
+    }
+
+    ctx_.SetViewport(0, 320, 620, 360);
+    ctx_.GetRenderContext().GetContext()->RSSetState(rastState_);
+    ctx_.GetRenderContext().GetContext()->IASetInputLayout(layout_);
+    ctx_.GetRenderContext().GetContext()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    ctx_.GetRenderContext().GetContext()->VSSetShader(vertexShader_, nullptr, 0);
+    ctx_.GetRenderContext().GetContext()->PSSetShader(pixelShader_, nullptr, 0);
+    ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(0, 1, &wvpBuffer_);
+    ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(1, 1, &modelBuffer_);
+
+    matrix = cameraF_->CameraMatrix();
+
+    res = {};
+    ctx_.GetRenderContext().GetContext()->Map(wvpBuffer_, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
+
+    memcpy(res.pData, &matrix, sizeof(DirectX::SimpleMath::Matrix));
+    ctx_.GetRenderContext().GetContext()->Unmap(wvpBuffer_, 0);
+
+    sunMatrix = DirectX::SimpleMath::Matrix::CreateScale(sunSize_);
+    UpdateModelBuffer(sunMatrix);
+    sun_->Draw();
+
+    for (auto& planet : planets_) {
+        planet->Draw();
+    }
+
+    ctx_.SetViewport(620, 320, 620, 360);
+    ctx_.GetRenderContext().GetContext()->RSSetState(rastState_);
+    ctx_.GetRenderContext().GetContext()->IASetInputLayout(layout_);
+    ctx_.GetRenderContext().GetContext()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    ctx_.GetRenderContext().GetContext()->VSSetShader(vertexShader_, nullptr, 0);
+    ctx_.GetRenderContext().GetContext()->PSSetShader(pixelShader_, nullptr, 0);
+    ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(0, 1, &wvpBuffer_);
+    ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(1, 1, &modelBuffer_);
+
+    matrix = cameraR_->CameraMatrix();
+
+    res = {};
+    ctx_.GetRenderContext().GetContext()->Map(wvpBuffer_, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
+
+    memcpy(res.pData, &matrix, sizeof(DirectX::SimpleMath::Matrix));
+    ctx_.GetRenderContext().GetContext()->Unmap(wvpBuffer_, 0);
+
+    sunMatrix = DirectX::SimpleMath::Matrix::CreateScale(sunSize_);
     UpdateModelBuffer(sunMatrix);
     sun_->Draw();
 

@@ -27,6 +27,13 @@ private:
     FreeCameraController* freeCameraController_;
     OrbitCameraController* orbitCameraController_;
 
+    Camera* cameraT_;
+    Camera* cameraF_;
+    Camera* cameraR_;
+    OrbitCameraController* top_;
+    OrbitCameraController* forward_;
+    OrbitCameraController* right_;
+
     ID3D11InputLayout* layout_;
     ID3D11VertexShader* vertexShader_;
     ID3D11PixelShader* pixelShader_;

@@ -9,7 +9,7 @@ private:
 
     DirectX::SimpleMath::Vector3* target_;
 public:
-    OrbitCameraController(Camera& camera, DirectX::SimpleMath::Vector3* target);
+    OrbitCameraController(Camera& camera, DirectX::SimpleMath::Vector3 pos, DirectX::SimpleMath::Vector3* target);
 
     virtual void Update(float deltaTime) override;
     virtual void OnMouseMove(const MouseMoveEventArgs& args) override;
