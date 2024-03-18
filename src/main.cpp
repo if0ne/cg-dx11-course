@@ -12,9 +12,5 @@ int main()
 {
 	srand(time(0));
 
-	std::shared_ptr<SunSystemGame> game = std::make_shared<SunSystemGame>();
-
-	Game::GetSingleton().PushComponent(std::move(game));
-
 	Game::GetSingleton().Run();
 }
