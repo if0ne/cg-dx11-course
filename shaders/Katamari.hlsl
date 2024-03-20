@@ -21,6 +21,7 @@ cbuffer Model : register(b1)
 struct VS_IN
 {
     float3 pos : POSITION0;
+    float3 normal: NORMAL;
     float2 tex : TEXCOORD;
 };
 

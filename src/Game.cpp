@@ -3,6 +3,7 @@
 #include "InputDevice.h"
 #include "RenderContext.h"
 #include "Window.h"
+#include "AssetLoader.h"
 
 Game* Game::instance_;
 
@@ -11,6 +12,7 @@ Game::Game() {
     inputDevice_ = new InputDevice(*this);
     window_ = new Window(1240, 720);
     renderCtx_ = new RenderContext();
+    assetLoader_ = new AssetLoader();
 
     components_ = {};
 
@@ -19,6 +21,13 @@ Game::Game() {
     totalTime_ = 0.0;
     deltaTime_  = 0.0;
     prevTime_ = std::chrono::steady_clock::now();
+}
+
+Game::~Game() {
+    delete assetLoader_;
+    delete renderCtx_;
+    delete window_;
+    delete inputDevice_;
 }
 
 void Game::Initialize() {

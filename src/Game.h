@@ -11,6 +11,7 @@
 class Window;
 class RenderContext;
 class InputDevice;
+class AssetLoader;
 
 class Game
 {
@@ -23,6 +24,7 @@ private:
     Window* window_;
     RenderContext* renderCtx_;
     InputDevice* inputDevice_;
+    AssetLoader* assetLoader_;
 
     float totalTime_;
     float deltaTime_;
@@ -33,6 +35,7 @@ private:
     bool isExitRequested_;
 
     Game();
+    ~Game();
     void Initialize();
     void ProcessInput();
     void PrepareFrame();
@@ -58,6 +61,10 @@ public:
 
     InputDevice& GetInputDevice() {
         return *inputDevice_;
+    }
+
+    AssetLoader& AssetLoader() {
+        return *assetLoader_;
     }
 
     static Game& GetSingleton() {

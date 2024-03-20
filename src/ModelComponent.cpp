@@ -2,6 +2,7 @@
 
 #include "Game.h"
 #include "RenderContext.h"
+#include "MeshComponent.h"
 
 using namespace DirectX::SimpleMath;
 
@@ -39,61 +40,28 @@ void ModelComponent::ProcessNode(const aiNode* node, const aiScene* scene) {
 }
 
 void ModelComponent::Initialize() {
-    if (vertices_.size() == 0) {
-        for (auto& child : children_) {
-            child->Initialize();
-            return;
-        }
+    for (auto& child : children_) {
+        child.Initialize();
     }
-
-    D3D11_BUFFER_DESC vertexBufDesc = {};
-    vertexBufDesc.Usage = D3D11_USAGE_DEFAULT;
-    vertexBufDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    vertexBufDesc.CPUAccessFlags = 0;
-    vertexBufDesc.MiscFlags = 0;
-    vertexBufDesc.StructureByteStride = 0;
-    vertexBufDesc.ByteWidth = sizeof(Vertex) * vertices_.size();
-
-    D3D11_SUBRESOURCE_DATA vertexData = {};
-    vertexData.pSysMem = vertices_.data();
-    vertexData.SysMemPitch = 0;
-    vertexData.SysMemSlicePitch = 0;
-
-    ctx_.GetRenderContext().GetDevice()->CreateBuffer(&vertexBufDesc, &vertexData, &vb_);
-
-    D3D11_BUFFER_DESC indexBufDesc = {};
-    indexBufDesc.Usage = D3D11_USAGE_DEFAULT;
-    indexBufDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-    indexBufDesc.CPUAccessFlags = 0;
-    indexBufDesc.MiscFlags = 0;
-    indexBufDesc.StructureByteStride = 0;
-    indexBufDesc.ByteWidth = sizeof(int) * 36;
-
-    D3D11_SUBRESOURCE_DATA indexData = {};
-    indexData.pSysMem = indices_.data();
-    indexData.SysMemPitch = 0;
-    indexData.SysMemSlicePitch = 0;
-
-    ctx_.GetRenderContext().GetDevice()->CreateBuffer(&indexBufDesc, &indexData, &ib_);
 }
 
 void ModelComponent::Update(float deltaTime) {
 }
 
 void ModelComponent::Draw() {
-    UINT strides[] = { sizeof(Vector3) * 2 };
-    UINT offsets[] = { 0 };
-
-    ctx_.GetRenderContext().GetContext()->IASetIndexBuffer(ib_, DXGI_FORMAT_R32_UINT, 0);
-    ctx_.GetRenderContext().GetContext()->IASetVertexBuffers(0, 1, &vb_, strides, offsets);
-
-    ctx_.GetRenderContext().GetContext()->DrawIndexed(36, 0, 0);
+    for (auto& child : children_) {
+        child.Draw();
+    }
 }
 
 void ModelComponent::Reload() {
+    for (auto& child : children_) {
+        child.Reload();
+    }
 }
 
 void ModelComponent::DestroyResources() {
-    vb_->Release();
-    ib_->Release();
+    for (auto& child : children_) {
+        child.DestroyResources();
+    }
 }
