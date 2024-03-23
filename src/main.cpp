@@ -12,7 +12,7 @@ int main()
 {
 	srand(time(0));
 
-	auto katamari = std::make_shared(KatamariGame());
+	auto katamari = std::make_shared<KatamariGame>();
 
 	Game::GetSingleton().PushComponent(std::move(katamari));
 	Game::GetSingleton().Run();

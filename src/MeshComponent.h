@@ -1,6 +1,11 @@
+#pragma once
 #include <string>
 #include <vector>
 #include <SimpleMath.h>
+#include <d3d.h>
+#include <d3d11.h>
+
+#include "GameComponent.h"
 
 struct Texture {
     unsigned int id;
@@ -24,11 +29,11 @@ private:
     ID3D11ShaderResourceView* texture_;
     ID3D11SamplerState* sampler_;
 public:
-    MeshComponent(std::vector<Vertex>&& vertices, std::vector<int>&& indices, std::vector<Texture>&& textures) : 
-        vertices_(vertices), 
-        indices_(indices), 
-        textures_(textures), 
-        GameComponent() 
+    MeshComponent(std::vector<Vertex>&& vertices, std::vector<int>&& indices, std::vector<Texture>&& textures) :
+        vertices_(vertices),
+        indices_(indices),
+        textures_(textures),
+        GameComponent()
     {
         vb_ = nullptr;
         ib_ = nullptr;
@@ -41,4 +46,4 @@ public:
     virtual void Draw();
     virtual void Reload();
     virtual void DestroyResources();
-}
+};

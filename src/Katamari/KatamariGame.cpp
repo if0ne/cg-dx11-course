@@ -1,5 +1,6 @@
 #include "KatamariGame.h"
 
+#include <string>
 #include <SimpleMath.h>
 
 #include "../Game.h"
@@ -8,7 +9,8 @@
 #include "../OrbitCameraController.h"
 #include "../SphereComponent.h"
 
-#include <SimpleMath.h>
+#include "PlayerComponent.h"
+#include "StickyObjectComponent.h"
 
 using namespace DirectX::SimpleMath;
 
@@ -27,6 +29,9 @@ KatamariGame::~KatamariGame() {
 
 //TODO: Two pipelines for game assets and player and plane
 void KatamariGame::Initialize() {
+    auto path = std::string("./bball.fbx");
+    //ctx_.AssetLoader().LoadModel(path);
+
     ctx_.GetWindow().HideWindowCursor();
 
     D3DCompileFromFile(

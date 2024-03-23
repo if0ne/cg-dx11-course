@@ -9,12 +9,13 @@
 #include <vector>
 
 class PlayerComponent;
+class ModelComponent;
 
 class StickyObjectComponent : public GameComponent
 {
 private:
-    SimpleMath::Vector3 position_;
-    SimpleMath::Vector3 rotation_;
+    DirectX::SimpleMath::Vector3 position_;
+    DirectX::SimpleMath::Vector3 rotation_;
 
     PlayerComponent* parent_;
     ModelComponent* gfx_;

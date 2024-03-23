@@ -1,6 +1,10 @@
 #include "MeshComponent.h"
 
-void ModelComponent::Initialize() {
+#include "Game.h"
+#include "GameComponent.h"
+#include "RenderContext.h"
+
+void MeshComponent::Initialize() {
     D3D11_BUFFER_DESC vertexBufDesc = {};
     vertexBufDesc.Usage = D3D11_USAGE_DEFAULT;
     vertexBufDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
@@ -34,10 +38,10 @@ void ModelComponent::Initialize() {
     //TODO: Create texture view and sampler
 }
 
-void ModelComponent::Update(float deltaTime) {
+void MeshComponent::Update(float deltaTime) {
 }
 
-void ModelComponent::Draw() {
+void MeshComponent::Draw() {
     UINT strides[] = { sizeof(Vertex) };
     UINT offsets[] = { 0 };
 
@@ -49,12 +53,12 @@ void ModelComponent::Draw() {
     ctx_.GetRenderContext().GetContext()->DrawIndexed(indices_.size(), 0, 0);
 }
 
-void ModelComponent::Reload() {
+void MeshComponent::Reload() {
 }
 
-void ModelComponent::DestroyResources() {
+void MeshComponent::DestroyResources() {
     vb_->Release();
     ib_->Release();
     texture_->Release();
-    sampler_->Release()
+    sampler_->Release();
 }

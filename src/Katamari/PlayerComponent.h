@@ -11,16 +11,17 @@
 class Camera;
 class StickyObjectComponent;
 class OrbitCameraController;
+class ModelComponent;
 
 class PlayerComponent : public GameComponent
 {
 private:
     OrbitCameraController* cameraController_;
     std::vector<StickyObjectComponent*> objects_;
-    SphereComponent* gfx_;
+    ModelComponent* gfx_;
 
-    SimpleMath::Vector3 position_;
-    SimpleMath::Vector3 rotation_;
+    DirectX::SimpleMath::Vector3 position_;
+    DirectX::SimpleMath::Vector3 rotation_;
 public:
     PlayerComponent(Camera& camera);
     ~PlayerComponent();

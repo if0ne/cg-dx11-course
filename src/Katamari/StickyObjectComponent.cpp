@@ -6,7 +6,7 @@
 #include "../InputDevice.h"
 #include "../Camera.h"
 #include "../OrbitCameraController.h"
-#include "../SphereComponent.h"
+#include "../ModelComponent.h"
 
 #include <SimpleMath.h>
 

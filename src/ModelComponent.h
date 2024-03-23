@@ -13,9 +13,9 @@ class MeshComponent;
 class ModelComponent : public GameComponent
 {
 private:
-    std::vector<MeshComponent> children_;
+    std::vector<MeshComponent*> children_;
 public:
-    ModelComponent(std::vector<MeshComponent>&& children) : children_(children), GameComponent() {}
+    ModelComponent(std::vector<MeshComponent*>&& children) : children_(children), GameComponent() {}
 
     virtual void Initialize();
     virtual void Update(float deltaTime);
@@ -23,4 +23,3 @@ public:
     virtual void Reload();
     virtual void DestroyResources();
 };
-
