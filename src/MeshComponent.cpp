@@ -3,6 +3,16 @@
 #include "Game.h"
 #include "GameComponent.h"
 #include "RenderContext.h"
+#include <WICTextureLoader.h>
+
+inline std::wstring strToWstr(const std::string& str)
+{
+    if (str.empty()) return std::wstring();
+    int size_needed = MultiByteToWideChar(CP_UTF8, 0, &str[0], (int)str.size(), NULL, 0);
+    std::wstring wstrTo(size_needed, 0);
+    MultiByteToWideChar(CP_UTF8, 0, &str[0], (int)str.size(), &wstrTo[0], size_needed);
+    return wstrTo;
+}
 
 void MeshComponent::Initialize() {
     D3D11_BUFFER_DESC vertexBufDesc = {};
@@ -35,7 +45,23 @@ void MeshComponent::Initialize() {
 
     ctx_.GetRenderContext().GetDevice()->CreateBuffer(&indexBufDesc, &indexData, &ib_);
 
-    //TODO: Create texture view and sampler
+    auto path = strToWstr(texturePath_.path);
+    DirectX::CreateWICTextureFromFile(
+        ctx_.GetRenderContext().GetDevice(),
+        path.c_str(),
+        &textureData_,
+        &texture_);
+
+    D3D11_SAMPLER_DESC sampDesc = {};
+    sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+    sampDesc.MinLOD = 0;
+    sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+    ctx_.GetRenderContext().GetDevice()->CreateSamplerState(&sampDesc, &sampler_);
 }
 
 void MeshComponent::Update(float deltaTime) {
@@ -60,5 +86,6 @@ void MeshComponent::DestroyResources() {
     vb_->Release();
     ib_->Release();
     texture_->Release();
+    textureData_->Release();
     sampler_->Release();
 }

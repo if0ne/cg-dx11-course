@@ -8,7 +8,7 @@
 #include "GameComponent.h"
 
 struct Texture {
-    unsigned int id;
+    std::string path;
 };  
 
 struct Vertex {
@@ -21,18 +21,19 @@ class MeshComponent : public GameComponent {
 private:
     std::vector<Vertex> vertices_;
     std::vector<int> indices_;
-    std::vector<Texture> textures_;
+    Texture texturePath_;
 
     ID3D11Buffer* vb_;
     ID3D11Buffer* ib_;
 
     ID3D11ShaderResourceView* texture_;
+    ID3D11Resource* textureData_;
     ID3D11SamplerState* sampler_;
 public:
-    MeshComponent(std::vector<Vertex>&& vertices, std::vector<int>&& indices, std::vector<Texture>&& textures) :
+    MeshComponent(std::vector<Vertex>&& vertices, std::vector<int>&& indices, Texture&& textures) :
         vertices_(vertices),
         indices_(indices),
-        textures_(textures),
+        texturePath_(textures),
         GameComponent()
     {
         vb_ = nullptr;

@@ -11,6 +11,7 @@
 class Window;
 class RenderContext;
 class InputDevice;
+class AssetLoader;
 
 class Game
 {
@@ -23,6 +24,7 @@ private:
     Window* window_;
     RenderContext* renderCtx_;
     InputDevice* inputDevice_;
+    AssetLoader* assetLoader_;
 
     float totalTime_;
     float deltaTime_;
@@ -59,6 +61,10 @@ public:
 
     InputDevice& GetInputDevice() {
         return *inputDevice_;
+    }
+
+    AssetLoader& GetAssetLoader() {
+        return *assetLoader_;
     }
 
     static Game& GetSingleton() {

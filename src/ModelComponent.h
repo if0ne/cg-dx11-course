@@ -13,6 +13,7 @@ class MeshComponent;
 class ModelComponent : public GameComponent
 {
 private:
+
     std::vector<MeshComponent*> children_;
 public:
     ModelComponent(std::vector<MeshComponent*>&& children) : children_(children), GameComponent() {}

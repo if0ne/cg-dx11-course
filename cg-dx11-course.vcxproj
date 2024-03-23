@@ -130,6 +130,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\AssetLoader.cpp" />
     <ClCompile Include="src\Katamari\KatamariGame.cpp" />
     <ClCompile Include="src\Katamari\PlayerComponent.cpp" />
     <ClCompile Include="src\Katamari\StickyObjectComponent.cpp" />
@@ -155,6 +156,7 @@
     <ClCompile Include="src\SunSystem\SunSystemGame.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\AssetLoader.h" />
     <ClInclude Include="src\Katamari\KatamariGame.h" />
     <ClInclude Include="src\Katamari\PlayerComponent.h" />
     <ClInclude Include="src\Katamari\StickyObjectComponent.h" />

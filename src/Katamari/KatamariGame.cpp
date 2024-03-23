@@ -3,6 +3,7 @@
 #include <string>
 #include <SimpleMath.h>
 
+#include "../AssetLoader.h"
 #include "../Game.h"
 #include "../InputDevice.h"
 #include "../Camera.h"
@@ -16,6 +17,7 @@ using namespace DirectX::SimpleMath;
 
 KatamariGame::KatamariGame() : GameComponent() {
     camera_ = new Camera();
+    player_ = new PlayerComponent(*camera_);
 }
 
 KatamariGame::~KatamariGame() {
@@ -29,8 +31,8 @@ KatamariGame::~KatamariGame() {
 
 //TODO: Two pipelines for game assets and player and plane
 void KatamariGame::Initialize() {
-    auto path = std::string("./bball.fbx");
-    //ctx_.AssetLoader().LoadModel(path);
+    auto path = std::string("/rock.fbx");
+    ctx_.GetAssetLoader().LoadModel(path);
 
     ctx_.GetWindow().HideWindowCursor();
 
@@ -81,9 +83,18 @@ void KatamariGame::Initialize() {
             0
         },
         D3D11_INPUT_ELEMENT_DESC {
-            "COLOR",
+            "NORMAL",
             0,
             DXGI_FORMAT_R32G32B32_FLOAT,
+            0,
+            D3D11_APPEND_ALIGNED_ELEMENT,
+            D3D11_INPUT_PER_VERTEX_DATA,
+            0
+        },
+        D3D11_INPUT_ELEMENT_DESC {
+            "TEXCOORD",
+            0,
+            DXGI_FORMAT_R32G32_FLOAT,
             0,
             D3D11_APPEND_ALIGNED_ELEMENT,
             D3D11_INPUT_PER_VERTEX_DATA,
@@ -93,7 +104,7 @@ void KatamariGame::Initialize() {
 
     ctx_.GetRenderContext().GetDevice()->CreateInputLayout(
         inputElements,
-        2,
+        3,
         vertexBC_->GetBufferPointer(),
         vertexBC_->GetBufferSize(),
         &layout_
