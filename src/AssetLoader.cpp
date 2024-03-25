@@ -10,7 +10,7 @@ Texture LoadMaterialTextures(const std::string& directory, aiMaterial* mat, aiTe
     
     if (str.length == 0) {
         return Texture{
-            directory + "/default.png"
+            directory + "/default.jpg"
         };
     } else {
         return Texture{
@@ -19,7 +19,7 @@ Texture LoadMaterialTextures(const std::string& directory, aiMaterial* mat, aiTe
     }
 }
 
-MeshComponent* ProcessMesh(const std::string& directory, aiMesh* mesh, const aiScene* scene) {
+MeshComponent* ProcessMesh(const std::string& directory, aiMesh* mesh, const aiScene* scene, DirectX::BoundingBox& localAABB) {
     std::vector<Vertex> vertices;
     std::vector<int> indices;
 
@@ -45,19 +45,34 @@ MeshComponent* ProcessMesh(const std::string& directory, aiMesh* mesh, const aiS
     aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
     Texture texturePath = LoadMaterialTextures(directory, material, aiTextureType_DIFFUSE);
 
+    DirectX::BoundingBox meshAABB;
+    DirectX::SimpleMath::Vector3 notTransMin = { mesh->mAABB.mMin.x,mesh->mAABB.mMin.y,mesh->mAABB.mMin.z };
+    DirectX::SimpleMath::Vector3 notTransMax = { mesh->mAABB.mMax.x,mesh->mAABB.mMax.y,mesh->mAABB.mMax.z };
+
+    auto hDiag = (notTransMax - notTransMin) / 2.f;
+
+    meshAABB.Center = (notTransMax + notTransMin) / 2.f;
+
+    meshAABB.Extents.x = std::abs(hDiag.x);
+    meshAABB.Extents.y = std::abs(hDiag.y);
+    meshAABB.Extents.z = std::abs(hDiag.z);
+
+
+    DirectX::BoundingBox::CreateMerged(localAABB, localAABB, meshAABB);
+
     return new MeshComponent(std::move(vertices), std::move(indices), std::move(texturePath));
 }
 
-std::vector<MeshComponent*> ProcessNode(const std::string& directory, aiNode* node, const aiScene* scene) {
+std::vector<MeshComponent*> ProcessNode(const std::string& directory, aiNode* node, const aiScene* scene, DirectX::BoundingBox& localAABB) {
     std::vector<MeshComponent*> returned;
 
     for (int i = 0; i < node->mNumMeshes; i++) {
         aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-        returned.push_back(ProcessMesh(directory, mesh, scene));
+        returned.push_back(ProcessMesh(directory, mesh, scene, localAABB));
     }
 
     for (int i = 0; i < node->mNumChildren; i++) {
-        auto meshes = ProcessNode(directory, node->mChildren[i], scene);
+        auto meshes = ProcessNode(directory, node->mChildren[i], scene, localAABB);
 
         for (auto&& mesh : meshes) {
             returned.push_back(std::move(mesh));
@@ -74,14 +89,21 @@ ModelComponent& AssetLoader::LoadModel(std::string& path) {
     }
 
     auto searchPath = kDirectory + path;
-    const aiScene* scene = importer_.ReadFile(searchPath, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
+    const aiScene* scene = importer_.ReadFile(
+        searchPath, 
+        aiProcess_Triangulate | 
+        aiProcess_FlipUVs | 
+        aiProcess_CalcTangentSpace | 
+        aiProcess_GenBoundingBoxes
+    );
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
         throw std::exception("Wrong path");
     }
 
-    auto meshes = ProcessNode(kDirectory, scene->mRootNode, scene);
-    auto model = ModelComponent(std::move(meshes));
+    DirectX::BoundingBox localAABB{ DirectX::SimpleMath::Vector3::Zero,DirectX::SimpleMath::Vector3::Zero };
+    auto meshes = ProcessNode(kDirectory, scene->mRootNode, scene, localAABB);
+    auto model = ModelComponent(std::move(meshes), localAABB);
 
     model.Initialize();
 

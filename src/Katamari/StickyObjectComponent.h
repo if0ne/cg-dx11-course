@@ -28,4 +28,6 @@ public:
     virtual void Draw() override;
     virtual void Reload() override;
     virtual void DestroyResources() override;
+
+    DirectX::BoundingBox& GetCollision();
 };

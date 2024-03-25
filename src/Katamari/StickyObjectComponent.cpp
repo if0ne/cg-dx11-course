@@ -40,3 +40,7 @@ void StickyObjectComponent::DestroyResources() {
 
 }
 
+DirectX::BoundingBox& StickyObjectComponent::GetCollision() {
+    return gfx_->AABB();
+}
+

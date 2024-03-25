@@ -46,7 +46,11 @@ void MeshComponent::Initialize() {
     ctx_.GetRenderContext().GetDevice()->CreateBuffer(&indexBufDesc, &indexData, &ib_);
 
     auto path = strToWstr(texturePath_.path);
-    DirectX::CreateWICTextureFromFile(
+
+    // Hack for CreateWICTextureFromFile
+    HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+
+    auto res = DirectX::CreateWICTextureFromFile(
         ctx_.GetRenderContext().GetDevice(),
         path.c_str(),
         &textureData_,

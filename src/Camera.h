@@ -24,6 +24,7 @@ public:
     DirectX::SimpleMath::Vector3 Position() const;
     DirectX::SimpleMath::Vector3 ForwardVector() const;
     DirectX::SimpleMath::Vector3 UpVector() const;
+    DirectX::SimpleMath::Vector3 RightVector() const;
 
     void View(DirectX::SimpleMath::Matrix view) {
         view_ = view;

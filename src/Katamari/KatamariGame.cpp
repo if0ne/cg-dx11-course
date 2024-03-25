@@ -17,7 +17,7 @@ using namespace DirectX::SimpleMath;
 
 KatamariGame::KatamariGame() : GameComponent() {
     camera_ = new Camera();
-    player_ = new PlayerComponent(*camera_);
+    player_ = new PlayerComponent(*camera_, *this);
 }
 
 KatamariGame::~KatamariGame() {
@@ -29,11 +29,7 @@ KatamariGame::~KatamariGame() {
     }
 }
 
-//TODO: Two pipelines for game assets and player and plane
 void KatamariGame::Initialize() {
-    auto path = std::string("/rock.fbx");
-    ctx_.GetAssetLoader().LoadModel(path);
-
     ctx_.GetWindow().HideWindowCursor();
 
     D3DCompileFromFile(

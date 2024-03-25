@@ -12,18 +12,21 @@ class Camera;
 class StickyObjectComponent;
 class OrbitCameraController;
 class ModelComponent;
+class KatamariGame;
 
 class PlayerComponent : public GameComponent
 {
 private:
+    KatamariGame& game_;
+    Camera& camera_;
     OrbitCameraController* cameraController_;
     std::vector<StickyObjectComponent*> objects_;
     ModelComponent* gfx_;
 
     DirectX::SimpleMath::Vector3 position_;
-    DirectX::SimpleMath::Vector3 rotation_;
+    DirectX::SimpleMath::Quaternion rotation_;
 public:
-    PlayerComponent(Camera& camera);
+    PlayerComponent(Camera& camera, KatamariGame& game);
     ~PlayerComponent();
 
     virtual void Initialize() override;
@@ -31,4 +34,6 @@ public:
     virtual void Draw() override;
     virtual void Reload() override;
     virtual void DestroyResources() override;
+
+    DirectX::BoundingBox& GetCollision();
 };

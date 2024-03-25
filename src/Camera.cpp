@@ -35,6 +35,12 @@ DirectX::SimpleMath::Vector3 Camera::UpVector() const {
     return inv.Up();
 }
 
+DirectX::SimpleMath::Vector3 Camera::RightVector() const {
+    DirectX::SimpleMath::Matrix inv;
+    view_.Invert(inv);
+    return inv.Right();
+}
+
 void Camera::UpdatePerspectiveProjection() {
     proj_ = DirectX::SimpleMath::Matrix::CreatePerspectiveFieldOfView(
         fov_,
