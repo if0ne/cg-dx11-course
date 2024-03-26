@@ -33,12 +33,14 @@ void PlayerComponent::Update(float deltaTime) {
     auto& input = ctx_.GetInputDevice();
     Vector3 dir{ 0.0, 0.0, 0.0 };
 
-    if (input.IsKeyDown(Keys::W)) dir += camera_.ForwardVector();
-    if (input.IsKeyDown(Keys::S)) dir += -camera_.ForwardVector();
+    auto cameraDir = Vector3 { camera_.ForwardVector().x, 0, camera_.ForwardVector().z };
+    cameraDir.Normalize();
+
+    if (input.IsKeyDown(Keys::W)) dir += cameraDir;
+    if (input.IsKeyDown(Keys::S)) dir += cameraDir;
     if (input.IsKeyDown(Keys::D)) dir += camera_.RightVector();
     if (input.IsKeyDown(Keys::A)) dir += -camera_.RightVector();
 
-    ;
     dir.Normalize();
 
     if (dir.Length() > 0.0) {
