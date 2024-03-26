@@ -13,11 +13,11 @@ private:
     const std::string kDirectory = "./assets";
 
     Assimp::Importer importer_;
-    std::unordered_map<std::string, ModelComponent> loadedModels_;
+    std::unordered_map<std::string, ModelComponent*> loadedModels_;
 public:
     AssetLoader() {}
 
-    ModelComponent& LoadModel(std::string& path);
+    ModelComponent* LoadModel(std::string& path);
 };
 
 

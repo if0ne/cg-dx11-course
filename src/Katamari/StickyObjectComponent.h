@@ -24,8 +24,9 @@ private:
     ModelComponent* gfx_;
 
     std::string path_;
+    float scale_;
 public:
-    StickyObjectComponent(std::string path, DirectX::SimpleMath::Vector3 position, KatamariGame& game);
+    StickyObjectComponent(std::string path, float scale, DirectX::SimpleMath::Vector3 position, KatamariGame& game);
     ~StickyObjectComponent();
 
     virtual void Initialize() override;

@@ -14,8 +14,9 @@
 
 using namespace DirectX::SimpleMath;
 
-StickyObjectComponent::StickyObjectComponent(std::string path, Vector3 position, KatamariGame& game) : 
+StickyObjectComponent::StickyObjectComponent(std::string path, float scale, Vector3 position, KatamariGame& game) :
     game_(game), 
+    scale_(scale),
     path_(path), 
     position_(position),
     GameComponent() 
@@ -28,7 +29,7 @@ StickyObjectComponent::~StickyObjectComponent() {
 }
 
 void StickyObjectComponent::Initialize() {
-    gfx_ = &ctx_.GetAssetLoader().LoadModel(path_);
+    gfx_ = ctx_.GetAssetLoader().LoadModel(path_);
 }
 
 void StickyObjectComponent::Update(float deltaTime) {
@@ -47,16 +48,17 @@ void StickyObjectComponent::Update(float deltaTime) {
 }
 
 void StickyObjectComponent::Draw() {
+    auto scale = Matrix::CreateScale(scale_);
     if (parent_) {
         auto rotation = parent_->Rotation();
-
+        auto rotMat = Matrix::CreateFromQuaternion(rotation);
         auto translation = Vector3::Transform(position_, rotation) + parent_->Position();
-        auto matrix = Matrix::CreateTranslation(translation);
+        auto matrix = scale * rotMat * Matrix::CreateTranslation(translation);
 
         game_.UpdateModelBuffer(matrix);
     } else {
         auto translation = Matrix::CreateTranslation(position_);
-        auto matrix = translation;
+        auto matrix = scale * translation;
 
         game_.UpdateModelBuffer(matrix);
     }
@@ -77,6 +79,9 @@ DirectX::BoundingBox StickyObjectComponent::GetCollision() {
     aabb.Center.x += position_.x;
     aabb.Center.y += position_.y;
     aabb.Center.z += position_.z;
+    aabb.Extents.x *= scale_;
+    aabb.Extents.y *= scale_;
+    aabb.Extents.z *= scale_;
     return aabb;
 }
 

@@ -7,14 +7,18 @@
 Texture LoadMaterialTextures(const std::string& directory, aiMaterial* mat, aiTextureType type) {
     aiString str;
     mat->Get(AI_MATKEY_TEXTURE(type, 0), str);
-    
+
     if (str.length == 0) {
         return Texture{
             directory + "/default.jpg"
         };
     } else {
+        std::string path(str.C_Str());
+        auto last = path.find_last_of("\\");
+        auto filename = path.substr(last, path.length() - last);
+
         return Texture{
-            directory + "/" + str.C_Str()
+            directory + filename
         };
     }
 }
@@ -82,7 +86,7 @@ std::vector<MeshComponent*> ProcessNode(const std::string& directory, aiNode* no
     return returned;
 }
 
-ModelComponent& AssetLoader::LoadModel(std::string& path) {
+ModelComponent* AssetLoader::LoadModel(std::string& path) {
     auto result = loadedModels_.find(path);
     if (result != loadedModels_.end()) {
         return result->second;
@@ -91,10 +95,9 @@ ModelComponent& AssetLoader::LoadModel(std::string& path) {
     auto searchPath = kDirectory + path;
     const aiScene* scene = importer_.ReadFile(
         searchPath, 
-        aiProcess_Triangulate | 
-        aiProcess_FlipUVs | 
-        aiProcess_CalcTangentSpace | 
-        aiProcess_GenBoundingBoxes
+        aiProcess_Triangulate |
+        aiProcess_GenBoundingBoxes |
+        aiProcess_FlipUVs
     );
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
@@ -103,9 +106,9 @@ ModelComponent& AssetLoader::LoadModel(std::string& path) {
 
     DirectX::BoundingBox localAABB{ DirectX::SimpleMath::Vector3::Zero,DirectX::SimpleMath::Vector3::Zero };
     auto meshes = ProcessNode(kDirectory, scene->mRootNode, scene, localAABB);
-    auto model = ModelComponent(std::move(meshes), localAABB);
+    auto model = new ModelComponent(std::move(meshes), localAABB);
 
-    model.Initialize();
+    model->Initialize();
 
     loadedModels_.insert(std::make_pair(path, std::move(model)));
     return loadedModels_.find(path)->second;

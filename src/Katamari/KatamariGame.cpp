@@ -1,6 +1,7 @@
 #include "KatamariGame.h"
 
 #include <string>
+#include <vector>
 #include <SimpleMath.h>
 
 #include "../AssetLoader.h"
@@ -20,8 +21,17 @@ KatamariGame::KatamariGame() : GameComponent() {
     player_ = new PlayerComponent(*camera_, *this);
 
     auto path = std::string("/bball.fbx");
+    std::vector<std::pair<std::string, float>> models;
+    models.push_back(std::make_pair(std::string("/rock.fbx"), 1.0));
+    models.push_back(std::make_pair(std::string("/pump.fbx"), 1.0));
+    models.push_back(std::make_pair(std::string("/wheel.fbx"), 0.005));
 
-    objects_.push_back(new StickyObjectComponent(path, Vector3(10, 0, 10), *this));
+    for (int i = 0; i < 10; i++) {
+        int random = rand() % models.size();
+        int x = rand() % 40 - 20;
+        int z = rand() % 40 - 20;
+        objects_.push_back(new StickyObjectComponent(models[random].first, models[random].second, Vector3(x, 0, z), *this));
+    }
 }
 
 KatamariGame::~KatamariGame() {
@@ -141,6 +151,9 @@ void KatamariGame::Initialize() {
     for (auto& object : objects_) {
         object->Initialize();
     }
+
+    auto path = std::string("/Floor_plate.fbx");
+    ground_ = ctx_.GetAssetLoader().LoadModel(path);
 }
 
 void KatamariGame::Update(float deltaTime) {
@@ -180,6 +193,10 @@ void KatamariGame::Draw() {
     for (auto& object : objects_) {
         object->Draw();
     }
+
+    matrix = Matrix::CreateTranslation(Vector3(0, -4.0, 0));
+    UpdateModelBuffer(matrix);
+    ground_->Draw();
 }
 
 void KatamariGame::Reload() {

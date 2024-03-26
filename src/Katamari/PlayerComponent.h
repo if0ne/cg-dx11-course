@@ -25,6 +25,7 @@ private:
 
     DirectX::SimpleMath::Vector3 position_;
     DirectX::SimpleMath::Quaternion rotation_;
+    float scale_;
 public:
     PlayerComponent(Camera& camera, KatamariGame& game);
     ~PlayerComponent();

@@ -11,6 +11,7 @@
 class Camera;
 class PlayerComponent;
 class StickyObjectComponent;
+class ModelComponent;
 
 class KatamariGame : public GameComponent
 {
@@ -32,6 +33,8 @@ private:
     std::vector<StickyObjectComponent*> objects_;
 
     PlayerComponent* player_;
+
+    ModelComponent* ground_;
 public:
     KatamariGame();
     ~KatamariGame();
