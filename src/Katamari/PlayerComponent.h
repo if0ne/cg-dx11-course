@@ -35,5 +35,13 @@ public:
     virtual void Reload() override;
     virtual void DestroyResources() override;
 
-    DirectX::BoundingBox& GetCollision();
+    DirectX::BoundingBox GetCollision();
+
+    DirectX::SimpleMath::Quaternion Rotation() {
+        return rotation_;
+    }
+
+    DirectX::SimpleMath::Vector3 Position() {
+        return position_;
+    }
 };

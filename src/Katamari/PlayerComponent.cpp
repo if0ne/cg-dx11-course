@@ -70,7 +70,11 @@ void PlayerComponent::DestroyResources() {
 
 }
 
-DirectX::BoundingBox& PlayerComponent::GetCollision() {
-    return gfx_->AABB();
+DirectX::BoundingBox PlayerComponent::GetCollision() {
+    auto aabb = gfx_->AABB();
+    aabb.Center.x += position_.x;
+    aabb.Center.y += position_.y;
+    aabb.Center.z += position_.z;
+    return aabb;
 }
 

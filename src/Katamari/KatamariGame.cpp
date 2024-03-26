@@ -18,6 +18,10 @@ using namespace DirectX::SimpleMath;
 KatamariGame::KatamariGame() : GameComponent() {
     camera_ = new Camera();
     player_ = new PlayerComponent(*camera_, *this);
+
+    auto path = std::string("/bball.fbx");
+
+    objects_.push_back(new StickyObjectComponent(path, Vector3(10, 0, 10), *this));
 }
 
 KatamariGame::~KatamariGame() {

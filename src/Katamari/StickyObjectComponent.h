@@ -6,21 +6,26 @@
 #include <d3dcompiler.h>
 #include <SimpleMath.h>
 
+#include <string>
 #include <vector>
 
 class PlayerComponent;
 class ModelComponent;
+class KatamariGame;
 
 class StickyObjectComponent : public GameComponent
 {
 private:
+    KatamariGame& game_;
+
     DirectX::SimpleMath::Vector3 position_;
-    DirectX::SimpleMath::Vector3 rotation_;
 
     PlayerComponent* parent_;
     ModelComponent* gfx_;
+
+    std::string path_;
 public:
-    StickyObjectComponent(ModelComponent* gfx);
+    StickyObjectComponent(std::string path, DirectX::SimpleMath::Vector3 position, KatamariGame& game);
     ~StickyObjectComponent();
 
     virtual void Initialize() override;
@@ -29,5 +34,5 @@ public:
     virtual void Reload() override;
     virtual void DestroyResources() override;
 
-    DirectX::BoundingBox& GetCollision();
+    DirectX::BoundingBox GetCollision();
 };

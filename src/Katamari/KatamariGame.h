@@ -43,4 +43,8 @@ public:
     virtual void DestroyResources() override;
 
     void UpdateModelBuffer(DirectX::SimpleMath::Matrix& matrix);
+
+    PlayerComponent& Player() {
+        return *player_;
+    }
 };
