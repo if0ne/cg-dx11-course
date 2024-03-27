@@ -1,7 +1,11 @@
 struct SCameraData
 {
     float4x4 WorldViewProj;
-    float3 ViewPos;
+};
+
+struct SViewPos
+{
+    float4 ViewPos;
 };
 
 struct SModelData
@@ -58,6 +62,11 @@ cbuffer Ambient : register(b3)
     SAmbient Ambient;
 }
 
+cbuffer ViewPos : register(b7)
+{
+    SViewPos ViewPos;
+};
+
 cbuffer Material : register(b8)
 {
     SMaterial Material;
@@ -97,20 +106,22 @@ float3 CalcDirLight(float3 normal, float3 viewDir)
 {
     float3 lightDir = normalize(-Directional.Direction.xyz);
 
-    float diff = Directional.Color.w * Material.Reflection * max(dot(normal, lightDir), 0.0);
-
-    float3 reflectDir = reflect(-lightDir, normal);
-    float spec = Material.Absorption * pow(max(dot(viewDir, reflectDir), 0.0), Material.Shininess);
+    float diffFactor = Directional.Color.w * Material.Reflection * max(dot(normal, lightDir), 0.0);
+    float3 diff = diffFactor * Directional.Color.xyz;
+    
+    float3 reflectDir = normalize(reflect(-lightDir, normal));
+    float specFactor = Material.Absorption * pow(max(dot(viewDir, reflectDir), 0.0), Material.Shininess);
+    float3 spec = specFactor * Directional.Color.xyz;
     
     float3 amb = Ambient.Color * Ambient.Intensity;
 
-    return (diff + spec) * amb * Directional.Color.xyz;
+    return diff + spec + amb;
 }
 
 float4 PSMain(PS_IN input) : SV_Target
 {
-    float3 surfaceColor = Material.BaseColor.xyz * Texture.Sample(Sampler, input.tex);
-    float3 dirLight = CalcDirLight(input.normal, CameraData.ViewPos);
+    float3 surfaceColor = Material.BaseColor.xyz * Texture.Sample(Sampler, input.tex).xyz;
+    float3 dirLight = CalcDirLight(input.normal, normalize(ViewPos.ViewPos.xyz - input.worldPos));
     float3 finalColor = surfaceColor * dirLight;
     return float4(finalColor, 1.0);
 }
