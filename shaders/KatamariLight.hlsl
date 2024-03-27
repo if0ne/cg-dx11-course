@@ -21,8 +21,8 @@ struct SDirectional
 
 struct SPoint
 {
-    float3 Pos;
-    float3 Color;
+    float4 Position;
+    float4 Color;
 };
 
 struct SMaterial
@@ -61,6 +61,11 @@ cbuffer Ambient : register(b3)
 {
     SAmbient Ambient;
 }
+
+cbuffer Point : register(b4)
+{
+    SPoint Point;
+};
 
 cbuffer ViewPos : register(b7)
 {
@@ -118,10 +123,45 @@ float3 CalcDirLight(float3 normal, float3 viewDir)
     return diff + spec + amb;
 }
 
+float Attenuate(float distance, float radius, float max_intensity, float falloff)
+{
+    float s = distance / radius;
+
+    if (s >= 1.0)
+        return 0.0;
+
+    float s2 = sqrt(s);
+
+    return max_intensity * sqrt(1 - s2) / (1 + falloff * s);
+}
+
+float3 CalcPointLight(float3 normal, float3 fragPos, float3 viewDir)
+{
+    float3 lightDir = normalize(Point.Position.xyz - fragPos);
+
+    float diffFactor = Directional.Color.w * Material.Reflection * max(dot(normal, lightDir), 0.0);
+    float3 diff = diffFactor * Directional.Color.xyz;
+     
+    float3 reflectDir = normalize(reflect(-lightDir, normal));
+    float specFactor = Material.Absorption * pow(max(dot(viewDir, reflectDir), 0.0), Material.Shininess);
+    float3 spec = specFactor * Directional.Color.xyz;
+    
+    float3 amb = Ambient.Color * Ambient.Intensity;
+    
+    float distance = length(Point.Position.xyz - fragPos);
+    float attenuation = Attenuate(distance, Point.Position.w, Point.Color.w, 1.0);
+    
+    amb *= attenuation;
+    diff *= attenuation;
+    spec *= attenuation;
+    return diff + spec + amb;
+}
+
 float4 PSMain(PS_IN input) : SV_Target
 {
     float3 surfaceColor = Material.BaseColor.xyz * Texture.Sample(Sampler, input.tex).xyz;
     float3 dirLight = CalcDirLight(input.normal, normalize(ViewPos.ViewPos.xyz - input.worldPos));
-    float3 finalColor = surfaceColor * dirLight;
+    float3 pointLight = CalcPointLight(input.normal, input.worldPos, normalize(ViewPos.ViewPos.xyz - input.worldPos));
+    float3 finalColor = surfaceColor * (dirLight + pointLight);
     return float4(finalColor, 1.0);
 }
