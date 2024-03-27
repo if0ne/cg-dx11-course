@@ -12,6 +12,7 @@ class Camera;
 class PlayerComponent;
 class StickyObjectComponent;
 class ModelComponent;
+class DirectionalLightComponent;
 
 class KatamariGame : public GameComponent
 {
@@ -29,12 +30,15 @@ private:
 
     ID3D11Buffer* wvpBuffer_;
     ID3D11Buffer* modelBuffer_;
+    ID3D11Buffer* dirLightBuffer_;
 
     std::vector<StickyObjectComponent*> objects_;
 
     PlayerComponent* player_;
 
     ModelComponent* ground_;
+
+    DirectionalLightComponent* directionalLight_;
 public:
     KatamariGame();
     ~KatamariGame();
