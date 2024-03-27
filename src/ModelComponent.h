@@ -10,6 +10,25 @@
 
 class MeshComponent;
 
+struct Material
+{
+    DirectX::SimpleMath::Vector4 baseColor;
+    float reflection;
+    float absorption;
+    float shininess;
+    float _padding;
+
+    static Material Default() {
+        return Material{
+            DirectX::SimpleMath::Vector4(1.0, 1.0, 1.0, 1.0),
+            1.0,
+            1.0,
+            1.0,
+            0.0
+        };
+    }
+};
+
 class ModelComponent : public GameComponent
 {
 private:

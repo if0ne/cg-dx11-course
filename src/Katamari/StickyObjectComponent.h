@@ -9,8 +9,9 @@
 #include <string>
 #include <vector>
 
+#include "../ModelComponent.h"
+
 class PlayerComponent;
-class ModelComponent;
 class KatamariGame;
 
 class StickyObjectComponent : public GameComponent
@@ -22,11 +23,12 @@ private:
 
     PlayerComponent* parent_;
     ModelComponent* gfx_;
+    Material mat_;
 
     std::string path_;
     float scale_;
 public:
-    StickyObjectComponent(std::string path, float scale, DirectX::SimpleMath::Vector3 position, KatamariGame& game);
+    StickyObjectComponent(std::string path, float scale, DirectX::SimpleMath::Vector3 position, Material mat, KatamariGame& game);
     ~StickyObjectComponent();
 
     virtual void Initialize() override;
@@ -36,4 +38,8 @@ public:
     virtual void DestroyResources() override;
 
     DirectX::BoundingBox GetCollision();
+
+    Material GetMaterial() {
+        return mat_;
+    }
 };

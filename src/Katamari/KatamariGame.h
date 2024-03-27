@@ -13,6 +13,9 @@ class PlayerComponent;
 class StickyObjectComponent;
 class ModelComponent;
 class DirectionalLightComponent;
+class AmbientLightComponent;
+class PointLightComponent;
+struct Material;
 
 class KatamariGame : public GameComponent
 {
@@ -31,6 +34,10 @@ private:
     ID3D11Buffer* wvpBuffer_;
     ID3D11Buffer* modelBuffer_;
     ID3D11Buffer* dirLightBuffer_;
+    ID3D11Buffer* pointLightBuffer_;
+    ID3D11Buffer* ambientLightBuffer_;
+    ID3D11Buffer* materialBuffer_;
+    ID3D11Buffer* viewPosBuffer_;
 
     std::vector<StickyObjectComponent*> objects_;
 
@@ -39,6 +46,8 @@ private:
     ModelComponent* ground_;
 
     DirectionalLightComponent* directionalLight_;
+    AmbientLightComponent* ambientLight_;
+    PointLightComponent* pointLight_;
 public:
     KatamariGame();
     ~KatamariGame();
@@ -50,6 +59,7 @@ public:
     virtual void DestroyResources() override;
 
     void UpdateModelBuffer(DirectX::SimpleMath::Matrix& matrix);
+    void UpdateMaterialBuffer(Material mat);
 
     PlayerComponent& Player() {
         return *player_;

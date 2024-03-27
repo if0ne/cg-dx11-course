@@ -66,6 +66,7 @@ void PlayerComponent::Draw() {
      auto matrix = scale * rotation * translation;
 
     game_.UpdateModelBuffer(matrix);
+    game_.UpdateMaterialBuffer(Material::Default());
     gfx_->Draw();
 }
 

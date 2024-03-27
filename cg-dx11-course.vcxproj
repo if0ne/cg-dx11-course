@@ -130,6 +130,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\PointLightComponent.cpp" />
+    <ClCompile Include="src\AmbientLightComponent.cpp" />
     <ClCompile Include="src\DirectionalLightComponent.cpp" />
     <ClCompile Include="src\AssetLoader.cpp" />
     <ClCompile Include="src\Katamari\KatamariGame.cpp" />
@@ -157,6 +159,8 @@
     <ClCompile Include="src\SunSystem\SunSystemGame.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\PointLightComponent.h" />
+    <ClInclude Include="src\AmbientLightComponent.h" />
     <ClInclude Include="src\DirectionalLightComponent.h" />
     <ClInclude Include="src\AssetLoader.h" />
     <ClInclude Include="src\Katamari\KatamariGame.h" />

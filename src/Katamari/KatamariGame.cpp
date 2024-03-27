@@ -11,41 +11,68 @@
 #include "../OrbitCameraController.h"
 #include "../SphereComponent.h"
 #include "../DirectionalLightComponent.h"
+#include "../AmbientLightComponent.h"
+#include "../PointLightComponent.h"
+#include "../ModelComponent.h"
 
 #include "PlayerComponent.h"
 #include "StickyObjectComponent.h"
 
 using namespace DirectX::SimpleMath;
 
-struct CameraData {
-    Matrix viewProj;
-    Vector3 pos;
-};
-
 KatamariGame::KatamariGame() : GameComponent() {
     camera_ = new Camera();
     player_ = new PlayerComponent(*camera_, *this);
 
     auto path = std::string("/bball.fbx");
-    std::vector<std::pair<std::string, float>> models;
-    models.push_back(std::make_pair(std::string("/rock.fbx"), 1.0));
-    models.push_back(std::make_pair(std::string("/pump.fbx"), 1.0));
-    models.push_back(std::make_pair(std::string("/wheel.fbx"), 0.005));
+    std::vector<std::tuple<std::string, float, Material>> models;
+    models.push_back(std::make_tuple(std::string("/rock.fbx"), 1.0, Material{
+        Vector4(1.0, 1.0, 1.0, 1.0),
+        1.0,
+        1.0,
+        1.0,
+        0.0
+    }));
+
+    models.push_back(std::make_tuple(std::string("/pump.fbx"), 1.0, Material{
+        Vector4(1.0, 1.0, 1.0, 1.0),
+        1.0,
+        1.0,
+        1.0,
+        0.0,
+    }));
+
+    models.push_back(std::make_tuple(std::string("/wheel.fbx"), 0.005, Material{
+        Vector4(1.0, 1.0, 1.0, 1.0),
+        1.0,
+        1.0,
+        1.0,
+        0.0
+    }));
 
     for (int i = 0; i < 10; i++) {
         int random = rand() % models.size();
         int x = rand() % 40 - 20;
         int z = rand() % 40 - 20;
-        objects_.push_back(new StickyObjectComponent(models[random].first, models[random].second, Vector3(x, 0, z), *this));
+        objects_.push_back(new StickyObjectComponent(
+            std::get<0>(models[random]), 
+            std::get<1>(models[random]), 
+            Vector3(x, 0, z), 
+            std::get<2>(models[random]), 
+            *this
+        ));
     }
 
     directionalLight_ = new DirectionalLightComponent(Vector3(0.25, -1.0, 0.0), Vector3(1.0, 1.0, 1.0), 1.0);
+    ambientLight_ = new AmbientLightComponent(Vector3(0.04, 0.14, 0.72), 0.23);
+    pointLight_ = new PointLightComponent(Vector3(0.0, 4.0, 0.0), 16.0, Vector3(0.04, 0.14, 0.72), 5.0);
 }
 
 KatamariGame::~KatamariGame() {
     delete player_;
     delete camera_;
     delete directionalLight_;
+    delete ambientLight_;
 
     for (auto& object : objects_) {
         delete object;
@@ -163,7 +190,47 @@ void KatamariGame::Initialize() {
     constBufDesc.StructureByteStride = 0;
     constBufDesc.ByteWidth = sizeof(DirectionalLightData);
 
-    auto res = ctx_.GetRenderContext().GetDevice()->CreateBuffer(&constBufDesc, nullptr, &dirLightBuffer_);
+    ctx_.GetRenderContext().GetDevice()->CreateBuffer(&constBufDesc, nullptr, &dirLightBuffer_);
+
+    constBufDesc = {};
+    constBufDesc.Usage = D3D11_USAGE_DYNAMIC;
+    constBufDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    constBufDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    constBufDesc.MiscFlags = 0;
+    constBufDesc.StructureByteStride = 0;
+    constBufDesc.ByteWidth = sizeof(PointLightData);
+
+    ctx_.GetRenderContext().GetDevice()->CreateBuffer(&constBufDesc, nullptr, &pointLightBuffer_);
+
+    constBufDesc = {};
+    constBufDesc.Usage = D3D11_USAGE_DYNAMIC;
+    constBufDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    constBufDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    constBufDesc.MiscFlags = 0;
+    constBufDesc.StructureByteStride = 0;
+    constBufDesc.ByteWidth = sizeof(AmbientLightData);
+
+    ctx_.GetRenderContext().GetDevice()->CreateBuffer(&constBufDesc, nullptr, &ambientLightBuffer_);
+
+    constBufDesc = {};
+    constBufDesc.Usage = D3D11_USAGE_DYNAMIC;
+    constBufDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    constBufDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    constBufDesc.MiscFlags = 0;
+    constBufDesc.StructureByteStride = 0;
+    constBufDesc.ByteWidth = sizeof(Material);
+
+    ctx_.GetRenderContext().GetDevice()->CreateBuffer(&constBufDesc, nullptr, &materialBuffer_);
+
+    constBufDesc = {};
+    constBufDesc.Usage = D3D11_USAGE_DYNAMIC;
+    constBufDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    constBufDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    constBufDesc.MiscFlags = 0;
+    constBufDesc.StructureByteStride = 0;
+    constBufDesc.ByteWidth = sizeof(Vector4);
+
+    ctx_.GetRenderContext().GetDevice()->CreateBuffer(&constBufDesc, nullptr, &viewPosBuffer_);
 
     player_->Initialize();
 
@@ -200,6 +267,10 @@ void KatamariGame::Draw() {
     ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(1, 1, &modelBuffer_);
 
     ctx_.GetRenderContext().GetContext()->PSSetConstantBuffers(2, 1, &dirLightBuffer_);
+    ctx_.GetRenderContext().GetContext()->PSSetConstantBuffers(3, 1, &ambientLightBuffer_);
+    ctx_.GetRenderContext().GetContext()->PSSetConstantBuffers(4, 1, &pointLightBuffer_);
+    ctx_.GetRenderContext().GetContext()->PSSetConstantBuffers(7, 1, &viewPosBuffer_);
+    ctx_.GetRenderContext().GetContext()->PSSetConstantBuffers(8, 1, &materialBuffer_);
 
     auto dirLightData = directionalLight_->RenderData();
 
@@ -209,16 +280,33 @@ void KatamariGame::Draw() {
     memcpy(res.pData, &dirLightData, sizeof(DirectionalLightData));
     ctx_.GetRenderContext().GetContext()->Unmap(dirLightBuffer_, 0);
 
-    auto matrix = CameraData {
-         camera_->CameraMatrix(),
-         camera_->Position()
-    };
+    auto ambientData = ambientLight_->RenderData();
+    ctx_.GetRenderContext().GetContext()->Map(ambientLightBuffer_, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
+
+    memcpy(res.pData, &ambientData, sizeof(AmbientLightData));
+    ctx_.GetRenderContext().GetContext()->Unmap(ambientLightBuffer_, 0);
+
+    auto pointData = pointLight_->RenderData();
+    ctx_.GetRenderContext().GetContext()->Map(pointLightBuffer_, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
+
+    memcpy(res.pData, &pointData, sizeof(PointLightData));
+    ctx_.GetRenderContext().GetContext()->Unmap(pointLightBuffer_, 0);
+
+    auto matrix = camera_->CameraMatrix();
 
     res = {};
     ctx_.GetRenderContext().GetContext()->Map(wvpBuffer_, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
 
-    memcpy(res.pData, &matrix, sizeof(DirectX::SimpleMath::Matrix));
+    memcpy(res.pData, &matrix, sizeof(Matrix));
     ctx_.GetRenderContext().GetContext()->Unmap(wvpBuffer_, 0);
+
+    auto viewPos = camera_->Position();
+
+    res = {};
+    ctx_.GetRenderContext().GetContext()->Map(viewPosBuffer_, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
+
+    memcpy(res.pData, &viewPos, sizeof(Vector4));
+    ctx_.GetRenderContext().GetContext()->Unmap(viewPosBuffer_, 0);
 
     player_->Draw();
 
@@ -228,6 +316,13 @@ void KatamariGame::Draw() {
 
     auto groundMatrix = Matrix::CreateTranslation(Vector3(0, -4.0, 0));
     UpdateModelBuffer(groundMatrix);
+    UpdateMaterialBuffer(Material{
+        Vector4(1.0, 1.0, 1.0, 1.0),
+        1.0,
+        0.01,
+        1.0,
+        0.0
+    });
     ground_->Draw();
 }
 
@@ -248,6 +343,8 @@ void KatamariGame::DestroyResources() {
     wvpBuffer_->Release();
     modelBuffer_->Release();
     dirLightBuffer_->Release();
+    ambientLightBuffer_->Release();
+    pointLightBuffer_->Release();
 
     player_->DestroyResources();
     for (auto& object : objects_) {
@@ -261,4 +358,12 @@ void KatamariGame::UpdateModelBuffer(DirectX::SimpleMath::Matrix& matrix) {
 
     memcpy(res.pData, &matrix, sizeof(DirectX::SimpleMath::Matrix));
     ctx_.GetRenderContext().GetContext()->Unmap(modelBuffer_, 0);
+}
+
+void KatamariGame::UpdateMaterialBuffer(Material mat) {
+    D3D11_MAPPED_SUBRESOURCE res = {};
+    ctx_.GetRenderContext().GetContext()->Map(materialBuffer_, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
+
+    memcpy(res.pData, &mat, sizeof(Material));
+    ctx_.GetRenderContext().GetContext()->Unmap(materialBuffer_, 0);
 }

@@ -14,10 +14,11 @@
 
 using namespace DirectX::SimpleMath;
 
-StickyObjectComponent::StickyObjectComponent(std::string path, float scale, Vector3 position, KatamariGame& game) :
+StickyObjectComponent::StickyObjectComponent(std::string path, float scale, DirectX::SimpleMath::Vector3 position, Material mat, KatamariGame& game) :
     game_(game), 
     scale_(scale),
     path_(path), 
+    mat_(mat),
     position_(position),
     GameComponent() 
 {
@@ -63,6 +64,7 @@ void StickyObjectComponent::Draw() {
         game_.UpdateModelBuffer(matrix);
     }
     
+    game_.UpdateMaterialBuffer(mat_);
     gfx_->Draw();
 }
 
