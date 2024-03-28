@@ -45,7 +45,7 @@ void MeshComponent::Initialize() {
 
     ctx_.GetRenderContext().GetDevice()->CreateBuffer(&indexBufDesc, &indexData, &ib_);
 
-    auto path = strToWstr(texturePath_.path);
+    auto path = strToWstr(texturePath_.diff);
 
     // Hack for CreateWICTextureFromFile
     HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
@@ -55,6 +55,14 @@ void MeshComponent::Initialize() {
         path.c_str(),
         &textureData_,
         &texture_);
+
+    path = strToWstr(texturePath_.normal);
+
+    res = DirectX::CreateWICTextureFromFile(
+        ctx_.GetRenderContext().GetDevice(),
+        path.c_str(),
+        &normalData_,
+        &normal_);
 
     D3D11_SAMPLER_DESC sampDesc = {};
     sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
@@ -78,6 +86,7 @@ void MeshComponent::Draw() {
     ctx_.GetRenderContext().GetContext()->IASetIndexBuffer(ib_, DXGI_FORMAT_R32_UINT, 0);
     ctx_.GetRenderContext().GetContext()->IASetVertexBuffers(0, 1, &vb_, strides, offsets);
     ctx_.GetRenderContext().GetContext()->PSSetShaderResources(0, 1, &texture_);
+    ctx_.GetRenderContext().GetContext()->PSSetShaderResources(1, 1, &normal_);
     ctx_.GetRenderContext().GetContext()->PSSetSamplers(0, 1, &sampler_);
 
     ctx_.GetRenderContext().GetContext()->DrawIndexed(indices_.size(), 0, 0);

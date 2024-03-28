@@ -4,23 +4,42 @@
 
 #include "MeshComponent.h"
 
-Texture LoadMaterialTextures(const std::string& directory, aiMaterial* mat, aiTextureType type) {
+Texture LoadMaterialTextures(const std::string& directory, aiMaterial* mat) {
     aiString str;
-    mat->Get(AI_MATKEY_TEXTURE(type, 0), str);
+    mat->Get(AI_MATKEY_TEXTURE(aiTextureType_DIFFUSE, 0), str);
+
+    Texture ret{};
 
     if (str.length == 0) {
-        return Texture{
-            directory + "/default.jpg"
-        };
+        ret.diff = directory + "/default.jpg";
     } else {
         std::string path(str.C_Str());
         auto last = path.find_last_of("\\");
         auto filename = path.substr(last, path.length() - last);
 
-        return Texture{
-            directory + filename
-        };
+        ret.diff = directory + filename;
     }
+
+    mat->Get(AI_MATKEY_TEXTURE(aiTextureType_NORMALS, 0), str);
+
+    if (str.length == 0) {
+        ret.normal = directory + "/normal_default.jpg";
+    } else {
+        std::string path(str.C_Str());
+        auto last = path.find_last_of("\\");
+
+        std::string filename;
+
+        if (last == 18446744073709551615) {
+            filename = "\\" + path;
+        } else {
+            filename = path.substr(last, path.length() - last);
+        }
+
+        ret.normal = directory + filename;
+    }
+
+    return ret;
 }
 
 MeshComponent* ProcessMesh(const std::string& directory, aiMesh* mesh, const aiScene* scene, DirectX::BoundingBox& localAABB) {
@@ -31,7 +50,9 @@ MeshComponent* ProcessMesh(const std::string& directory, aiMesh* mesh, const aiS
         Vertex v{
             DirectX::SimpleMath::Vector3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z),
             DirectX::SimpleMath::Vector3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z),
-            DirectX::SimpleMath::Vector2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y)
+            DirectX::SimpleMath::Vector2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y),
+            DirectX::SimpleMath::Vector3(mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z),
+            //DirectX::SimpleMath::Vector3::Zero
         };
 
         vertices.push_back(std::move(v));
@@ -47,7 +68,7 @@ MeshComponent* ProcessMesh(const std::string& directory, aiMesh* mesh, const aiS
     }
 
     aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-    Texture texturePath = LoadMaterialTextures(directory, material, aiTextureType_DIFFUSE);
+    Texture texturePath = LoadMaterialTextures(directory, material);
 
     DirectX::BoundingBox meshAABB;
     DirectX::SimpleMath::Vector3 notTransMin = { mesh->mAABB.mMin.x,mesh->mAABB.mMin.y,mesh->mAABB.mMin.z };
@@ -97,7 +118,8 @@ ModelComponent* AssetLoader::LoadModel(std::string& path) {
         searchPath, 
         aiProcess_Triangulate |
         aiProcess_GenBoundingBoxes |
-        aiProcess_FlipUVs
+        aiProcess_FlipUVs |
+        aiProcess_CalcTangentSpace
     );
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {

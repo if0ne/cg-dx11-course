@@ -8,13 +8,15 @@
 #include "GameComponent.h"
 
 struct Texture {
-    std::string path;
+    std::string diff;
+    std::string normal;
 };  
 
 struct Vertex {
     DirectX::SimpleMath::Vector3 Position;
     DirectX::SimpleMath::Vector3 Normal;
     DirectX::SimpleMath::Vector2 UV;
+    DirectX::SimpleMath::Vector3 Tangent;
 };
 
 class MeshComponent : public GameComponent {
@@ -29,6 +31,9 @@ private:
     ID3D11ShaderResourceView* texture_;
     ID3D11Resource* textureData_;
     ID3D11SamplerState* sampler_;
+
+    ID3D11ShaderResourceView* normal_;
+    ID3D11Resource* normalData_;
 public:
     MeshComponent(std::vector<Vertex>&& vertices, std::vector<int>&& indices, Texture&& textures) :
         vertices_(vertices),
