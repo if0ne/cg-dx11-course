@@ -139,17 +139,17 @@ float3 CalcPointLight(float3 normal, float3 fragPos, float3 viewDir)
 {
     float3 lightDir = normalize(Point.Position.xyz - fragPos);
 
-    float diffFactor = Directional.Color.w * Material.Reflection * max(dot(normal, lightDir), 0.0);
-    float3 diff = diffFactor * Directional.Color.xyz;
+    float diffFactor = Point.Color.w * Material.Reflection * max(dot(normal, lightDir), 0.0);
+    float3 diff = diffFactor * Point.Color.xyz;
      
     float3 reflectDir = normalize(reflect(-lightDir, normal));
     float specFactor = Material.Absorption * pow(max(dot(viewDir, reflectDir), 0.0), Material.Shininess);
-    float3 spec = specFactor * Directional.Color.xyz;
+    float3 spec = specFactor * Point.Color.xyz;
     
     float3 amb = Ambient.Color * Ambient.Intensity;
     
     float distance = length(Point.Position.xyz - fragPos);
-    float attenuation = Attenuate(distance, Point.Position.w, Point.Color.w, 1.0);
+    float attenuation = Attenuate(distance, Point.Position.w, Point.Color.w, 4.0);
     
     amb *= attenuation;
     diff *= attenuation;

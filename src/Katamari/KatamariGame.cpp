@@ -65,7 +65,7 @@ KatamariGame::KatamariGame() : GameComponent() {
 
     directionalLight_ = new DirectionalLightComponent(Vector3(0.25, -1.0, 0.0), Vector3(1.0, 1.0, 1.0), 1.0);
     ambientLight_ = new AmbientLightComponent(Vector3(0.04, 0.14, 0.72), 0.23);
-    pointLight_ = new PointLightComponent(Vector3(0.0, 4.0, 0.0), 16.0, Vector3(0.04, 0.14, 0.72), 5.0);
+    pointLight_ = new PointLightComponent(Vector3(0.0, 4.0, 0.0), 16.0, Vector3(0.94, 0.14, 0.0), 5.0);
 }
 
 KatamariGame::~KatamariGame() {
@@ -243,6 +243,10 @@ void KatamariGame::Initialize() {
 }
 
 void KatamariGame::Update(float deltaTime) {
+    if (ctx_.GetInputDevice().IsKeyDown(Keys::Escape)) {
+        ctx_.Exit();
+    }
+
     if (ctx_.GetInputDevice().IsKeyDown(Keys::LeftShift)) {
         ctx_.GetWindow().ShowWindowCursor();
     } else {
