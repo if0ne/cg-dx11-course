@@ -46,6 +46,15 @@ void KatamariRenderPass::Execute() {
     ctx_.GetRenderContext().GetContext()->VSSetShader(vertexShader_, nullptr, 0);
     ctx_.GetRenderContext().GetContext()->PSSetShader(pixelShader_, nullptr, 0);
 
+    ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(0, 1, &game_.wvpBuffer_);
+    ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(1, 1, &game_.modelBuffer_);
+
+    ctx_.GetRenderContext().GetContext()->PSSetConstantBuffers(2, 1, &game_.dirLightBuffer_);
+    ctx_.GetRenderContext().GetContext()->PSSetConstantBuffers(3, 1, &game_.ambientLightBuffer_);
+    ctx_.GetRenderContext().GetContext()->PSSetConstantBuffers(4, 1, &game_.pointLightBuffer_);
+    ctx_.GetRenderContext().GetContext()->PSSetConstantBuffers(7, 1, &game_.viewPosBuffer_);
+    ctx_.GetRenderContext().GetContext()->PSSetConstantBuffers(8, 1, &game_.materialBuffer_);
+
     auto dirLightData = game_.directionalLight_->RenderData();
 
     UpdateBuffer(game_.dirLightBuffer_, &dirLightData, sizeof(DirectionalLightData));
