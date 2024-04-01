@@ -32,3 +32,20 @@ void ModelComponent::DestroyResources() {
         child->DestroyResources();
     }
 }
+
+std::vector<MeshRenderData> ModelComponent::GetMeshRenderData() {
+    std::vector<MeshRenderData> data;
+
+    for (auto& mesh : children_) {
+        data.push_back(MeshRenderData{
+            mesh->vb_,
+            mesh->ib_,
+            mesh->texture_,
+            mesh->normal_,
+            mesh->sampler_,
+            mesh->indices_.size()
+        });
+    }
+
+    return data;
+}

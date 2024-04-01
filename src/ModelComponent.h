@@ -29,6 +29,24 @@ struct Material
     }
 };
 
+struct MeshRenderData {
+    ID3D11Buffer* vb;
+    ID3D11Buffer* ib;
+
+    ID3D11ShaderResourceView* texture;
+    ID3D11ShaderResourceView* normal;
+
+    ID3D11SamplerState* sampler;
+    size_t indexCount;
+};
+
+struct RenderData {
+    DirectX::SimpleMath::Matrix transform;
+    Material material;
+
+    std::vector<MeshRenderData> meshData;
+};
+
 class ModelComponent : public GameComponent
 {
 private:
@@ -42,6 +60,8 @@ public:
     virtual void Draw();
     virtual void Reload();
     virtual void DestroyResources();
+
+    std::vector<MeshRenderData> GetMeshRenderData();
 
     DirectX::BoundingBox& AABB() {
         return AABB_;

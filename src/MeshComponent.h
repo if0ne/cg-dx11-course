@@ -7,6 +7,8 @@
 
 #include "GameComponent.h"
 
+class ModelComponent;
+
 struct Texture {
     std::string diff;
     std::string normal;
@@ -52,4 +54,6 @@ public:
     virtual void Draw();
     virtual void Reload();
     virtual void DestroyResources();
+
+    friend class ModelComponent;
 };

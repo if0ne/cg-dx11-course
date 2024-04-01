@@ -14,6 +14,8 @@
 class PlayerComponent;
 class KatamariGame;
 
+struct RenderData;
+
 class StickyObjectComponent : public GameComponent
 {
 private:
@@ -38,6 +40,7 @@ public:
     virtual void DestroyResources() override;
 
     DirectX::BoundingBox GetCollision();
+    RenderData GetRenderData();
 
     Material GetMaterial() {
         return mat_;

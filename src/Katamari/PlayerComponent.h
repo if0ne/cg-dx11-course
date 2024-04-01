@@ -14,6 +14,8 @@ class OrbitCameraController;
 class ModelComponent;
 class KatamariGame;
 
+struct RenderData;
+
 class PlayerComponent : public GameComponent
 {
 private:
@@ -37,6 +39,7 @@ public:
     virtual void DestroyResources() override;
 
     DirectX::BoundingBox GetCollision();
+    RenderData GetRenderData();
 
     DirectX::SimpleMath::Quaternion Rotation() {
         return rotation_;

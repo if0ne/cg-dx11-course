@@ -16,20 +16,12 @@ class DirectionalLightComponent;
 class AmbientLightComponent;
 class PointLightComponent;
 struct Material;
+class KatamariRenderPass;
 
 class KatamariGame : public GameComponent
 {
 private:
     Camera* camera_;
-
-    ID3D11InputLayout* layout_;
-    ID3D11VertexShader* vertexShader_;
-    ID3D11PixelShader* pixelShader_;
-
-    ID3DBlob* vertexBC_;
-    ID3DBlob* pixelBC_;
-
-    ID3D11RasterizerState* rastState_;
 
     ID3D11Buffer* wvpBuffer_;
     ID3D11Buffer* modelBuffer_;
@@ -48,6 +40,8 @@ private:
     DirectionalLightComponent* directionalLight_;
     AmbientLightComponent* ambientLight_;
     PointLightComponent* pointLight_;
+
+    KatamariRenderPass* mainPass_;
 public:
     KatamariGame();
     ~KatamariGame();
@@ -58,10 +52,9 @@ public:
     virtual void Reload() override;
     virtual void DestroyResources() override;
 
-    void UpdateModelBuffer(DirectX::SimpleMath::Matrix& matrix);
-    void UpdateMaterialBuffer(Material mat);
-
     PlayerComponent& Player() {
         return *player_;
     }
+
+    friend class KatamariRenderPass;
 };

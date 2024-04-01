@@ -59,15 +59,7 @@ void PlayerComponent::Update(float deltaTime) {
 }
 
 void PlayerComponent::Draw() {
-    auto scale = Matrix::CreateScale(scale_);
-    auto rotation = Matrix::CreateFromQuaternion(rotation_);
-    auto translation = Matrix::CreateTranslation(position_);
 
-     auto matrix = scale * rotation * translation;
-
-    game_.UpdateModelBuffer(matrix);
-    game_.UpdateMaterialBuffer(Material::Default());
-    gfx_->Draw();
 }
 
 void PlayerComponent::Reload() {
@@ -87,5 +79,21 @@ DirectX::BoundingBox PlayerComponent::GetCollision() {
     aabb.Extents.y *= scale_;
     aabb.Extents.z *= scale_;
     return aabb;
+}
+
+RenderData PlayerComponent::GetRenderData() {
+    auto scale = Matrix::CreateScale(scale_);
+    auto rotation = Matrix::CreateFromQuaternion(rotation_);
+    auto translation = Matrix::CreateTranslation(position_);
+
+    auto matrix = scale * rotation * translation;
+    auto mat = Material::Default();
+    auto meshData = gfx_->GetMeshRenderData();
+
+    return RenderData{
+        matrix,
+        mat,
+        std::move(meshData)
+    };
 }
 

@@ -49,23 +49,6 @@ void StickyObjectComponent::Update(float deltaTime) {
 }
 
 void StickyObjectComponent::Draw() {
-    auto scale = Matrix::CreateScale(scale_);
-    if (parent_) {
-        auto rotation = parent_->Rotation();
-        auto rotMat = Matrix::CreateFromQuaternion(rotation);
-        auto translation = Vector3::Transform(position_, rotation) + parent_->Position();
-        auto matrix = scale * rotMat * Matrix::CreateTranslation(translation);
-
-        game_.UpdateModelBuffer(matrix);
-    } else {
-        auto translation = Matrix::CreateTranslation(position_);
-        auto matrix = scale * translation;
-
-        game_.UpdateModelBuffer(matrix);
-    }
-    
-    game_.UpdateMaterialBuffer(mat_);
-    gfx_->Draw();
 }
 
 void StickyObjectComponent::Reload() {
@@ -85,5 +68,27 @@ DirectX::BoundingBox StickyObjectComponent::GetCollision() {
     aabb.Extents.y *= scale_;
     aabb.Extents.z *= scale_;
     return aabb;
+}
+
+RenderData StickyObjectComponent::GetRenderData() {
+    Matrix matrix;
+    auto scale = Matrix::CreateScale(scale_);
+
+    if (parent_) {
+        auto rotation = parent_->Rotation();
+        auto rotMat = Matrix::CreateFromQuaternion(rotation);
+        auto translation = Vector3::Transform(position_, rotation) + parent_->Position();
+        matrix = scale * rotMat * Matrix::CreateTranslation(translation);
+    } else {
+        auto translation = Matrix::CreateTranslation(position_);
+        matrix = scale * translation;
+    }
+    auto meshData = gfx_->GetMeshRenderData();
+
+    return RenderData{
+        matrix,
+        mat_,
+        std::move(meshData)
+    };
 }
 

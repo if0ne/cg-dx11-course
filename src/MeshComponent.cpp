@@ -80,7 +80,7 @@ void MeshComponent::Update(float deltaTime) {
 }
 
 void MeshComponent::Draw() {
-    UINT strides[] = { sizeof(Vertex) };
+    /*UINT strides[] = {sizeof(Vertex)};
     UINT offsets[] = { 0 };
 
     ctx_.GetRenderContext().GetContext()->IASetIndexBuffer(ib_, DXGI_FORMAT_R32_UINT, 0);
@@ -90,6 +90,7 @@ void MeshComponent::Draw() {
     ctx_.GetRenderContext().GetContext()->PSSetSamplers(0, 1, &sampler_);
 
     ctx_.GetRenderContext().GetContext()->DrawIndexed(indices_.size(), 0, 0);
+    */
 }
 
 void MeshComponent::Reload() {

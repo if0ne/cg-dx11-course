@@ -44,6 +44,7 @@ void Game::ProcessInput() {
 }
 
 void Game::PrepareFrame() {
+    /*
     auto rt = window_->GetRenderTarget();
     auto ds = window_->GetDepthStencilView();
 
@@ -54,6 +55,7 @@ void Game::PrepareFrame() {
     renderCtx_->GetContext()->ClearDepthStencilView(ds, D3D11_CLEAR_DEPTH, 1.0, 0);
 
     renderCtx_->ActivateDepthStencilState();
+    */
 }
 
 void Game::SetViewport(int x, int y, float w, float h) {
