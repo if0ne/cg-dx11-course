@@ -32,5 +32,11 @@ public:
 
     void UpdatePerspectiveProjection();
     void UpdateOrthoProjection();
+
+    float FarPlane() { return farPlane_; }
+    float NearPlane() { return nearPlane_; }
+    float Fov() { return fov_; }
+    float AspectRatio();
+    DirectX::SimpleMath::Matrix View() { return view_; }
 };
 

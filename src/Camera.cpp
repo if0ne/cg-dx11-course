@@ -58,3 +58,7 @@ void Camera::UpdateOrthoProjection() {
         farPlane_
     );
 }
+
+float Camera::AspectRatio() {
+    return game_.GetWindow().GetAspectRatio();
+}
