@@ -4,6 +4,12 @@
 
 class KatamariGame;
 
+struct CSMRenderData {
+    ID3D11ShaderResourceView* srv;
+    ID3D11SamplerState* sampler;
+    CascadedShadowMapData cascades;
+};
+
 class KatamariCSMPass : public RenderPass
 {
 private:
@@ -17,6 +23,8 @@ private:
     ID3D11DepthStencilState* depthStencilState_;
 
     ID3D11SamplerState* sampler_;
+    ID3D11Buffer* cascadeBuffer_;
+    ID3D11Buffer* modelBuffer_;
 public:
     KatamariCSMPass(
         std::string&& shaderPath,
@@ -27,5 +35,7 @@ public:
     virtual void Initialize();
     virtual void Execute();
     virtual void DestroyResources();
+
+    CSMRenderData RenderData();
 };
 

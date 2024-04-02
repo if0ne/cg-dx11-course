@@ -68,7 +68,7 @@ KatamariGame::KatamariGame() : GameComponent() {
     ambientLight_ = new AmbientLightComponent(Vector3(0.04, 0.14, 0.72), 0.23);
     pointLight_ = new PointLightComponent(Vector3(0.0, 4.0, 0.0), 16.0, Vector3(0.94, 0.14, 0.0), 5.0);
 
-    auto shaderPath = std::string("./shaders/KatamariLight.hlsl");
+    auto shaderPath = std::string("./shaders/KatamariLightShadow.hlsl");
     std::vector<std::pair<const char*, DXGI_FORMAT>> vertexAttr{
         std::make_pair("POSITION", DXGI_FORMAT_R32G32B32_FLOAT),
         std::make_pair("NORMAL", DXGI_FORMAT_R32G32B32_FLOAT),
@@ -94,13 +94,6 @@ void KatamariGame::Initialize() {
     ctx_.GetWindow().HideWindowCursor();
 
     mainPass_->Initialize();
-    wvpBuffer_ = mainPass_->CreateBuffer(sizeof(DirectX::SimpleMath::Matrix));
-    modelBuffer_ = mainPass_->CreateBuffer(sizeof(DirectX::SimpleMath::Matrix));
-    dirLightBuffer_ = mainPass_->CreateBuffer(sizeof(DirectionalLightData));
-    pointLightBuffer_ = mainPass_->CreateBuffer(sizeof(PointLightData));
-    ambientLightBuffer_ = mainPass_->CreateBuffer(sizeof(AmbientLightData));
-    materialBuffer_ = mainPass_->CreateBuffer(sizeof(Material));
-    viewPosBuffer_ = mainPass_->CreateBuffer(sizeof(Vector4));
 
     player_->Initialize();
 

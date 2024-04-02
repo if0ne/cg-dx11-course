@@ -23,14 +23,6 @@ class KatamariGame : public GameComponent
 private:
     Camera* camera_;
 
-    ID3D11Buffer* wvpBuffer_;
-    ID3D11Buffer* modelBuffer_;
-    ID3D11Buffer* dirLightBuffer_;
-    ID3D11Buffer* pointLightBuffer_;
-    ID3D11Buffer* ambientLightBuffer_;
-    ID3D11Buffer* materialBuffer_;
-    ID3D11Buffer* viewPosBuffer_;
-
     std::vector<StickyObjectComponent*> objects_;
 
     PlayerComponent* player_;

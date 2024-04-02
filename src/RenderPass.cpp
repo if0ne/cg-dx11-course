@@ -114,10 +114,6 @@ void RenderPass::UpdateBuffer(ID3D11Buffer* buffer, void* data, size_t size) {
     ctx_.GetRenderContext().GetContext()->Unmap(buffer, 0);
 }
 
-void RenderPass::AddSubpass(RenderPass* pass) {
-    subpasses_.push_back(pass);
-}
-
 void RenderPass::DestroyResources() {
     layout_->Release();
     vertexShader_->Release();
@@ -128,9 +124,5 @@ void RenderPass::DestroyResources() {
 
     for (auto& buffer : constBuffers_) {
         buffer->Release();
-    }
-
-    for (auto& pass : subpasses_) {
-        pass->DestroyResources();
     }
 }

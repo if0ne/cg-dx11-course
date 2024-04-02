@@ -75,6 +75,9 @@ void KatamariCSMPass::Initialize() {
 	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
 	ctx_.GetRenderContext().GetDevice()->CreateSamplerState(&sampDesc, &sampler_);
+
+	cascadeBuffer_ = CreateBuffer(sizeof(CascadeData));
+	modelBuffer_ = CreateBuffer(sizeof(Matrix));
 }
 
 void KatamariCSMPass::Execute() {
@@ -82,27 +85,31 @@ void KatamariCSMPass::Execute() {
 
 	ctx_.GetRenderContext().GetContext()->OMSetDepthStencilState(depthStencilState_, 1);
 
-
 	ctx_.GetRenderContext().GetContext()->RSSetState(rastState_);
 	ctx_.GetRenderContext().GetContext()->IASetInputLayout(layout_);
 	ctx_.GetRenderContext().GetContext()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	ctx_.GetRenderContext().GetContext()->VSSetShader(vertexShader_, nullptr, 0);
 	ctx_.GetRenderContext().GetContext()->PSSetShader(pixelShader_, nullptr, 0);
 
+	auto dir = game_.directionalLight_->Direction();
+	auto camera = game_.camera_;
+	auto data = csm_.RenderData(dir, *camera);
+
 	for (int i = 0; i < csm_.kCascadeCount; i++) {
-		ctx_.GetRenderContext().GetContext()->OMSetRenderTargets(1, nullptr, dsv_[i]);
+		ctx_.GetRenderContext().GetContext()->OMSetRenderTargets(0, nullptr, dsv_[i]);
 		ctx_.GetRenderContext().GetContext()->ClearDepthStencilView(dsv_[i], D3D11_CLEAR_DEPTH, 1.0, 0);
 
-		auto dir = game_.directionalLight_->Direction();
-		auto camera = game_.camera_;
-		auto data = csm_.RenderData(dir, *camera);
+		ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(0, 1, &cascadeBuffer_);
+		ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(1, 1, &modelBuffer_);
+
+		UpdateBuffer(cascadeBuffer_, &data.viewProjMat[i], sizeof(CascadeData));
 
 		auto renderData = game_.player_->GetRenderData();
 
 		UINT strides[] = { sizeof(Vertex) };
 		UINT offsets[] = { 0 };
 
-		UpdateBuffer(game_.modelBuffer_, &renderData.transform, sizeof(Matrix));
+		UpdateBuffer(modelBuffer_, &renderData.transform, sizeof(Matrix));
 
 		for (auto& mesh : renderData.meshData) {
 			ctx_.GetRenderContext().GetContext()->IASetIndexBuffer(mesh.ib, DXGI_FORMAT_R32_UINT, 0);
@@ -113,7 +120,7 @@ void KatamariCSMPass::Execute() {
 
 		for (auto& object : game_.objects_) {
 			renderData = object->GetRenderData();
-			UpdateBuffer(game_.modelBuffer_, &renderData.transform, sizeof(Matrix));
+			UpdateBuffer(modelBuffer_, &renderData.transform, sizeof(Matrix));
 
 			for (auto& mesh : renderData.meshData) {
 				ctx_.GetRenderContext().GetContext()->IASetIndexBuffer(mesh.ib, DXGI_FORMAT_R32_UINT, 0);
@@ -137,4 +144,16 @@ void KatamariCSMPass::DestroyResources() {
 
     depthStencilState_->Release();
     sampler_->Release();
+}
+
+CSMRenderData KatamariCSMPass::RenderData() {
+	auto dir = game_.directionalLight_->Direction();
+	auto camera = game_.camera_;
+	auto data = csm_.RenderData(dir, *camera);
+
+	return CSMRenderData{
+		srv_,
+		sampler_,
+		data
+	};
 }

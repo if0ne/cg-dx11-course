@@ -25,7 +25,6 @@ protected:
     ID3D11RasterizerState* rastState_;
 
     std::vector<ID3D11Buffer*> constBuffers_;
-    std::vector<RenderPass*> subpasses_;
 
     std::string shaderPath_;
     std::vector<std::pair<const char*, DXGI_FORMAT>> vertexAttr_;
@@ -40,7 +39,6 @@ public:
 
     ID3D11Buffer* CreateBuffer(size_t size);
     void UpdateBuffer(ID3D11Buffer* buffer, void* data, size_t size);
-    void AddSubpass(RenderPass* pass);
 
     virtual void DestroyResources();
 };

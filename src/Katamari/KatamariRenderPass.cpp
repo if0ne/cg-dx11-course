@@ -9,11 +9,14 @@
 #include "../PointLightComponent.h"
 #include "../ModelComponent.h"
 #include "../MeshComponent.h"
+#include "../CascadedShadowMap.h"
+
 #include "SimpleMath.h"
 
 #include "KatamariGame.h"
 #include "PlayerComponent.h"
 #include "StickyObjectComponent.h"
+#include "KatamariCSMPass.h"
 
 using namespace DirectX::SimpleMath;
 
@@ -26,9 +29,41 @@ KatamariRenderPass::KatamariRenderPass(
     game_(game),
     RenderPass(std::move(shaderPath), std::move(vertexAttr))
 {
+    std::string path = "./shaders/CascadeShader.hlsl";
+    std::vector<std::pair<const char*, DXGI_FORMAT>> csmVertexAttr{
+        std::make_pair("POSITION", DXGI_FORMAT_R32G32B32_FLOAT),
+        std::make_pair("NORMAL", DXGI_FORMAT_R32G32B32_FLOAT),
+        std::make_pair("TEXCOORD", DXGI_FORMAT_R32G32_FLOAT),
+        std::make_pair("TANGENT", DXGI_FORMAT_R32G32B32_FLOAT)
+    };
+
+    csmPass_ = new KatamariCSMPass(std::move(path), std::move(csmVertexAttr), game_);
+}
+
+KatamariRenderPass::~KatamariRenderPass() {
+    delete csmPass_;
+}
+
+void KatamariRenderPass::Initialize() {
+    RenderPass::Initialize();
+
+    wvpBuffer_ = CreateBuffer(sizeof(DirectX::SimpleMath::Matrix));
+    modelBuffer_ = CreateBuffer(sizeof(DirectX::SimpleMath::Matrix));
+    dirLightBuffer_ = CreateBuffer(sizeof(DirectionalLightData));
+    pointLightBuffer_ = CreateBuffer(sizeof(PointLightData));
+    ambientLightBuffer_ = CreateBuffer(sizeof(AmbientLightData));
+    materialBuffer_ = CreateBuffer(sizeof(Material));
+    viewPosBuffer_ = CreateBuffer(sizeof(Vector4));
+    cascadeBuffer_ = CreateBuffer(sizeof(CascadedShadowMapData));
+
+    csmPass_->Initialize();
 }
 
 void KatamariRenderPass::Execute() {
+    csmPass_->Execute();
+
+    auto csmData = csmPass_->RenderData();
+
     auto rt = ctx_.GetWindow().GetRenderTarget();
     auto ds = ctx_.GetWindow().GetDepthStencilView();
 
@@ -46,38 +81,44 @@ void KatamariRenderPass::Execute() {
     ctx_.GetRenderContext().GetContext()->VSSetShader(vertexShader_, nullptr, 0);
     ctx_.GetRenderContext().GetContext()->PSSetShader(pixelShader_, nullptr, 0);
 
-    ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(0, 1, &game_.wvpBuffer_);
-    ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(1, 1, &game_.modelBuffer_);
+    ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(0, 1, &wvpBuffer_);
+    ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(1, 1, &modelBuffer_);
 
-    ctx_.GetRenderContext().GetContext()->PSSetConstantBuffers(2, 1, &game_.dirLightBuffer_);
-    ctx_.GetRenderContext().GetContext()->PSSetConstantBuffers(3, 1, &game_.ambientLightBuffer_);
-    ctx_.GetRenderContext().GetContext()->PSSetConstantBuffers(4, 1, &game_.pointLightBuffer_);
-    ctx_.GetRenderContext().GetContext()->PSSetConstantBuffers(7, 1, &game_.viewPosBuffer_);
-    ctx_.GetRenderContext().GetContext()->PSSetConstantBuffers(8, 1, &game_.materialBuffer_);
+    ctx_.GetRenderContext().GetContext()->PSSetConstantBuffers(2, 1, &dirLightBuffer_);
+    ctx_.GetRenderContext().GetContext()->PSSetConstantBuffers(3, 1, &ambientLightBuffer_);
+    ctx_.GetRenderContext().GetContext()->PSSetConstantBuffers(4, 1, &pointLightBuffer_);
+    ctx_.GetRenderContext().GetContext()->PSSetConstantBuffers(7, 1, &viewPosBuffer_);
+    ctx_.GetRenderContext().GetContext()->PSSetConstantBuffers(8, 1, &materialBuffer_);
+    ctx_.GetRenderContext().GetContext()->PSSetConstantBuffers(9, 1, &cascadeBuffer_);
+
+    ctx_.GetRenderContext().GetContext()->PSSetShaderResources(2, 1, &csmData.srv);
+    ctx_.GetRenderContext().GetContext()->PSSetSamplers(1, 1, &csmData.sampler);
+
+    UpdateBuffer(cascadeBuffer_, &csmData.cascades, sizeof(CascadedShadowMapData));
 
     auto dirLightData = game_.directionalLight_->RenderData();
 
-    UpdateBuffer(game_.dirLightBuffer_, &dirLightData, sizeof(DirectionalLightData));
+    UpdateBuffer(dirLightBuffer_, &dirLightData, sizeof(DirectionalLightData));
 
     auto ambientData = game_.ambientLight_->RenderData();
-    UpdateBuffer(game_.ambientLightBuffer_, &ambientData, sizeof(AmbientLightData));
+    UpdateBuffer(ambientLightBuffer_, &ambientData, sizeof(AmbientLightData));
 
     auto pointData = game_.pointLight_->RenderData();
-    UpdateBuffer(game_.pointLightBuffer_, &pointData, sizeof(PointLightData));
+    UpdateBuffer(pointLightBuffer_, &pointData, sizeof(PointLightData));
 
     auto matrix = game_.camera_->CameraMatrix();
-    UpdateBuffer(game_.wvpBuffer_, &matrix, sizeof(Matrix));
+    UpdateBuffer(wvpBuffer_, &matrix, sizeof(Matrix));
 
     auto viewPos = game_.camera_->Position();
-    UpdateBuffer(game_.viewPosBuffer_, &viewPos, sizeof(Vector4));
+    UpdateBuffer(viewPosBuffer_, &viewPos, sizeof(Vector4));
 
     auto renderData = game_.player_->GetRenderData();
 
     UINT strides[] = { sizeof(Vertex) };
     UINT offsets[] = { 0 };
 
-    UpdateBuffer(game_.modelBuffer_, &renderData.transform, sizeof(Matrix));
-    UpdateBuffer(game_.materialBuffer_, &renderData.material, sizeof(Material));
+    UpdateBuffer(modelBuffer_, &renderData.transform, sizeof(Matrix));
+    UpdateBuffer(materialBuffer_, &renderData.material, sizeof(Material));
 
     for (auto& mesh : renderData.meshData) {
         ctx_.GetRenderContext().GetContext()->IASetIndexBuffer(mesh.ib, DXGI_FORMAT_R32_UINT, 0);
@@ -92,8 +133,8 @@ void KatamariRenderPass::Execute() {
 
     for (auto& object : game_.objects_) {
         renderData = object->GetRenderData();
-        UpdateBuffer(game_.modelBuffer_, &renderData.transform, sizeof(Matrix));
-        UpdateBuffer(game_.materialBuffer_, &renderData.material, sizeof(Material));
+        UpdateBuffer(modelBuffer_, &renderData.transform, sizeof(Matrix));
+        UpdateBuffer(materialBuffer_, &renderData.material, sizeof(Material));
 
         for (auto& mesh : renderData.meshData) {
             ctx_.GetRenderContext().GetContext()->IASetIndexBuffer(mesh.ib, DXGI_FORMAT_R32_UINT, 0);
@@ -107,7 +148,7 @@ void KatamariRenderPass::Execute() {
     }
     
     auto groundMatrix = Matrix::CreateTranslation(Vector3(0, -4.0, 0));
-    UpdateBuffer(game_.modelBuffer_, &groundMatrix, sizeof(Matrix));
+    UpdateBuffer(modelBuffer_, &groundMatrix, sizeof(Matrix));
 
     auto mat = Material{
         Vector4(1.0, 1.0, 1.0, 1.0),
@@ -116,7 +157,7 @@ void KatamariRenderPass::Execute() {
         1.0,
         0.0
     };
-    UpdateBuffer(game_.materialBuffer_, &mat, sizeof(Material));
+    UpdateBuffer(materialBuffer_, &mat, sizeof(Material));
     auto mesh = game_.ground_->GetMeshRenderData();
     
     for (auto& mesh : mesh) {
@@ -128,4 +169,8 @@ void KatamariRenderPass::Execute() {
 
         ctx_.GetRenderContext().GetContext()->DrawIndexed(mesh.indexCount, 0, 0);
     }
+}
+
+void KatamariRenderPass::DestroyResources() {
+    csmPass_->DestroyResources();
 }
