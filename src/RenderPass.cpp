@@ -68,7 +68,7 @@ void RenderPass::Initialize() {
                 0,
                 attr.second,
                 0,
-                0,
+                D3D11_APPEND_ALIGNED_ELEMENT,
                 D3D11_INPUT_PER_VERTEX_DATA,
                 0
             });

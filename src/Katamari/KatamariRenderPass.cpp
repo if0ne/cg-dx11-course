@@ -105,7 +105,7 @@ void KatamariRenderPass::Execute() {
             ctx_.GetRenderContext().GetContext()->DrawIndexed(mesh.indexCount, 0, 0);
         }
     }
-
+    
     auto groundMatrix = Matrix::CreateTranslation(Vector3(0, -4.0, 0));
     UpdateBuffer(game_.modelBuffer_, &groundMatrix, sizeof(Matrix));
 
