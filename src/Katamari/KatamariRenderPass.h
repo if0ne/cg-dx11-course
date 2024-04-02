@@ -3,6 +3,7 @@
 
 class KatamariGame;
 class KatamariCSMPass;
+class KatamariShadowMapPass;
 
 class KatamariRenderPass : public RenderPass
 {
@@ -19,6 +20,7 @@ private:
     ID3D11Buffer* cascadeBuffer_;
 
     KatamariCSMPass* csmPass_;
+    KatamariShadowMapPass* sm_;
 public:
     KatamariRenderPass(
         std::string&& shaderPath,

@@ -17,6 +17,7 @@
 #include "PlayerComponent.h"
 #include "StickyObjectComponent.h"
 #include "KatamariCSMPass.h"
+#include "KatamariShadowMapPass.h"
 
 using namespace DirectX::SimpleMath;
 
@@ -38,6 +39,16 @@ KatamariRenderPass::KatamariRenderPass(
     };
 
     csmPass_ = new KatamariCSMPass(std::move(path), std::move(csmVertexAttr), game_);
+
+    std::string spath = "./shaders/CascadeShader.hlsl";
+    std::vector<std::pair<const char*, DXGI_FORMAT>> sVertexAttr{
+        std::make_pair("POSITION", DXGI_FORMAT_R32G32B32_FLOAT),
+        std::make_pair("NORMAL", DXGI_FORMAT_R32G32B32_FLOAT),
+        std::make_pair("TEXCOORD", DXGI_FORMAT_R32G32_FLOAT),
+        std::make_pair("TANGENT", DXGI_FORMAT_R32G32B32_FLOAT)
+    };
+
+    sm_ = new KatamariShadowMapPass(std::move(spath), std::move(sVertexAttr), game_);
 }
 
 KatamariRenderPass::~KatamariRenderPass() {
@@ -57,10 +68,12 @@ void KatamariRenderPass::Initialize() {
     cascadeBuffer_ = CreateBuffer(sizeof(CascadedShadowMapData));
 
     csmPass_->Initialize();
+    sm_->Initialize();
 }
 
 void KatamariRenderPass::Execute() {
     csmPass_->Execute();
+    //sm_->Execute();
 
     auto csmData = csmPass_->RenderData();
 
@@ -173,4 +186,5 @@ void KatamariRenderPass::Execute() {
 
 void KatamariRenderPass::DestroyResources() {
     csmPass_->DestroyResources();
+    sm_->DestroyResources();
 }
