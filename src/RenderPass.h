@@ -28,10 +28,12 @@ protected:
 
     std::string shaderPath_;
     std::vector<std::pair<const char*, DXGI_FORMAT>> vertexAttr_;
+    CD3D11_RASTERIZER_DESC rastDesc_;
 public:
     RenderPass(
         std::string&& shaderPath,
-        std::vector<std::pair<const char*, DXGI_FORMAT>>&& vertexAttr
+        std::vector<std::pair<const char*, DXGI_FORMAT>>&& vertexAttr,
+        CD3D11_RASTERIZER_DESC rastState
     );
 
     virtual void Initialize();

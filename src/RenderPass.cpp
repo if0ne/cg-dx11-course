@@ -15,10 +15,12 @@ inline std::wstring strToWstr(const std::string& str)
 
 RenderPass::RenderPass(
     std::string&& shaderPath,
-    std::vector<std::pair<const char*, DXGI_FORMAT>>&& vertexAttr
+    std::vector<std::pair<const char*, DXGI_FORMAT>>&& vertexAttr,
+    CD3D11_RASTERIZER_DESC rastState
 ) : 
     shaderPath_(shaderPath),
     vertexAttr_(vertexAttr),
+    rastDesc_(rastState),
     ctx_(Game::GetSingleton()) {
 }
 
@@ -82,11 +84,8 @@ void RenderPass::Initialize() {
         &layout_
     );
 
-    CD3D11_RASTERIZER_DESC rastDesc = {};
-    rastDesc.CullMode = D3D11_CULL_NONE;
-    rastDesc.FillMode = D3D11_FILL_SOLID;
 
-    ctx_.GetRenderContext().GetDevice()->CreateRasterizerState(&rastDesc, &rastState_);
+    ctx_.GetRenderContext().GetDevice()->CreateRasterizerState(&rastDesc_, &rastState_);
 }
 
 ID3D11Buffer* RenderPass::CreateBuffer(size_t size) {

@@ -29,6 +29,7 @@ public:
     KatamariCSMPass(
         std::string&& shaderPath,
         std::vector<std::pair<const char*, DXGI_FORMAT>>&& vertexAttr,
+        CD3D11_RASTERIZER_DESC rastState,
         KatamariGame& game
     );
 

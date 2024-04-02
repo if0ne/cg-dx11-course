@@ -25,10 +25,11 @@ using namespace DirectX::SimpleMath;
 KatamariRenderPass::KatamariRenderPass(
     std::string&& shaderPath,
     std::vector<std::pair<const char*, DXGI_FORMAT>>&& vertexAttr,
+    CD3D11_RASTERIZER_DESC rastState,
     KatamariGame& game
 ) :
     game_(game),
-    RenderPass(std::move(shaderPath), std::move(vertexAttr))
+    RenderPass(std::move(shaderPath), std::move(vertexAttr), rastState)
 {
     std::string path = "./shaders/CascadeShader.hlsl";
     std::vector<std::pair<const char*, DXGI_FORMAT>> csmVertexAttr{
@@ -38,7 +39,20 @@ KatamariRenderPass::KatamariRenderPass(
         std::make_pair("TANGENT", DXGI_FORMAT_R32G32B32_FLOAT)
     };
 
-    csmPass_ = new KatamariCSMPass(std::move(path), std::move(csmVertexAttr), game_);
+    CD3D11_RASTERIZER_DESC shadowMapRast
+    {
+        D3D11_FILL_SOLID,
+        D3D11_CULL_NONE,
+        TRUE,
+        -3000,
+        0,
+        0.5,
+        TRUE,
+        FALSE,
+        FALSE,
+        FALSE
+    };
+    csmPass_ = new KatamariCSMPass(std::move(path), std::move(csmVertexAttr), shadowMapRast, game_);
 
     std::string spath = "./shaders/CascadeShader.hlsl";
     std::vector<std::pair<const char*, DXGI_FORMAT>> sVertexAttr{
@@ -48,7 +62,7 @@ KatamariRenderPass::KatamariRenderPass(
         std::make_pair("TANGENT", DXGI_FORMAT_R32G32B32_FLOAT)
     };
 
-    sm_ = new KatamariShadowMapPass(std::move(spath), std::move(sVertexAttr), game_);
+    sm_ = new KatamariShadowMapPass(std::move(spath), std::move(sVertexAttr), shadowMapRast, game_);
 }
 
 KatamariRenderPass::~KatamariRenderPass() {

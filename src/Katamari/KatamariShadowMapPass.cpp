@@ -14,9 +14,14 @@
 
 using namespace DirectX::SimpleMath;
 
-KatamariShadowMapPass::KatamariShadowMapPass(std::string&& shaderPath, std::vector<std::pair<const char*, DXGI_FORMAT>>&& vertexAttr, KatamariGame& game) :
+KatamariShadowMapPass::KatamariShadowMapPass(
+	std::string&& shaderPath, 
+	std::vector<std::pair<const char*, DXGI_FORMAT>>&& vertexAttr,
+	CD3D11_RASTERIZER_DESC rastState,
+	KatamariGame& game
+) :
 	game_(game),
-	RenderPass(std::move(shaderPath), std::move(vertexAttr))
+	RenderPass(std::move(shaderPath), std::move(vertexAttr), rastState)
 {
 }
 

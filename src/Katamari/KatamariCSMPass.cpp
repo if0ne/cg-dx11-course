@@ -14,9 +14,15 @@
 
 using namespace DirectX::SimpleMath;
 
-KatamariCSMPass::KatamariCSMPass(std::string&& shaderPath, std::vector<std::pair<const char*, DXGI_FORMAT>>&& vertexAttr, KatamariGame& game) :
+KatamariCSMPass::KatamariCSMPass(
+	std::string&& shaderPath, 
+	std::vector<std::pair<const char*, 
+	DXGI_FORMAT>>&& vertexAttr, 
+	CD3D11_RASTERIZER_DESC rastState,
+	KatamariGame& game
+) :
     game_(game),
-    RenderPass(std::move(shaderPath), std::move(vertexAttr))
+    RenderPass(std::move(shaderPath), std::move(vertexAttr), rastState)
 {
 }
 
@@ -100,7 +106,7 @@ void KatamariCSMPass::Execute() {
 		ctx_.GetRenderContext().GetContext()->ClearDepthStencilView(dsv_[i], D3D11_CLEAR_DEPTH, 1.0, 0);
 
 		ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(0, 1, &cascadeBuffer_);
-		ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(1, 1, &modelBuffer_);
+		ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(1, 1, &modelBuffer_); 
 
 		UpdateBuffer(cascadeBuffer_, &data.viewProjMat[i], sizeof(CascadeData));
 

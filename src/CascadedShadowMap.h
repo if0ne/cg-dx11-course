@@ -35,7 +35,5 @@ public:
 
 private:
 	CascadedShadowMapData CalcLightMatrices(const DirectX::SimpleMath::Vector3& lightDir, Camera& cam);
-
-    std::vector<DirectX::SimpleMath::Vector4> GetFrustumCornersWorldSpace(const DirectX::SimpleMath::Matrix& proj, const DirectX::SimpleMath::Matrix& view);
 };
 

@@ -51,10 +51,10 @@ KatamariGame::KatamariGame() : GameComponent() {
         0.0
     }));
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 1000; i++) {
         int random = rand() % models.size();
-        int x = rand() % 40 - 20;
-        int z = rand() % 40 - 20;
+        int x = rand() % 500 - 250;
+        int z = rand() % 500 - 250;
         objects_.push_back(new StickyObjectComponent(
             std::get<0>(models[random]), 
             std::get<1>(models[random]), 
@@ -76,7 +76,10 @@ KatamariGame::KatamariGame() : GameComponent() {
         std::make_pair("TANGENT", DXGI_FORMAT_R32G32B32_FLOAT)
     };
 
-    mainPass_ = new KatamariRenderPass(std::move(shaderPath), std::move(vertexAttr), *this);
+    CD3D11_RASTERIZER_DESC rastDesc = {};
+    rastDesc.CullMode = D3D11_CULL_NONE;
+    rastDesc.FillMode = D3D11_FILL_SOLID;
+    mainPass_ = new KatamariRenderPass(std::move(shaderPath), std::move(vertexAttr), rastDesc, *this);
 }
 
 KatamariGame::~KatamariGame() {
