@@ -4,7 +4,7 @@
 #include "Window.h"
 
 Camera::Camera() : game_(Game::GetSingleton()) {
-    farPlane_ = 10000.0f;
+    farPlane_ = 1000.0f;
     nearPlane_ = 0.1f;
     fov_ = 90.0 * M_PI / 180.0;
 

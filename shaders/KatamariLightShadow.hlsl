@@ -208,6 +208,14 @@ float SampleCascade(uint cascadeIndx, float4 pixLightPos)
     return sampled;
 }
 
+static float3 CascadeColors[4] =
+{
+    float3(0.4f, 1.0f, 0.0f),
+    float3(0.2f, 0.4f, 0.0f),
+    float3(0.1f, 0.0f, 0.4f),
+    float3(0.0f, 0.2f, 0.2f),
+};
+
 float4 PSMain(PS_IN input) : SV_Target
 {
     float3 normalMapSample = NormalMap.Sample(Sampler, input.tex).rgb;
@@ -229,6 +237,13 @@ float4 PSMain(PS_IN input) : SV_Target
     float3 surfaceColor = Material.BaseColor.xyz * Texture.Sample(Sampler, input.tex).xyz;
     float3 dirLight = SMs * CalcDirLight(bumpedNormalW, normalize(ViewPos.ViewPos.xyz - input.worldPos));
     float3 pointLight = CalcPointLight(bumpedNormalW, input.worldPos, normalize(ViewPos.ViewPos.xyz - input.worldPos));
+   
     float3 finalColor = surfaceColor * (dirLight + pointLight);
+  
+    if (Material._padding > 0.5)
+    {
+        return float4(surfaceColor * CascadeColors[layer], 1.0);
+    }
+    
     return float4(finalColor, 1.0);
 }

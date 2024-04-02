@@ -168,7 +168,7 @@ void KatamariRenderPass::Execute() {
         1.0,
         0.01,
         1.0,
-        0.0
+        1.0
     };
     UpdateBuffer(materialBuffer_, &mat, sizeof(Material));
     auto mesh = game_.ground_->GetMeshRenderData();

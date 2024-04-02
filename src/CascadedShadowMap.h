@@ -21,7 +21,7 @@ private:
     DirectX::SimpleMath::Matrix lightProj_;
 public:
     const int kCascadeCount = 4;
-    const float kCascadesFarRatios[4] = { 0.2,0.4,0.6,1.0 };
+    const float kCascadesFarRatios[4] = { 0.1, 0.25, 0.5,1.0 };
     const int kWidth = 2048;
     const int kHeight = 2048;
 
