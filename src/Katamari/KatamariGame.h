@@ -57,4 +57,5 @@ public:
     }
 
     friend class KatamariRenderPass;
+    friend class KatamariCSMPass;
 };

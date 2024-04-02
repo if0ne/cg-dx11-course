@@ -11,22 +11,26 @@ struct CascadedShadowMapData {
     float distances[4];
 };
 
+struct CascadeData {
+    DirectX::SimpleMath::Matrix viewProjMat;
+};
+
 class CascadedShadowMap
 {
 private:
+    DirectX::SimpleMath::Matrix lightProj_;
+public:
     const int kCascadeCount = 4;
     const float kCascadesFarRatios[4] = { 0.2,0.4,0.6,1.0 };
     const int kWidth = 2048;
     const int kHeight = 2048;
 
-    DirectX::SimpleMath::Matrix lightProj_;
-public:
     CascadedShadowMap() {
         lightProj_ = DirectX::SimpleMath::Matrix::CreateOrthographic(100, 100, 0.0001, 1000);
     }
 
     CascadedShadowMapData RenderData(const DirectX::SimpleMath::Vector3& lightDir, Camera& cam) {
-		CalcLightMatrices(lightDir, cam);
+		return CalcLightMatrices(lightDir, cam);
     }
 
 private:

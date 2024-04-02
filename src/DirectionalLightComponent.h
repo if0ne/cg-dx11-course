@@ -32,6 +32,10 @@ public:
     virtual void Reload();
     virtual void DestroyResources();
 
+    DirectX::SimpleMath::Vector3 Direction() {
+        return direction_;
+    }
+
     DirectionalLightData RenderData() {
         return DirectionalLightData{
             DirectX::SimpleMath::Vector4(direction_.x, direction_.y, direction_.z, 0.0),
