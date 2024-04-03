@@ -102,8 +102,11 @@ void KatamariCSMPass::Execute() {
 	auto data = csm_.RenderData(dir, *camera);
 
 	for (int i = 0; i < csm_.kCascadeCount; i++) {
-		ctx_.GetRenderContext().GetContext()->OMSetRenderTargets(0, nullptr, dsv_[i]);
 		ctx_.GetRenderContext().GetContext()->ClearDepthStencilView(dsv_[i], D3D11_CLEAR_DEPTH, 1.0, 0);
+	}
+
+	for (int i = 0; i < csm_.kCascadeCount; i++) {
+		ctx_.GetRenderContext().GetContext()->OMSetRenderTargets(0, nullptr, dsv_[i]);
 
 		ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(0, 1, &cascadeBuffer_);
 		ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(1, 1, &modelBuffer_); 

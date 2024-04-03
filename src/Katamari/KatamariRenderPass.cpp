@@ -137,7 +137,7 @@ void KatamariRenderPass::Execute() {
     UpdateBuffer(wvpBuffer_, &matrix, sizeof(Matrix));
 
     auto viewPos = game_.camera_->Position();
-    UpdateBuffer(viewPosBuffer_, &viewPos, sizeof(Vector4));
+    UpdateBuffer(viewPosBuffer_, &viewPos, sizeof(Vector3));
 
     auto renderData = game_.player_->GetRenderData();
 
@@ -182,7 +182,7 @@ void KatamariRenderPass::Execute() {
         1.0,
         0.01,
         1.0,
-        1.0
+        0.0
     };
     UpdateBuffer(materialBuffer_, &mat, sizeof(Material));
     auto mesh = game_.ground_->GetMeshRenderData();

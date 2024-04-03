@@ -8,62 +8,78 @@ CascadedShadowMapData CascadedShadowMap::CalcLightMatrices(const Vector3& lightD
 	CascadedShadowMapData res;
 
 	float curNear = cam.NearPlane();
+	float curFar = cam.FarPlane();
 
-	const auto projMatrix = Matrix::CreatePerspectiveFieldOfView(cam.Fov(), cam.AspectRatio(), curNear, cam.FarPlane());
-	const auto viewMatrix = cam.View();
+	float clipRange = curFar - curNear;
 
-	for (int i = 0; i < kCascadeCount; ++i)
-	{
-		float curFar = cam.FarPlane() * kCascadesFarRatios[i];
-		curNear = curFar;
+	float minZ = curNear;
+	float maxZ = curNear + clipRange;
 
-		Vector3 corners[8] = {
-			Vector3(-1.0f, 1.0f, -1.0f),
-			Vector3(1.0f, 1.0f, -1.0f),
-			Vector3(1.0f, -1.0f, -1.0f),
-			Vector3(-1.0f, -1.0f, -1.0f),
+	float range = maxZ - minZ;
+	float ratio = maxZ / minZ;
+
+	for (uint32_t i = 0; i < kCascadeCount; i++) {
+		float p = (i + 1) / static_cast<float>(kCascadeCount);
+		float log = minZ * std::pow(ratio, p);
+		float uniform = minZ + range * p;
+		float d = 0.5 * (log - uniform) + uniform;
+		cascadesFarRatios[i] = (d - curNear) / clipRange;
+	}
+
+	float lastSplitDist = 0.0;
+	for (int i = 0; i < kCascadeCount; ++i) {
+		float splitDist = cascadesFarRatios[i];
+
+		Vector3 frustumCorners[8] = {
+			Vector3(-1.0f, -1.0f, 0.0f),
+			Vector3(-1.0f, -1.0f, 1.0f),
+			Vector3(-1.0f, 1.0f, 0.0f),
 			Vector3(-1.0f, 1.0f, 1.0f),
-			Vector3(1.0f, 1.0f, 1.0f),
+			Vector3(1.0f, -1.0f, 0.0f),
 			Vector3(1.0f, -1.0f, 1.0f),
-			Vector3(-1.0f, -1.0f, 1.0f)
+			Vector3(1.0f, 1.0f, 0.0f),
+			Vector3(1.0f, 1.0f, 1.0f),
 		};
 
-		auto invCam = (viewMatrix * projMatrix).Invert();
+		auto invCam = cam.CameraMatrix().Invert();
 
 		for (int j = 0; j < 8; j++) {
-			Vector4 invCorner = Vector4(corners[j]);
-			invCorner.w = 1.0;
-			invCorner = Vector4::Transform(invCorner, invCam);
-			corners[j] = Vector3(invCorner.x / invCorner.w, invCorner.y / invCorner.w, invCorner.z / invCorner.w);
+			auto invCorner = Vector4::Transform(Vector4(frustumCorners[j].x, frustumCorners[j].y, frustumCorners[j].z, 1.0f), invCam);
+			invCorner /= invCorner.w;
+			frustumCorners[j].x = invCorner.x;
+			frustumCorners[j].y = invCorner.y;
+			frustumCorners[j].z = invCorner.z;
 		}
 
-		Vector3 center = Vector3::Zero;
-		for (const auto& v : corners)
-		{
-			center += v;
+		// Get frustum center
+		Vector3 frustumCenter = Vector3::Zero;
+		for (uint32_t j = 0; j < 8; j++) {
+			frustumCenter += frustumCorners[j];
 		}
-		center /= 8.0;
+		frustumCenter /= 8.0f;
 
 		float radius = 0.0f;
-		for (int j = 0; j < 8; j++) {
-			float distance = (corners[j] - center).Length();
+		for (uint32_t j = 0; j < 8; j++) {
+			float distance = (frustumCorners[j] - frustumCenter).Length();
 			radius = std::max(radius, distance);
 		}
 		radius = std::ceil(radius * 16.0f) / 16.0f;
 
-		auto maxExtends = Vector3(radius);
-		auto minExtends = maxExtends * -1.0;
+		auto maxExtents = Vector3(radius, radius, radius);
+		auto minExtents = -maxExtents;
 
-		auto lightView = DirectX::SimpleMath::Matrix::CreateLookAt(
-			center,
-			center + lightDir,
-			DirectX::SimpleMath::Vector3::Up
+		auto lightViewMatrix = Matrix::CreateLookAt(
+			frustumCenter - lightDir, 
+			frustumCenter, 
+			Vector3::Up
 		);
+		auto lightOrthoMatrix = Matrix::CreateOrthographicOffCenter(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0001f, maxExtents.z - minExtents.z);
+		
+		//lightOrthoMatrix = Matrix::CreateOrthographic(100, 100, 0.0001, 1000);
+		res.distances[i] = cam.NearPlane() + splitDist * clipRange;
+		res.viewProjMat[i] = lightViewMatrix * lightOrthoMatrix;
 
-		auto lightProj = Matrix::CreateOrthographicOffCenter(minExtends.x, maxExtends.x, minExtends.y, maxExtends.y, 0.0, maxExtends.z - minExtends.z);
-
-		res.viewProjMat[i] = lightView * lightProj;
-		res.distances[i] = curFar;
+		lastSplitDist = cascadesFarRatios[i];
 	}
 
 	return res;
