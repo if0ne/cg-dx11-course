@@ -43,7 +43,7 @@ void RenderPass::Initialize() {
         nullptr,
         "PSMain",
         "ps_5_0",
-        D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,
+        D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_PACK_MATRIX_ROW_MAJOR,
         0,
         &pixelBC_,
         nullptr

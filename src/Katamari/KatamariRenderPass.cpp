@@ -43,10 +43,10 @@ KatamariRenderPass::KatamariRenderPass(
     {
         D3D11_FILL_SOLID,
         D3D11_CULL_NONE,
-        TRUE,
-        -3000,
+        FALSE,
         0,
-        0.5,
+        0,
+        0.0,
         TRUE,
         FALSE,
         FALSE,
@@ -88,7 +88,7 @@ void KatamariRenderPass::Initialize() {
 void KatamariRenderPass::Execute() {
     csmPass_->Execute();
     //sm_->Execute();
-
+    ctx_.SetViewport(0, 0, ctx_.GetWindow().GetWidth(), ctx_.GetWindow().GetHeight());
     auto csmData = csmPass_->RenderData();
 
     auto rt = ctx_.GetWindow().GetRenderTarget();
