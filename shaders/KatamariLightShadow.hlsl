@@ -210,10 +210,10 @@ float ShadowSample(float4 shadowCoord, uint cascadeIndex)
 
 static float3 CascadeColors[4] =
 {
-    float3(0.4f, 1.0f, 0.0f),
-    float3(0.2f, 0.4f, 0.0f),
-    float3(0.1f, 0.0f, 0.4f),
-    float3(0.0f, 0.2f, 0.2f),
+    float3(1.0f, 0.0f, 0.0f),
+    float3(0.0f, 1.0f, 0.0f),
+    float3(0.0f, 0.0f, 1.0f),
+    float3(1.0f, 0.2f, 0.2f),
 };
 
 float4 PSMain(PS_IN input) : SV_Target
@@ -228,7 +228,7 @@ float4 PSMain(PS_IN input) : SV_Target
         }
     }
 
-    float4 shadowCoord = mul(float4(input.worldPos, 1.0), CascadeData.ViewProj[i]);
+    float4 shadowCoord = mul(float4(input.worldPos, 1.0), CascadeData.ViewProj[cascadeIndex]);
     float shadow = ShadowSample(shadowCoord, cascadeIndex);
     
     float3 normalMapSample = NormalMap.Sample(Sampler, input.tex).rgb;

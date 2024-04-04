@@ -64,7 +64,7 @@ CascadedShadowMapData CascadedShadowMap::CalcLightMatrices(const Vector3& lightD
 			float distance = (frustumCorners[j] - frustumCenter).Length();
 			radius = std::max(radius, distance);
 		}
-		radius = std::ceil(radius * 16.0f) / 16.0f;
+		radius = std::ceil(radius * 16.0f) / 16.0;
 
 		auto maxExtents = Vector3(radius, radius, radius);
 		auto minExtents = -maxExtents;
