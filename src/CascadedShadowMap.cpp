@@ -52,7 +52,6 @@ CascadedShadowMapData CascadedShadowMap::CalcLightMatrices(const Vector3& lightD
 			frustumCorners[j].z = invCorner.z;
 		}
 
-		// Get frustum center
 		Vector3 frustumCenter = Vector3::Zero;
 		for (uint32_t j = 0; j < 8; j++) {
 			frustumCenter += frustumCorners[j];
@@ -71,36 +70,12 @@ CascadedShadowMapData CascadedShadowMap::CalcLightMatrices(const Vector3& lightD
 
 		auto lightViewMatrix = Matrix::CreateLookAt(
 			frustumCenter - lightDir, 
-			frustumCenter, 
+			frustumCenter,
 			Vector3::Up
 		);
 
-		/*float minX = std::numeric_limits<float>::max();
-		float maxX = std::numeric_limits<float>::lowest();
-		float minY = std::numeric_limits<float>::max();
-		float maxY = std::numeric_limits<float>::lowest();
-		float minZ = std::numeric_limits<float>::max();
-		float maxZ = std::numeric_limits<float>::lowest();
-		for (const auto& v : frustumCorners)
-		{
-			const auto trf = DirectX::SimpleMath::Vector3::Transform(v, lightViewMatrix);
-			minX = std::min(minX, trf.x);
-			maxX = std::max(maxX, trf.x);
-			minY = std::min(minY, trf.y);
-			maxY = std::max(maxY, trf.y);
-			minZ = std::min(minZ, trf.z);
-			maxZ = std::max(maxZ, trf.z);
-		}
-
-		static constexpr float zMult = 10.0f;
-		minZ = (minZ < 0) ? minZ * zMult : minZ / zMult;
-		maxZ = (maxZ < 0) ? maxZ / zMult : maxZ * zMult;
-
-		auto lightOrthoMatrix = DirectX::SimpleMath::Matrix::CreateOrthographicOffCenter(minX, maxX, minY, maxY, minZ, maxZ);*/
-
 		auto lightOrthoMatrix = Matrix::CreateOrthographicOffCenter(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0001f, maxExtents.z - minExtents.z);
 		
-		//lightOrthoMatrix = Matrix::CreateOrthographic(100, 100, 0.0001, 1000);
 		res.distances[i] = cam.NearPlane() + splitDist * clipRange;
 		res.viewProjMat[i] = lightViewMatrix * lightOrthoMatrix;
 

@@ -22,8 +22,8 @@ private:
 public:
     const int kCascadeCount = 4;
     float cascadesFarRatios[4] = { 0.1, 0.25, 0.5,1.0 };
-    const int kWidth = 2048;
-    const int kHeight = 2048;
+    const int kWidth = 2048 * 4;
+    const int kHeight = 2048 * 4;
 
     CascadedShadowMap() {
         lightProj_ = DirectX::SimpleMath::Matrix::CreateOrthographic(100, 100, 0.0001, 1000);
