@@ -40,10 +40,9 @@ struct SAmbient
     float Intensity;
 };
 
-struct SCascadeData
+struct SLightViewProj
 {
-    float4x4 ViewProj[4];
-    float4 Distances;
+    float4x4 ViewProj;
 };
 
 // VS
@@ -83,16 +82,16 @@ cbuffer Material : register(b8)
     SMaterial Material;
 };
 
-cbuffer CascadeData : register(b9)
+cbuffer LightViewProj : register(b9)
 {
-    SCascadeData CascadeData;
-}
+    SLightViewProj LightViewProj;
+};
 
 Texture2D Texture : TEXTURE : register(t0);
 Texture2D NormalMap : TEXTURE : register(t1);
 SamplerState Sampler : SAMPLER : register(s0);
 
-Texture2DArray shadowmapT : register(t2);
+Texture2D shadowmapT : register(t2);
 SamplerComparisonState shadowmapS : register(s1);
 
 struct VS_IN
@@ -193,43 +192,22 @@ float3 NormalSampleToWorldSpace(
     return bumpedNormalW;
 }
 
-float ShadowSample(float4 shadowCoord, uint cascadeIndex)
+float ShadowSample(float4 pixLightPos)
 {
-    float3 projCoords = shadowCoord.xyz / shadowCoord.w;
-    
-    projCoords.x = projCoords.x * 0.5 + 0.5;
-    projCoords.y = -projCoords.y * 0.5 + 0.5;
+    float3 projCoords = pixLightPos.xyz / pixLightPos.w;
 
-    float3 texCoord;
-    texCoord.xy = projCoords.xy;
-    texCoord.z = cascadeIndex;
-    float sampled = shadowmapT.SampleCmp(shadowmapS, texCoord, projCoords.z);
+    projCoords.x = projCoords.x * 0.5 + 0.5;
+    projCoords.y = projCoords.y * 0.5 + 0.5;
+
+    float sampled = shadowmapT.SampleCmp(shadowmapS, projCoords.xy, projCoords.z);
 
     return sampled;
 }
 
-static float3 CascadeColors[4] =
-{
-    float3(0.4f, 1.0f, 0.0f),
-    float3(0.2f, 0.4f, 0.0f),
-    float3(0.1f, 0.0f, 0.4f),
-    float3(0.0f, 0.2f, 0.2f),
-};
-
 float4 PSMain(PS_IN input) : SV_Target
 {
-    float viewDir = length(ViewPos.ViewPos.xyz - input.worldPos);
-    uint cascadeIndex = 0;
-    for (uint i = 0; i < 4 - 1; ++i)
-    {
-        if (viewDir > CascadeData.Distances[i])
-        {
-            cascadeIndex = i + 1;
-        }
-    }
-
-    float4 shadowCoord = mul(float4(input.worldPos, 1.0), CascadeData.ViewProj[i]);
-    float shadow = ShadowSample(shadowCoord, cascadeIndex);
+    float4 shadowCoord = mul(float4(input.worldPos, 1.0), LightViewProj.ViewProj);
+    float shadow = ShadowSample(shadowCoord);
     
     float3 normalMapSample = NormalMap.Sample(Sampler, input.tex).rgb;
     float3 bumpedNormalW = NormalSampleToWorldSpace(normalMapSample, input.normal, input.tangent);
@@ -239,11 +217,6 @@ float4 PSMain(PS_IN input) : SV_Target
     float3 pointLight = CalcPointLight(bumpedNormalW, input.worldPos, normalize(ViewPos.ViewPos.xyz - input.worldPos));
    
     float3 finalColor = surfaceColor * (dirLight + pointLight);
-  
-    if (Material._padding > 0.5)
-    {
-        return float4(surfaceColor * CascadeColors[cascadeIndex], 1.0);
-    }
     
     return float4(finalColor, 1.0);
 }

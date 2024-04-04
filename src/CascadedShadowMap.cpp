@@ -26,7 +26,7 @@ CascadedShadowMapData CascadedShadowMap::CalcLightMatrices(const Vector3& lightD
 		cascadesFarRatios[i] = (d - curNear) / clipRange;
 	}
 
-	float lastSplitDist = 0.0;
+	float lastSplitDist = curNear;
 	for (int i = 0; i < kCascadeCount; ++i) {
 		float splitDist = cascadesFarRatios[i];
 
@@ -40,8 +40,9 @@ CascadedShadowMapData CascadedShadowMap::CalcLightMatrices(const Vector3& lightD
 			Vector3(1.0f, 1.0f, 0.0f),
 			Vector3(1.0f, 1.0f, 1.0f),
 		};
-
-		auto invCam = cam.CameraMatrix().Invert();
+		auto camView = cam.View();
+		auto frustProj = Matrix::CreatePerspectiveFieldOfView(cam.Fov(), cam.AspectRatio(), lastSplitDist, curNear + curFar * splitDist);
+		auto invCam = (camView * frustProj).Invert();
 
 		for (int j = 0; j < 8; j++) {
 			auto invCorner = Vector4::Transform(Vector4(frustumCorners[j].x, frustumCorners[j].y, frustumCorners[j].z, 1.0f), invCam);
@@ -79,7 +80,7 @@ CascadedShadowMapData CascadedShadowMap::CalcLightMatrices(const Vector3& lightD
 		res.distances[i] = cam.NearPlane() + splitDist * clipRange;
 		res.viewProjMat[i] = lightViewMatrix * lightOrthoMatrix;
 
-		lastSplitDist = cascadesFarRatios[i];
+		lastSplitDist = cam.NearPlane() + splitDist * clipRange;
 	}
 
 	return res;
