@@ -21,6 +21,11 @@ private:
 
     KatamariCSMPass* csmPass_;
     KatamariShadowMapPass* sm_;
+
+    ID3D11Query* startQuery_;
+    ID3D11Query* endQuery_;
+    ID3D11Query* freqQuery_;
+    bool isFetching = false;
 public:
     KatamariRenderPass(
         std::string&& shaderPath,

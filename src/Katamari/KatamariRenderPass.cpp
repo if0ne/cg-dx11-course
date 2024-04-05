@@ -19,6 +19,8 @@
 #include "KatamariCSMPass.h"
 #include "KatamariShadowMapPass.h"
 
+#include <iostream>
+
 using namespace DirectX::SimpleMath;
 
 
@@ -83,11 +85,47 @@ void KatamariRenderPass::Initialize() {
 
     csmPass_->Initialize();
     sm_->Initialize();
+
+    D3D11_QUERY_DESC queryDesc;
+    ZeroMemory(&queryDesc, sizeof(queryDesc));
+    queryDesc.Query = D3D11_QUERY_TIMESTAMP;
+
+    ctx_.GetRenderContext().GetDevice()->CreateQuery(&queryDesc, &startQuery_);
+    ctx_.GetRenderContext().GetDevice()->CreateQuery(&queryDesc, &endQuery_);
+
+    D3D11_QUERY_DESC queryDisjoinDesc;
+    ZeroMemory(&queryDisjoinDesc, sizeof(queryDisjoinDesc));
+    queryDisjoinDesc.Query = D3D11_QUERY_TIMESTAMP_DISJOINT;
+    ctx_.GetRenderContext().GetDevice()->CreateQuery(&queryDisjoinDesc, &freqQuery_);
 }
 
 void KatamariRenderPass::Execute() {
+    if (!isFetching) {
+        ctx_.GetRenderContext().GetContext()->Begin(freqQuery_);
+        ctx_.GetRenderContext().GetContext()->End(startQuery_);
+    }
     csmPass_->Execute();
-    //sm_->Execute();
+
+    if (!isFetching) {
+        ctx_.GetRenderContext().GetContext()->End(endQuery_);
+        ctx_.GetRenderContext().GetContext()->End(freqQuery_);
+    }
+
+    isFetching = true;
+
+    D3D11_QUERY_DATA_TIMESTAMP_DISJOINT ts;
+
+    if (ctx_.GetRenderContext().GetContext()->GetData(freqQuery_, &ts, sizeof(ts), D3D11_ASYNC_GETDATA_DONOTFLUSH) == S_OK) {
+        UINT64 startTime = 0;
+        ctx_.GetRenderContext().GetContext()->GetData(startQuery_, &startTime, sizeof(startTime), 0);
+
+        UINT64 endTime = 0;
+        ctx_.GetRenderContext().GetContext()->GetData(endQuery_, &endTime, sizeof(endTime), 0);
+        std::cout << ((float)(endTime - startTime)) / ts.Frequency * 1000.0 << std::endl;
+
+        isFetching = false;
+    } 
+    
     ctx_.SetViewport(0, 0, ctx_.GetWindow().GetWidth(), ctx_.GetWindow().GetHeight());
     auto csmData = csmPass_->RenderData();
 
