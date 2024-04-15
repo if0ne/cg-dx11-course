@@ -130,6 +130,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Katamari\KatamariGeometryPass.cpp" />
     <ClCompile Include="src\Katamari\KatamariShadowMapPass.cpp" />
     <ClCompile Include="src\Katamari\KatamariCSMPass.cpp" />
     <ClCompile Include="src\CascadedShadowMap.cpp" />
@@ -164,6 +165,7 @@
     <ClCompile Include="src\SunSystem\SunSystemGame.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Katamari\KatamariGeometryPass.h" />
     <ClInclude Include="src\Katamari\KatamariShadowMapPass.h" />
     <ClInclude Include="src\Katamari\KatamariCSMPass.h" />
     <ClInclude Include="src\CascadedShadowMap.h" />

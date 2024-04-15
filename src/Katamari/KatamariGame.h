@@ -51,4 +51,5 @@ public:
     friend class KatamariRenderPass;
     friend class KatamariCSMPass;
     friend class KatamariShadowMapPass;
+    friend class KatamariGeometryPass;
 };
