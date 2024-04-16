@@ -3,6 +3,10 @@
 
 class KatamariGame;
 
+struct GeometryPassData {
+    ID3D11ShaderResourceView* srvs[4];
+};
+
 class KatamariGeometryPass : public RenderPass
 {
 private:
@@ -36,5 +40,11 @@ public:
     virtual void Initialize();
     virtual void Execute();
     virtual void DestroyResources();
+
+    GeometryPassData RenderData() {
+        return {
+            { srvs_[0], srvs_[1], srvs_[2], srvs_[3] }
+        };
+    }
 };
 

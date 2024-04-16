@@ -5,6 +5,7 @@ class KatamariGame;
 class KatamariCSMPass;
 class KatamariShadowMapPass;
 class KatamariGeometryPass;
+class KatamariDirectionalLightPass;
 
 class KatamariRenderPass : public RenderPass
 {
@@ -13,11 +14,14 @@ private:
 
     KatamariCSMPass* csmPass_;
     KatamariGeometryPass* geometryPass_;
+    KatamariDirectionalLightPass* dirLightPass_;
 
     ID3D11Query* startQuery_;
     ID3D11Query* endQuery_;
     ID3D11Query* freqQuery_;
     bool isFetching = false;
+
+    ID3D11BlendState* bs_;
 public:
     KatamariRenderPass(
         std::string&& shaderPath,
@@ -31,5 +35,7 @@ public:
     virtual void Initialize();
     virtual void Execute();
     virtual void DestroyResources();
+    
+    friend class KatamariDirectionalLightPass;
 };
 

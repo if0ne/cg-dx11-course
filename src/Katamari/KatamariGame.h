@@ -52,4 +52,5 @@ public:
     friend class KatamariCSMPass;
     friend class KatamariShadowMapPass;
     friend class KatamariGeometryPass;
+    friend class KatamariDirectionalLightPass;
 };

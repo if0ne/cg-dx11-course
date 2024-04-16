@@ -19,6 +19,7 @@
 #include "KatamariCSMPass.h"
 #include "KatamariShadowMapPass.h"
 #include "KatamariGeometryPass.h"
+#include "KatamariDirectionalLightPass.h"
 
 #include <iostream>
 
@@ -69,11 +70,24 @@ KatamariRenderPass::KatamariRenderPass(
     geomRastDesc.CullMode = D3D11_CULL_NONE;
     geomRastDesc.FillMode = D3D11_FILL_SOLID;
     geometryPass_ = new KatamariGeometryPass(std::move(gpath), std::move(geomVertexAttr), geomRastDesc, game_);
+
+
+    std::string dirpath = std::string("./shaders/deferred/DirPass.hlsl");
+    std::vector<std::pair<const char*, DXGI_FORMAT>> dirLightVertexAttr{
+        std::make_pair("POSITION", DXGI_FORMAT_R32G32B32_FLOAT)
+    };
+
+    CD3D11_RASTERIZER_DESC dirRastDesc = {};
+    geomRastDesc.CullMode = D3D11_CULL_NONE;
+    geomRastDesc.FillMode = D3D11_FILL_SOLID;
+
+    dirLightPass_ = new KatamariDirectionalLightPass(std::move(dirpath), std::move(dirLightVertexAttr), dirRastDesc, game_);
 }
 
 KatamariRenderPass::~KatamariRenderPass() {
     delete csmPass_;
     delete geometryPass_;
+    delete dirLightPass_;
 }
 
 void KatamariRenderPass::Initialize() {
@@ -81,6 +95,7 @@ void KatamariRenderPass::Initialize() {
 
     csmPass_->Initialize();
     geometryPass_->Initialize();
+    dirLightPass_->Initialize();
 
     D3D11_QUERY_DESC queryDesc;
     ZeroMemory(&queryDesc, sizeof(queryDesc));
@@ -93,6 +108,23 @@ void KatamariRenderPass::Initialize() {
     ZeroMemory(&queryDisjoinDesc, sizeof(queryDisjoinDesc));
     queryDisjoinDesc.Query = D3D11_QUERY_TIMESTAMP_DISJOINT;
     ctx_.GetRenderContext().GetDevice()->CreateQuery(&queryDisjoinDesc, &freqQuery_);
+
+    D3D11_BLEND_DESC blendDesc{};
+    blendDesc.AlphaToCoverageEnable = FALSE;
+    blendDesc.IndependentBlendEnable = FALSE;
+    blendDesc.RenderTarget[0] =
+        D3D11_RENDER_TARGET_BLEND_DESC{
+            TRUE,
+            D3D11_BLEND_ONE,
+            D3D11_BLEND_ONE,
+            D3D11_BLEND_OP_ADD,
+            D3D11_BLEND_ONE,
+            D3D11_BLEND_ZERO,
+            D3D11_BLEND_OP_ADD,
+            D3D11_COLOR_WRITE_ENABLE_ALL
+    };
+
+    ctx_.GetRenderContext().GetDevice()->CreateBlendState(&blendDesc, &bs_);
 }
 
 void KatamariRenderPass::Execute() {
@@ -100,8 +132,18 @@ void KatamariRenderPass::Execute() {
         ctx_.GetRenderContext().GetContext()->Begin(freqQuery_);
         ctx_.GetRenderContext().GetContext()->End(startQuery_);
     }
-    // csmPass_->Execute();
     geometryPass_->Execute();
+    csmPass_->Execute();
+
+    auto rt = ctx_.GetWindow().GetRenderTarget();
+
+    ctx_.GetRenderContext().GetContext()->OMSetDepthStencilState(nullptr, 0);
+    ctx_.GetRenderContext().GetContext()->OMSetRenderTargets(1, &rt, nullptr);
+
+    float color[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+    ctx_.GetRenderContext().GetContext()->ClearRenderTargetView(rt, color);
+
+    dirLightPass_->Execute();
 
     if (!isFetching) {
         ctx_.GetRenderContext().GetContext()->End(endQuery_);
