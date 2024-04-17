@@ -6,6 +6,7 @@ class KatamariCSMPass;
 class KatamariShadowMapPass;
 class KatamariGeometryPass;
 class KatamariDirectionalLightPass;
+class KatamariPointLightPass;
 
 class KatamariRenderPass : public RenderPass
 {
@@ -15,6 +16,7 @@ private:
     KatamariCSMPass* csmPass_;
     KatamariGeometryPass* geometryPass_;
     KatamariDirectionalLightPass* dirLightPass_;
+    KatamariPointLightPass* pointLightPass_;
 
     ID3D11Query* startQuery_;
     ID3D11Query* endQuery_;
@@ -37,5 +39,6 @@ public:
     virtual void DestroyResources();
     
     friend class KatamariDirectionalLightPass;
+    friend class KatamariPointLightPass;
 };
 

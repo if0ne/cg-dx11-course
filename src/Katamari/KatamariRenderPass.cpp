@@ -20,6 +20,7 @@
 #include "KatamariShadowMapPass.h"
 #include "KatamariGeometryPass.h"
 #include "KatamariDirectionalLightPass.h"
+#include "KatamariPointLightPass.h"
 
 #include <iostream>
 
@@ -78,10 +79,20 @@ KatamariRenderPass::KatamariRenderPass(
     };
 
     CD3D11_RASTERIZER_DESC dirRastDesc = {};
-    geomRastDesc.CullMode = D3D11_CULL_NONE;
-    geomRastDesc.FillMode = D3D11_FILL_SOLID;
+    dirRastDesc.CullMode = D3D11_CULL_NONE;
+    dirRastDesc.FillMode = D3D11_FILL_SOLID;
 
     dirLightPass_ = new KatamariDirectionalLightPass(std::move(dirpath), std::move(dirLightVertexAttr), dirRastDesc, game_);
+
+    std::string pointpath = std::string("./shaders/deferred/PointPass.hlsl");
+    std::vector<std::pair<const char*, DXGI_FORMAT>> pointLightVertexAttr{
+        std::make_pair("POSITION", DXGI_FORMAT_R32G32B32_FLOAT)
+    };
+
+    CD3D11_RASTERIZER_DESC pointRastDesc = {};
+    pointRastDesc.CullMode = D3D11_CULL_FRONT;
+    pointRastDesc.FillMode = D3D11_FILL_SOLID;
+    pointLightPass_ = new KatamariPointLightPass(std::move(pointpath), std::move(pointLightVertexAttr), pointRastDesc, game_);
 }
 
 KatamariRenderPass::~KatamariRenderPass() {
@@ -96,6 +107,7 @@ void KatamariRenderPass::Initialize() {
     csmPass_->Initialize();
     geometryPass_->Initialize();
     dirLightPass_->Initialize();
+    pointLightPass_->Initialize();
 
     D3D11_QUERY_DESC queryDesc;
     ZeroMemory(&queryDesc, sizeof(queryDesc));
@@ -128,6 +140,7 @@ void KatamariRenderPass::Initialize() {
 }
 
 void KatamariRenderPass::Execute() {
+    ctx_.GetRenderContext().GetContext()->OMSetBlendState(nullptr, nullptr, 0xffffffff);
     if (!isFetching) {
         ctx_.GetRenderContext().GetContext()->Begin(freqQuery_);
         ctx_.GetRenderContext().GetContext()->End(startQuery_);
@@ -144,6 +157,8 @@ void KatamariRenderPass::Execute() {
     ctx_.GetRenderContext().GetContext()->ClearRenderTargetView(rt, color);
 
     dirLightPass_->Execute();
+    ctx_.GetRenderContext().GetContext()->OMSetBlendState(bs_, nullptr, 0xffffffff);
+    pointLightPass_->Execute();
 
     if (!isFetching) {
         ctx_.GetRenderContext().GetContext()->End(endQuery_);
