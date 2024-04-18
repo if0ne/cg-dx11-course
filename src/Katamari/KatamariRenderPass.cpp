@@ -90,7 +90,7 @@ KatamariRenderPass::KatamariRenderPass(
     };
 
     CD3D11_RASTERIZER_DESC pointRastDesc = {};
-    pointRastDesc.CullMode = D3D11_CULL_FRONT;
+    pointRastDesc.CullMode = D3D11_CULL_NONE;
     pointRastDesc.FillMode = D3D11_FILL_SOLID;
     pointLightPass_ = new KatamariPointLightPass(std::move(pointpath), std::move(pointLightVertexAttr), pointRastDesc, game_);
 }
@@ -146,19 +146,26 @@ void KatamariRenderPass::Execute() {
         ctx_.GetRenderContext().GetContext()->End(startQuery_);
     }
     geometryPass_->Execute();
-    csmPass_->Execute();
 
     auto rt = ctx_.GetWindow().GetRenderTarget();
+    float color[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
     ctx_.GetRenderContext().GetContext()->OMSetDepthStencilState(nullptr, 0);
     ctx_.GetRenderContext().GetContext()->OMSetRenderTargets(1, &rt, nullptr);
-
-    float color[] = { 0.0f, 0.0f, 0.0f, 1.0f };
     ctx_.GetRenderContext().GetContext()->ClearRenderTargetView(rt, color);
+    ctx_.GetRenderContext().GetContext()->OMSetBlendState(bs_, nullptr, 0xffffffff);
+
+    pointLightPass_->Execute();
+
+    ctx_.GetRenderContext().GetContext()->OMSetBlendState(nullptr, nullptr, 0xffffffff);
+    csmPass_->Execute();
+
+    ctx_.GetRenderContext().GetContext()->OMSetDepthStencilState(nullptr, 0);
+    ctx_.GetRenderContext().GetContext()->OMSetRenderTargets(1, &rt, nullptr);
+    ctx_.GetRenderContext().GetContext()->OMSetBlendState(bs_, nullptr, 0xffffffff);
 
     dirLightPass_->Execute();
-    ctx_.GetRenderContext().GetContext()->OMSetBlendState(bs_, nullptr, 0xffffffff);
-    pointLightPass_->Execute();
+
 
     if (!isFetching) {
         ctx_.GetRenderContext().GetContext()->End(endQuery_);
