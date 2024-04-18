@@ -90,7 +90,7 @@ KatamariRenderPass::KatamariRenderPass(
     };
 
     CD3D11_RASTERIZER_DESC pointRastDesc = {};
-    pointRastDesc.CullMode = D3D11_CULL_NONE;
+    pointRastDesc.CullMode = D3D11_CULL_FRONT;
     pointRastDesc.FillMode = D3D11_FILL_SOLID;
     pointLightPass_ = new KatamariPointLightPass(std::move(pointpath), std::move(pointLightVertexAttr), pointRastDesc, game_);
 }

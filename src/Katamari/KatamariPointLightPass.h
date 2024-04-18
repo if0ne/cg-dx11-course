@@ -14,9 +14,7 @@ private:
     ID3D11Buffer* viewPosBuffer_;
     ID3D11Buffer* cameraBuffer_;
 
-    ID3D11RasterizerState* unmarkState_;
-    ID3D11DepthStencilState* unmarkStencilState_;
-    ID3D11DepthStencilState* litStencilState_;
+    ID3D11RasterizerState* insideState_;
 
     SphereComponent* sphere_;
 public:

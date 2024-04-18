@@ -51,49 +51,10 @@ void KatamariPointLightPass::Initialize() {
     viewPosBuffer_ = CreateBuffer(sizeof(Vector4));
     cameraBuffer_ = CreateBuffer(sizeof(Matrix));
 
-    CD3D11_RASTERIZER_DESC unmarkPass
-    {
-        D3D11_FILL_SOLID,
-        D3D11_CULL_NONE,
-        TRUE,
-        D3D11_DEFAULT_DEPTH_BIAS,
-        D3D11_DEFAULT_DEPTH_BIAS_CLAMP,
-        D3D11_DEFAULT_SLOPE_SCALED_DEPTH_BIAS,
-        TRUE,
-        FALSE,
-        FALSE,
-        FALSE
-    };
-
-    ctx_.GetRenderContext().GetDevice()->CreateRasterizerState(&unmarkPass, &unmarkState_);
-
-    D3D11_DEPTH_STENCIL_DESC depthStencilStateDesc{};
-
-    depthStencilStateDesc = {};
-
-    depthStencilStateDesc.DepthEnable = TRUE;
-    depthStencilStateDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
-    depthStencilStateDesc.DepthFunc = D3D11_COMPARISON_GREATER;
-    depthStencilStateDesc.StencilEnable = TRUE;
-    depthStencilStateDesc.StencilReadMask = 0xff;
-    depthStencilStateDesc.StencilWriteMask = 0xff;
-    depthStencilStateDesc.FrontFace = D3D11_DEPTH_STENCILOP_DESC{ D3D11_STENCIL_OP_KEEP ,D3D11_STENCIL_OP_KEEP ,D3D11_STENCIL_OP_DECR_SAT ,D3D11_COMPARISON_ALWAYS };
-    depthStencilStateDesc.BackFace = D3D11_DEPTH_STENCILOP_DESC{ D3D11_STENCIL_OP_KEEP ,D3D11_STENCIL_OP_KEEP ,D3D11_STENCIL_OP_DECR_SAT ,D3D11_COMPARISON_ALWAYS };
-
-    ctx_.GetRenderContext().GetDevice()->CreateDepthStencilState(&depthStencilStateDesc, &unmarkStencilState_);
-
-    depthStencilStateDesc = {};
-
-    depthStencilStateDesc.DepthEnable = TRUE;
-    depthStencilStateDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
-    depthStencilStateDesc.DepthFunc = D3D11_COMPARISON_GREATER_EQUAL;
-    depthStencilStateDesc.StencilEnable = TRUE;
-    depthStencilStateDesc.StencilReadMask = 0xff;
-    depthStencilStateDesc.StencilWriteMask = 0xff;
-    depthStencilStateDesc.FrontFace = D3D11_DEPTH_STENCILOP_DESC{ D3D11_STENCIL_OP_KEEP ,D3D11_STENCIL_OP_KEEP ,D3D11_STENCIL_OP_KEEP , D3D11_COMPARISON_EQUAL };
-    depthStencilStateDesc.BackFace = D3D11_DEPTH_STENCILOP_DESC{ D3D11_STENCIL_OP_KEEP ,D3D11_STENCIL_OP_KEEP ,D3D11_STENCIL_OP_KEEP ,D3D11_COMPARISON_EQUAL };
-
-    ctx_.GetRenderContext().GetDevice()->CreateDepthStencilState(&depthStencilStateDesc, &litStencilState_);
+    CD3D11_RASTERIZER_DESC pointRastDesc = {};
+    pointRastDesc.CullMode = D3D11_CULL_BACK;
+    pointRastDesc.FillMode = D3D11_FILL_SOLID;
+    ctx_.GetRenderContext().GetDevice()->CreateRasterizerState(&pointRastDesc, &insideState_);
 }
 
 void KatamariPointLightPass::Execute() {
@@ -126,20 +87,14 @@ void KatamariPointLightPass::Execute() {
 
         UpdateBuffer(modelBuffer_, &matrix, sizeof(Matrix));
 
+        if (light->IsIntersect(game_.camera_->Position())) {
+            ctx_.GetRenderContext().GetContext()->RSSetState(insideState_);
+        } else {
+            ctx_.GetRenderContext().GetContext()->RSSetState(rastState_);
+        }
+
         UpdateBuffer(pointLightBuffer_, &pointLightData, sizeof(PointLightData));
 
-        /*ctx_.GetRenderContext().GetContext()->IASetInputLayout(layout_);
-        ctx_.GetRenderContext().GetContext()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        ctx_.GetRenderContext().GetContext()->VSSetShader(vertexShader_, nullptr, 0);
-        ctx_.GetRenderContext().GetContext()->PSSetShader(nullptr, nullptr, 0);
-
-        ctx_.GetRenderContext().GetContext()->RSSetState(unmarkState_);
-        ctx_.GetRenderContext().GetContext()->OMSetDepthStencilState(unmarkStencilState_, 1);
-
-        sphere_->Draw();*/
-
-        ctx_.GetRenderContext().GetContext()->RSSetState(rastState_);
-        ctx_.GetRenderContext().GetContext()->OMSetDepthStencilState(litStencilState_, 1);
         ctx_.GetRenderContext().GetContext()->VSSetShader(vertexShader_, nullptr, 0);
         ctx_.GetRenderContext().GetContext()->PSSetShader(pixelShader_, nullptr, 0);
 

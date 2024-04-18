@@ -51,10 +51,10 @@ KatamariGame::KatamariGame() : GameComponent() {
         0.0
     }));
 
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < 64; i++) {
         int random = rand() % models.size();
-        int x = rand() % 500 - 250;
-        int z = rand() % 500 - 250;
+        int x = rand() % 200 - 100;
+        int z = rand() % 200 - 100;
         objects_.push_back(new StickyObjectComponent(
             std::get<0>(models[random]), 
             std::get<1>(models[random]), 
@@ -68,8 +68,8 @@ KatamariGame::KatamariGame() : GameComponent() {
     ambientLight_ = new AmbientLightComponent(Vector3(0.04, 0.14, 0.72), 0.23);
 
     for (int i = 0; i < 20; i++) {
-        int x = rand() % 100 - 50;
-        int z = rand() % 100 - 50;
+        int x = rand() % 200 - 100;
+        int z = rand() % 200 - 100;
         float r = ((float) rand()) / RAND_MAX;
         float b = ((float) rand()) / RAND_MAX;
         pointLights_.push_back(new PointLightComponent(Vector3(x, 4.0, z), 16.0, Vector3(r, 0.24, b), 4.0));

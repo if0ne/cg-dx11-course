@@ -41,5 +41,11 @@ public:
             DirectX::SimpleMath::Vector4(color_.x, color_.y, color_.z, intensity_),
         };
     }
+
+    bool IsIntersect(DirectX::SimpleMath::Vector3 point) {
+        auto bound = DirectX::BoundingSphere(position_, radius_);
+
+        return bound.Contains(point) == DirectX::ContainmentType::CONTAINS;
+    }
 };
 
