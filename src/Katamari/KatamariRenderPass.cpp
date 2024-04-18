@@ -9,6 +9,7 @@
 #include "../PointLightComponent.h"
 #include "../ModelComponent.h"
 #include "../MeshComponent.h"
+#include "../QuadComponent.h"
 #include "../CascadedShadowMap.h"
 
 #include "SimpleMath.h"
@@ -93,6 +94,8 @@ KatamariRenderPass::KatamariRenderPass(
     pointRastDesc.CullMode = D3D11_CULL_FRONT;
     pointRastDesc.FillMode = D3D11_FILL_SOLID;
     pointLightPass_ = new KatamariPointLightPass(std::move(pointpath), std::move(pointLightVertexAttr), pointRastDesc, game_);
+
+    quad_ = new QuadComponent();
 }
 
 KatamariRenderPass::~KatamariRenderPass() {

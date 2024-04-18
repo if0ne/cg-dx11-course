@@ -7,6 +7,7 @@ class KatamariShadowMapPass;
 class KatamariGeometryPass;
 class KatamariDirectionalLightPass;
 class KatamariPointLightPass;
+class QuadComponent;
 
 class KatamariRenderPass : public RenderPass
 {
@@ -24,6 +25,8 @@ private:
     bool isFetching = false;
 
     ID3D11BlendState* bs_;
+
+    QuadComponent* quad_;
 public:
     KatamariRenderPass(
         std::string&& shaderPath,

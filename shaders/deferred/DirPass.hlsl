@@ -126,6 +126,35 @@ float2 ScreenToView(float4 screen)
 
 float4 PSMain(PS_IN input) : SV_Target
 {
+    /*if (input.pos.x < 256 && input.pos.y < 256)
+    {
+        float2 texPos = input.pos.xy / float2(256.0, 256.0);
+        texPos.y = texPos.y;
+        float sampled = shadowmapT.SampleCmp(shadowmapS, float3(texPos, 0), 1.0);
+        return float4(sampled, 0.0, 0.0, 1.0);
+    }
+    else if (input.pos.x > 276 && input.pos.y < 256 && input.pos.x < 532)
+    {
+        float2 texPos = (input.pos.xy - float2(276.0, 0.0)) / float2(256.0, 256.0);
+        texPos.y = texPos.y;
+        float sampled = shadowmapT.SampleCmp(shadowmapS, float3(texPos, 1), 1.0);
+        return float4(sampled, 0.0, 0.0, 1.0);
+    }
+    else if (input.pos.x < 256 && input.pos.y > 276 && input.pos.y < 532)
+    {
+        float2 texPos = (input.pos.xy - float2(0.0, 276.0)) / float2(256.0, 256.0);
+        texPos.y = texPos.y;
+        float sampled = shadowmapT.SampleCmp(shadowmapS, float3(texPos, 2), 1.0);
+        return float4(sampled, 0.0, 0.0, 1.0);
+    }
+    else if (input.pos.x > 276 && input.pos.y > 276 && input.pos.x < 532 && input.pos.y < 532)
+    {
+        float2 texPos = (input.pos.xy - float2(276.0, 276.0)) / float2(256.0, 256.0);
+        texPos.y = texPos.y;
+        float sampled = shadowmapT.SampleCmp(shadowmapS, float3(texPos, 3), 1.0);
+        return float4(sampled, 0.0, 0.0, 1.0);
+    }*/
+    
     int2 texCoord = input.pos.xy;
    
     float4 worldPos = WorldPosMap.Load(int3(texCoord, 0));
