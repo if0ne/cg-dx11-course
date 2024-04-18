@@ -55,6 +55,17 @@ void KatamariPointLightPass::Initialize() {
     pointRastDesc.CullMode = D3D11_CULL_BACK;
     pointRastDesc.FillMode = D3D11_FILL_SOLID;
     ctx_.GetRenderContext().GetDevice()->CreateRasterizerState(&pointRastDesc, &insideState_);
+
+    D3D11_DEPTH_STENCIL_DESC depthStencilStateDesc{};
+    depthStencilStateDesc.DepthEnable = true;
+    depthStencilStateDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+    depthStencilStateDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+    ctx_.GetRenderContext().GetDevice()->CreateDepthStencilState(&depthStencilStateDesc, &depthState_);
+
+    depthStencilStateDesc.DepthEnable = true;
+    depthStencilStateDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+    depthStencilStateDesc.DepthFunc = D3D11_COMPARISON_ALWAYS;
+    ctx_.GetRenderContext().GetDevice()->CreateDepthStencilState(&depthStencilStateDesc, &insideDepthState_);
 }
 
 void KatamariPointLightPass::Execute() {
@@ -78,7 +89,6 @@ void KatamariPointLightPass::Execute() {
     UpdateBuffer(cameraBuffer_, &camera, sizeof(Matrix));
 
     // foreach loop
-
     for (auto& light : game_.pointLights_) {
         auto pointLightData = light->RenderData();
         auto translate = Matrix::CreateTranslation(Vector3(pointLightData.position.x, pointLightData.position.y, pointLightData.position.z));
@@ -89,8 +99,10 @@ void KatamariPointLightPass::Execute() {
 
         if (light->IsIntersect(game_.camera_->Position())) {
             ctx_.GetRenderContext().GetContext()->RSSetState(insideState_);
+            ctx_.GetRenderContext().GetContext()->OMSetDepthStencilState(insideDepthState_, 0);
         } else {
             ctx_.GetRenderContext().GetContext()->RSSetState(rastState_);
+            ctx_.GetRenderContext().GetContext()->OMSetDepthStencilState(depthState_, 0);
         }
 
         UpdateBuffer(pointLightBuffer_, &pointLightData, sizeof(PointLightData));

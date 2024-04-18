@@ -89,7 +89,7 @@ float3 CalcPointLight(float3 normal, float3 fragPos, float3 viewDir, float4 mate
     float3 spec = specFactor * PointLight.Color.xyz;
     
     float distance = length(PointLight.Position.xyz - fragPos);
-    float attenuation = Attenuate(distance, PointLight.Position.w, PointLight.Color.w, 4.0);
+    float attenuation = Attenuate(distance, PointLight.Position.w, PointLight.Color.w, 2.0);
     
     diff *= attenuation;
     spec *= attenuation;

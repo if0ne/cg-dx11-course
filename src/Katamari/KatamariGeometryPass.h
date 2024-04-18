@@ -5,6 +5,7 @@ class KatamariGame;
 
 struct GeometryPassData {
     ID3D11ShaderResourceView* srvs[4];
+    ID3D11DepthStencilView* dsv;
 };
 
 class KatamariGeometryPass : public RenderPass
@@ -43,7 +44,8 @@ public:
 
     GeometryPassData RenderData() {
         return {
-            { srvs_[0], srvs_[1], srvs_[2], srvs_[3] }
+            { srvs_[0], srvs_[1], srvs_[2], srvs_[3] },
+            dsv_
         };
     }
 };
