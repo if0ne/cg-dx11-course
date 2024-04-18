@@ -8,6 +8,7 @@
 #include "../QuadComponent.h"
 #include "../MeshComponent.h"
 #include "../SphereComponent.h"
+#include "../AssetLoader.h"
 
 #include "KatamariGame.h"
 #include "KatamariRenderPass.h"
@@ -96,8 +97,6 @@ void KatamariPointLightPass::Initialize() {
 }
 
 void KatamariPointLightPass::Execute() {
-
-
     auto gData = game_.mainPass_->geometryPass_->RenderData();
 
     ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(0, 1, &modelBuffer_);
@@ -119,30 +118,33 @@ void KatamariPointLightPass::Execute() {
 
     // foreach loop
 
-    auto pointLightData = game_.pointLight_->RenderData();
-    auto translate = Matrix::CreateTranslation(Vector3(pointLightData.position.x, pointLightData.position.y, pointLightData.position.z));
-    auto scale = Matrix::CreateScale(pointLightData.position.w);
-    auto matrix = scale * translate;
+    for (auto& light : game_.pointLights_) {
+        auto pointLightData = light->RenderData();
+        auto translate = Matrix::CreateTranslation(Vector3(pointLightData.position.x, pointLightData.position.y, pointLightData.position.z));
+        auto scale = Matrix::CreateScale(pointLightData.position.w);
+        auto matrix = scale * translate;
 
-    UpdateBuffer(modelBuffer_, &matrix, sizeof(Matrix));
+        UpdateBuffer(modelBuffer_, &matrix, sizeof(Matrix));
 
-    UpdateBuffer(pointLightBuffer_, &pointLightData, sizeof(PointLightData));
+        UpdateBuffer(pointLightBuffer_, &pointLightData, sizeof(PointLightData));
 
-    ctx_.GetRenderContext().GetContext()->IASetInputLayout(layout_);
-    ctx_.GetRenderContext().GetContext()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    ctx_.GetRenderContext().GetContext()->VSSetShader(vertexShader_, nullptr, 0);
-    ctx_.GetRenderContext().GetContext()->PSSetShader(nullptr, nullptr, 0);
+        ctx_.GetRenderContext().GetContext()->IASetInputLayout(layout_);
+        ctx_.GetRenderContext().GetContext()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        ctx_.GetRenderContext().GetContext()->VSSetShader(vertexShader_, nullptr, 0);
+        ctx_.GetRenderContext().GetContext()->PSSetShader(nullptr, nullptr, 0);
 
-    ctx_.GetRenderContext().GetContext()->RSSetState(unmarkState_);
-    ctx_.GetRenderContext().GetContext()->OMSetDepthStencilState(unmarkStencilState_, 1);
-    sphere_->Draw();
+        ctx_.GetRenderContext().GetContext()->RSSetState(unmarkState_);
+        ctx_.GetRenderContext().GetContext()->OMSetDepthStencilState(unmarkStencilState_, 1);
 
-    ctx_.GetRenderContext().GetContext()->RSSetState(rastState_);
-    ctx_.GetRenderContext().GetContext()->OMSetDepthStencilState(litStencilState_, 1);
-    ctx_.GetRenderContext().GetContext()->VSSetShader(vertexShader_, nullptr, 0);
-    ctx_.GetRenderContext().GetContext()->PSSetShader(pixelShader_, nullptr, 0);
+        sphere_->Draw();
 
-    sphere_->Draw();
+        ctx_.GetRenderContext().GetContext()->RSSetState(rastState_);
+        ctx_.GetRenderContext().GetContext()->OMSetDepthStencilState(litStencilState_, 1);
+        ctx_.GetRenderContext().GetContext()->VSSetShader(vertexShader_, nullptr, 0);
+        ctx_.GetRenderContext().GetContext()->PSSetShader(pixelShader_, nullptr, 0);
+
+        sphere_->Draw();
+    }
 }
 
 void KatamariPointLightPass::DestroyResources() {

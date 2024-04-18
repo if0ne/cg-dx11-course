@@ -31,7 +31,7 @@ private:
 
     DirectionalLightComponent* directionalLight_;
     AmbientLightComponent* ambientLight_;
-    PointLightComponent* pointLight_;
+    std::vector<PointLightComponent*> pointLights_;
 
     KatamariRenderPass* mainPass_;
 public:
