@@ -146,7 +146,7 @@ float4 PSMain(PS_IN input) : SV_Target
     float4 shadowCoord = mul(float4(worldPos.xyz, 1.0), CascadeData.ViewProj[cascadeIndex]);
     float shadow = ShadowSample(shadowCoord, cascadeIndex);
     
-    float3 dirLight = CalcDirLight(normal.xyz, normalize(ViewPos.Pos.xyz - worldPos.xyz), material);
+    float3 dirLight = shadow * CalcDirLight(normal.xyz, normalize(ViewPos.Pos.xyz - worldPos.xyz), material);
    
     float3 finalColor = diffuse.xyz * dirLight;
   

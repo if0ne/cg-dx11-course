@@ -148,7 +148,7 @@ void KatamariRenderPass::Execute() {
     geometryPass_->Execute();
     auto dv = geometryPass_->RenderData().dsv;
     auto rt = ctx_.GetWindow().GetRenderTarget();
-    //auto dv = ctx_.GetWindow().GetDepthStencilView();
+
     float color[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
     ctx_.GetRenderContext().GetContext()->OMSetDepthStencilState(nullptr, 0);
@@ -166,7 +166,6 @@ void KatamariRenderPass::Execute() {
     ctx_.GetRenderContext().GetContext()->OMSetBlendState(bs_, nullptr, 0xffffffff);
 
     dirLightPass_->Execute();
-
 
     if (!isFetching) {
         ctx_.GetRenderContext().GetContext()->End(endQuery_);
