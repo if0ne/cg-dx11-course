@@ -31,7 +31,7 @@ private:
 
     DirectionalLightComponent* directionalLight_;
     AmbientLightComponent* ambientLight_;
-    PointLightComponent* pointLight_;
+    std::vector<PointLightComponent*> pointLights_;
 
     KatamariRenderPass* mainPass_;
 public:
@@ -51,4 +51,7 @@ public:
     friend class KatamariRenderPass;
     friend class KatamariCSMPass;
     friend class KatamariShadowMapPass;
+    friend class KatamariGeometryPass;
+    friend class KatamariDirectionalLightPass;
+    friend class KatamariPointLightPass;
 };

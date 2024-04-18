@@ -219,6 +219,12 @@ void SunSystemGame::Update(float deltaTime) {
 }
 
 void SunSystemGame::Draw() {
+    auto rt = ctx_.GetWindow().GetRenderTarget();
+    auto dv = ctx_.GetWindow().GetDepthStencilView();
+
+    ctx_.GetRenderContext().ActivateDepthStencilState();
+    ctx_.GetRenderContext().GetContext()->OMSetRenderTargets(1, &rt, dv);
+
     ctx_.SetViewport(0, 0, 620, 360);
     ctx_.GetRenderContext().GetContext()->RSSetState(rastState_);
     ctx_.GetRenderContext().GetContext()->IASetInputLayout(layout_);

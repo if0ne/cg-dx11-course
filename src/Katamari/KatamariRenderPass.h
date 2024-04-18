@@ -4,28 +4,29 @@
 class KatamariGame;
 class KatamariCSMPass;
 class KatamariShadowMapPass;
+class KatamariGeometryPass;
+class KatamariDirectionalLightPass;
+class KatamariPointLightPass;
+class QuadComponent;
 
 class KatamariRenderPass : public RenderPass
 {
 private:
     KatamariGame& game_;
 
-    ID3D11Buffer* wvpBuffer_;
-    ID3D11Buffer* modelBuffer_;
-    ID3D11Buffer* dirLightBuffer_;
-    ID3D11Buffer* pointLightBuffer_;
-    ID3D11Buffer* ambientLightBuffer_;
-    ID3D11Buffer* materialBuffer_;
-    ID3D11Buffer* viewPosBuffer_;
-    ID3D11Buffer* cascadeBuffer_;
-
     KatamariCSMPass* csmPass_;
-    KatamariShadowMapPass* sm_;
+    KatamariGeometryPass* geometryPass_;
+    KatamariDirectionalLightPass* dirLightPass_;
+    KatamariPointLightPass* pointLightPass_;
 
     ID3D11Query* startQuery_;
     ID3D11Query* endQuery_;
     ID3D11Query* freqQuery_;
     bool isFetching = false;
+
+    ID3D11BlendState* bs_;
+
+    QuadComponent* quad_;
 public:
     KatamariRenderPass(
         std::string&& shaderPath,
@@ -39,5 +40,8 @@ public:
     virtual void Initialize();
     virtual void Execute();
     virtual void DestroyResources();
+    
+    friend class KatamariDirectionalLightPass;
+    friend class KatamariPointLightPass;
 };
 

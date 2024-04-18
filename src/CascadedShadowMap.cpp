@@ -23,7 +23,7 @@ CascadedShadowMapData CascadedShadowMap::CalcLightMatrices(const Vector3& lightD
 		float log = minZ * std::pow(ratio, p);
 		float uniform = minZ + range * p;
 		float d = 0.5 * (log - uniform) + uniform;
-		cascadesFarRatios[i] = (d - curNear) / clipRange;
+		//cascadesFarRatios[i] = (d - curNear) / clipRange;
 	}
 
 	float lastSplitDist = curNear;
@@ -69,17 +69,34 @@ CascadedShadowMapData CascadedShadowMap::CalcLightMatrices(const Vector3& lightD
 		auto minExtents = -maxExtents;
 
 		auto lightViewMatrix = Matrix::CreateLookAt(
-			frustumCenter - lightDir, 
-			frustumCenter,
+			frustumCenter, 
+			frustumCenter + lightDir,
 			Vector3::Up
 		);
 
-		auto lightOrthoMatrix = Matrix::CreateOrthographicOffCenter(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0001f, maxExtents.z - minExtents.z);
-		
-		res.distances[i] = cam.NearPlane() + splitDist * clipRange;
+		float minX = std::numeric_limits<float>::max();
+		float maxX = std::numeric_limits<float>::lowest();
+		float minY = std::numeric_limits<float>::max();
+		float maxY = std::numeric_limits<float>::lowest();
+		float minZ = std::numeric_limits<float>::max();
+		float maxZ = std::numeric_limits<float>::lowest();
+		for (const auto& v : frustumCorners)
+		{
+			const auto trf = DirectX::SimpleMath::Vector3::Transform(v, lightViewMatrix);
+			minX = std::min(minX, trf.x);
+			maxX = std::max(maxX, trf.x);
+			minY = std::min(minY, trf.y);
+			maxY = std::max(maxY, trf.y);
+			minZ = std::min(minZ, trf.z);
+			maxZ = std::max(maxZ, trf.z);
+		}
+
+		//auto lightOrthoMatrix = Matrix::CreateOrthographicOffCenter(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0001f, maxExtents.z - minExtents.z);
+		auto lightOrthoMatrix = Matrix::CreateOrthographicOffCenter(minX, maxX, minY, maxY, minZ, maxZ);
+		res.distances[i] = cam.NearPlane() + splitDist * curFar;
 		res.viewProjMat[i] = lightViewMatrix * lightOrthoMatrix;
 
-		lastSplitDist = cam.NearPlane() + splitDist * clipRange;
+		lastSplitDist = cam.NearPlane() + splitDist * curFar;
 	}
 
 	return res;
