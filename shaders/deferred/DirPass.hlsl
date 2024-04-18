@@ -126,7 +126,7 @@ float2 ScreenToView(float4 screen)
 
 float4 PSMain(PS_IN input) : SV_Target
 {
-    /*if (input.pos.x < 256 && input.pos.y < 256)
+    if (input.pos.x < 256 && input.pos.y < 256)
     {
         float2 texPos = input.pos.xy / float2(256.0, 256.0);
         texPos.y = texPos.y;
@@ -153,7 +153,7 @@ float4 PSMain(PS_IN input) : SV_Target
         texPos.y = texPos.y;
         float sampled = shadowmapT.SampleCmp(shadowmapS, float3(texPos, 3), 1.0);
         return float4(sampled, 0.0, 0.0, 1.0);
-    }*/
+    }
     
     int2 texCoord = input.pos.xy;
    
