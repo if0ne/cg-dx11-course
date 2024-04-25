@@ -163,11 +163,8 @@ void KatamariRenderPass::Execute() {
     auto dv = geometryPass_->RenderData().dsv;
     auto rt = geometryPass_->RenderData().rt;
 
-    float color[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-
     ctx_.GetRenderContext().GetContext()->OMSetDepthStencilState(nullptr, 0);
     ctx_.GetRenderContext().GetContext()->OMSetRenderTargets(1, &rt, dv);
-    ctx_.GetRenderContext().GetContext()->ClearRenderTargetView(rt, color);
     ctx_.GetRenderContext().GetContext()->OMSetBlendState(bs_, nullptr, 0xffffffff);
     ctx_.SetViewport(0, 0, ctx_.GetWindow().GetWidth(), ctx_.GetWindow().GetHeight());
     pointLightPass_->Execute();
@@ -187,7 +184,6 @@ void KatamariRenderPass::Execute() {
     //ctx_.GetRenderContext().ActivateDepthStencilState();
     ctx_.GetRenderContext().GetContext()->OMSetDepthStencilState(nullptr, 0);
     ctx_.GetRenderContext().GetContext()->OMSetRenderTargets(1, &rt, nullptr);
-    ctx_.GetRenderContext().GetContext()->ClearRenderTargetView(rt, color);
     ctx_.GetRenderContext().GetContext()->IASetVertexBuffers(0, 0, nullptr, nullptr, nullptr);
     ctx_.GetRenderContext().GetContext()->RSSetState(rastState_);
     ctx_.GetRenderContext().GetContext()->OMSetBlendState(nullptr, nullptr, 0xffffffff);

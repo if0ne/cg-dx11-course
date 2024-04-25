@@ -71,6 +71,9 @@ void KatamariPointLightPass::Initialize() {
 void KatamariPointLightPass::Execute() {
     auto gData = game_.mainPass_->geometryPass_->RenderData();
 
+    ctx_.GetRenderContext().GetContext()->VSSetShader(vertexShader_, nullptr, 0);
+    ctx_.GetRenderContext().GetContext()->PSSetShader(pixelShader_, nullptr, 0);
+
     ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(0, 1, &modelBuffer_);
     ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(1, 1, &cameraBuffer_);
 
@@ -106,9 +109,6 @@ void KatamariPointLightPass::Execute() {
         }
 
         UpdateBuffer(pointLightBuffer_, &pointLightData, sizeof(PointLightData));
-
-        ctx_.GetRenderContext().GetContext()->VSSetShader(vertexShader_, nullptr, 0);
-        ctx_.GetRenderContext().GetContext()->PSSetShader(pixelShader_, nullptr, 0);
 
         sphere_->Draw();
     }

@@ -81,7 +81,7 @@ float3 CalcPointLight(float3 normal, float3 fragPos, float3 viewDir, float4 mate
 {
     float3 lightDir = normalize(PointLight.Position.xyz - fragPos);
 
-    float diffFactor = PointLight.Color.w * material.z * max(dot(normal, lightDir), 0.0);
+    float diffFactor = material.z * max(dot(normal, lightDir), 0.0);
     float3 diff = diffFactor * PointLight.Color.xyz;
      
     float3 reflectDir = normalize(reflect(-lightDir, normal));
@@ -90,7 +90,7 @@ float3 CalcPointLight(float3 normal, float3 fragPos, float3 viewDir, float4 mate
     
     float distance = length(PointLight.Position.xyz - fragPos);
     float attenuation = Attenuate(distance, PointLight.Position.w, PointLight.Color.w, 5.0);
-    
+   
     diff *= attenuation;
     spec *= attenuation;
     return diff + spec;
@@ -105,7 +105,7 @@ float4 PSMain(PS_IN input) : SV_Target
     float4 normal = NormalMap.Load(int3(texCoord, 0));
     float4 diffuse = DiffuseMap.Load(int3(texCoord, 0));
     
-    float viewDir = length(ViewPos.Pos.xyz - worldPos.xyz);
+    float3 viewDir = normalize(ViewPos.Pos.xyz - worldPos.xyz);
 
     float3 pointLight = CalcPointLight(normal.xyz, worldPos.xyz, viewDir, material);
     

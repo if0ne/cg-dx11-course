@@ -72,8 +72,9 @@ KatamariGame::KatamariGame() : GameComponent() {
         int x = rand() % 200 - 100;
         int z = rand() % 200 - 100;
         float r = ((float) rand()) / RAND_MAX;
+        float g = ((float)rand()) / RAND_MAX;
         float b = ((float) rand()) / RAND_MAX;
-        auto pointLight = new PointLightComponent(Vector3(x, 4.0, z), 16.0, Vector3(r, 0.24, b), 4.0);
+        auto pointLight = new PointLightComponent(Vector3(x, 2.0, z), 16.0, Vector3(r, g, b), 3.0);
         pointLights_.push_back(pointLight);
         stickyPointLights_.push_back(new StickyPointLight(pointLight, *this));
     }

@@ -109,7 +109,7 @@ PixelShaderOutput PSMain(PS_IN input)
     output.Normal = float4(bumpedNormalW, 0.0);
     output.MatProp = float4(Material.Shininess, Material.Absorption, Material.Reflection, Material._padding);
     output.WorldPos = float4(input.worldPos, 1.0);
-    output.Accum = float4(surfaceColor, 1.0f);
+    output.Accum = float4(0.0, 0.0, 0.0, 1.0f);
     
     return output;
 }
