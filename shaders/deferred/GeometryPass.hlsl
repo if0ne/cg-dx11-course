@@ -92,6 +92,7 @@ struct PixelShaderOutput
     float4 Normal : SV_Target1;
     float4 MatProp : SV_Target2;
     float4 WorldPos : SV_Target3;
+    float4 Accum : SV_Target4;
 };
 
 [earlydepthstencil]
@@ -108,6 +109,7 @@ PixelShaderOutput PSMain(PS_IN input)
     output.Normal = float4(bumpedNormalW, 0.0);
     output.MatProp = float4(Material.Shininess, Material.Absorption, Material.Reflection, Material._padding);
     output.WorldPos = float4(input.worldPos, 1.0);
+    output.Accum = float4(surfaceColor, 1.0f);
     
     return output;
 }

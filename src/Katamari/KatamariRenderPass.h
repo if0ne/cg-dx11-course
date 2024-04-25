@@ -25,6 +25,7 @@ private:
     bool isFetching = false;
 
     ID3D11BlendState* bs_;
+    ID3D11SamplerState* outSampler_;
 
     QuadComponent* quad_;
 public:

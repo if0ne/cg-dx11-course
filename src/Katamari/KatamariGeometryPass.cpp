@@ -43,14 +43,14 @@ void KatamariGeometryPass::Initialize() {
 	textureDesc.Usage = D3D11_USAGE_DEFAULT;
 	textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 
-	for (UINT i = 0; i < 4; i++)
+	for (UINT i = 0; i < 5; i++)
 		ctx_.GetRenderContext().GetDevice()->CreateTexture2D(&textureDesc, NULL, &textures_[i]);
 
 	D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc{};
 	renderTargetViewDesc.Format = textureDesc.Format;
 	renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 
-	for (UINT i = 0; i < 4; i++)
+	for (UINT i = 0; i < 5; i++)
 		ctx_.GetRenderContext().GetDevice()->CreateRenderTargetView(textures_[i], &renderTargetViewDesc, &rtvs_[i]);
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc{};
@@ -58,7 +58,7 @@ void KatamariGeometryPass::Initialize() {
 	shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	shaderResourceViewDesc.Texture2D.MipLevels = 1;
 
-	for (UINT i = 0; i < 4; i++)
+	for (UINT i = 0; i < 5; i++)
 		ctx_.GetRenderContext().GetDevice()->CreateShaderResourceView(textures_[i], &shaderResourceViewDesc, &srvs_[i]);
 
 	textureDesc = {};
@@ -99,7 +99,7 @@ void KatamariGeometryPass::Initialize() {
 void KatamariGeometryPass::Execute() {
     ctx_.SetViewport(0, 0, ctx_.GetWindow().GetWidth(), ctx_.GetWindow().GetHeight());
 
-    ctx_.GetRenderContext().GetContext()->OMSetRenderTargets(4, rtvs_, dsv_);
+    ctx_.GetRenderContext().GetContext()->OMSetRenderTargets(5, rtvs_, dsv_);
 
     std::array<float, 4> color = { 0.0f, 0.0f, 0.0f, 1.0f };
     ctx_.GetRenderContext().GetContext()->ClearRenderTargetView(rtvs_[0], color.data());
@@ -108,6 +108,7 @@ void KatamariGeometryPass::Execute() {
     color = { 0.0f, 0.0f, 0.0f, 1.0f };
     ctx_.GetRenderContext().GetContext()->ClearRenderTargetView(rtvs_[2], color.data());
     ctx_.GetRenderContext().GetContext()->ClearRenderTargetView(rtvs_[3], color.data());
+    ctx_.GetRenderContext().GetContext()->ClearRenderTargetView(rtvs_[4], color.data());
     ctx_.GetRenderContext().GetContext()->ClearDepthStencilView(dsv_, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0, 0);
 
     ctx_.GetRenderContext().GetContext()->OMSetDepthStencilState(depthStencilState_, 0);
