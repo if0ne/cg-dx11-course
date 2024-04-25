@@ -4,7 +4,8 @@
 class KatamariGame;
 
 struct GeometryPassData {
-    ID3D11ShaderResourceView* srvs[4];
+    ID3D11ShaderResourceView* srvs[5];
+    ID3D11RenderTargetView* rt;
     ID3D11DepthStencilView* dsv;
 };
 
@@ -25,9 +26,10 @@ private:
     // 2 - normal
     // 3 - material
     // 4 - world pos
-    ID3D11Texture2D* textures_[4];
-    ID3D11RenderTargetView* rtvs_[4];
-    ID3D11ShaderResourceView* srvs_[4];
+    // 5 - accum
+    ID3D11Texture2D* textures_[5];
+    ID3D11RenderTargetView* rtvs_[5];
+    ID3D11ShaderResourceView* srvs_[5];
 public:
     KatamariGeometryPass(
         std::string&& shaderPath,
@@ -44,7 +46,8 @@ public:
 
     GeometryPassData RenderData() {
         return {
-            { srvs_[0], srvs_[1], srvs_[2], srvs_[3] },
+            { srvs_[0], srvs_[1], srvs_[2], srvs_[3], srvs_[4]},
+            rtvs_[4],
             dsv_
         };
     }

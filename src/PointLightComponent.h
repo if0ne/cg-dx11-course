@@ -47,5 +47,17 @@ public:
 
         return bound.Contains(point) == DirectX::ContainmentType::CONTAINS;
     }
+
+    DirectX::SimpleMath::Vector3 Position() {
+        return position_;
+    }
+
+    void Position(DirectX::SimpleMath::Vector3 position) {
+        position_ = position;
+    }
+
+    float Radius() {
+        return radius_;
+    }
 };
 

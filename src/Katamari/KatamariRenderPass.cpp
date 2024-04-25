@@ -134,12 +134,23 @@ void KatamariRenderPass::Initialize() {
             D3D11_BLEND_ONE,
             D3D11_BLEND_OP_ADD,
             D3D11_BLEND_ONE,
-            D3D11_BLEND_ZERO,
+            D3D11_BLEND_ONE,
             D3D11_BLEND_OP_ADD,
             D3D11_COLOR_WRITE_ENABLE_ALL
     };
 
     ctx_.GetRenderContext().GetDevice()->CreateBlendState(&blendDesc, &bs_);
+
+    D3D11_SAMPLER_DESC sampDesc = {};
+    sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+    sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+    sampDesc.MinLOD = 0;
+    sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+    ctx_.GetRenderContext().GetDevice()->CreateSamplerState(&sampDesc, &outSampler_);
 }
 
 void KatamariRenderPass::Execute() {
@@ -150,7 +161,7 @@ void KatamariRenderPass::Execute() {
     }
     geometryPass_->Execute();
     auto dv = geometryPass_->RenderData().dsv;
-    auto rt = ctx_.GetWindow().GetRenderTarget();
+    auto rt = geometryPass_->RenderData().rt;
 
     float color[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
@@ -158,7 +169,7 @@ void KatamariRenderPass::Execute() {
     ctx_.GetRenderContext().GetContext()->OMSetRenderTargets(1, &rt, dv);
     ctx_.GetRenderContext().GetContext()->ClearRenderTargetView(rt, color);
     ctx_.GetRenderContext().GetContext()->OMSetBlendState(bs_, nullptr, 0xffffffff);
-
+    ctx_.SetViewport(0, 0, ctx_.GetWindow().GetWidth(), ctx_.GetWindow().GetHeight());
     pointLightPass_->Execute();
 
     ctx_.GetRenderContext().GetContext()->OMSetBlendState(nullptr, nullptr, 0xffffffff);
@@ -168,7 +179,26 @@ void KatamariRenderPass::Execute() {
     ctx_.GetRenderContext().GetContext()->OMSetRenderTargets(1, &rt, nullptr);
     ctx_.GetRenderContext().GetContext()->OMSetBlendState(bs_, nullptr, 0xffffffff);
 
+    ctx_.SetViewport(0, 0, ctx_.GetWindow().GetWidth(), ctx_.GetWindow().GetHeight());
     dirLightPass_->Execute();
+
+    rt = ctx_.GetWindow().GetRenderTarget();
+
+    //ctx_.GetRenderContext().ActivateDepthStencilState();
+    ctx_.GetRenderContext().GetContext()->OMSetDepthStencilState(nullptr, 0);
+    ctx_.GetRenderContext().GetContext()->OMSetRenderTargets(1, &rt, nullptr);
+    ctx_.GetRenderContext().GetContext()->ClearRenderTargetView(rt, color);
+    ctx_.GetRenderContext().GetContext()->IASetVertexBuffers(0, 0, nullptr, nullptr, nullptr);
+    ctx_.GetRenderContext().GetContext()->RSSetState(rastState_);
+    ctx_.GetRenderContext().GetContext()->OMSetBlendState(nullptr, nullptr, 0xffffffff);
+
+    ctx_.SetViewport(0, 0, ctx_.GetWindow().GetWidth(), ctx_.GetWindow().GetHeight());
+    auto accum = geometryPass_->RenderData().srvs[4];
+    ctx_.GetRenderContext().GetContext()->VSSetShader(vertexShader_, nullptr, 0);
+    ctx_.GetRenderContext().GetContext()->PSSetShader(pixelShader_, nullptr, 0);
+    ctx_.GetRenderContext().GetContext()->PSSetShaderResources(0, 1, &accum);
+    ctx_.GetRenderContext().GetContext()->PSSetSamplers(0, 1, &outSampler_);
+    ctx_.GetRenderContext().GetContext()->Draw(3, 0);
 
     if (!isFetching) {
         ctx_.GetRenderContext().GetContext()->End(endQuery_);
