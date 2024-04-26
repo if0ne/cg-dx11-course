@@ -90,6 +90,27 @@ void KatamariDirectionalLightPass::Execute() {
     UpdateBuffer(viewPosBuffer_, &viewPos, sizeof(Vector3));
 
     quad_->Draw();
+
+    ctx_.GetRenderContext().GetContext()->RSSetState(nullptr);
+    ctx_.GetRenderContext().GetContext()->IASetInputLayout(nullptr);
+    ctx_.GetRenderContext().GetContext()->VSSetShader(nullptr, nullptr, 0);
+    ctx_.GetRenderContext().GetContext()->PSSetShader(nullptr, nullptr, 0);
+
+    ctx_.GetRenderContext().GetContext()->PSSetConstantBuffers(0, 0, nullptr);
+    ctx_.GetRenderContext().GetContext()->PSSetConstantBuffers(1, 0, nullptr);
+    ctx_.GetRenderContext().GetContext()->PSSetConstantBuffers(2, 0, nullptr);
+    ctx_.GetRenderContext().GetContext()->PSSetConstantBuffers(3, 0, nullptr);
+    ctx_.GetRenderContext().GetContext()->PSSetConstantBuffers(4, 0, nullptr);
+
+    ctx_.GetRenderContext().GetContext()->PSSetShaderResources(0, 0, nullptr);
+    ctx_.GetRenderContext().GetContext()->PSSetShaderResources(1, 0, nullptr);
+    ctx_.GetRenderContext().GetContext()->PSSetShaderResources(2, 0, nullptr);
+    ctx_.GetRenderContext().GetContext()->PSSetShaderResources(3, 0, nullptr);
+    ctx_.GetRenderContext().GetContext()->PSSetShaderResources(5, 0, nullptr);
+    ctx_.GetRenderContext().GetContext()->PSSetSamplers(0, 0, nullptr);
+
+    ctx_.GetRenderContext().GetContext()->IASetIndexBuffer(nullptr, DXGI_FORMAT_R32_UINT, 0);
+    ctx_.GetRenderContext().GetContext()->IASetVertexBuffers(0, 0, nullptr, nullptr, nullptr);
 }
 
 void KatamariDirectionalLightPass::DestroyResources() {

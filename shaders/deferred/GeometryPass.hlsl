@@ -59,10 +59,10 @@ PS_IN VSMain(VS_IN input)
 {
     PS_IN output = (PS_IN) 0;
 	
-    output.pos = mul(float4(input.pos, 1.0f), mul(ModelData.Transform, CameraData.WorldViewProj));
+    output.pos = mul(mul(float4(input.pos, 1.0f), ModelData.Transform), CameraData.WorldViewProj);
     output.tex = input.tex;
     output.normal = normalize(mul(float4(input.normal, 0), ModelData.Transform).xyz);
-    output.worldPos = mul(float4(input.pos, 1.0f), ModelData.Transform);
+    output.worldPos = mul(float4(input.pos, 1.0f), ModelData.Transform).xyz;
     output.tangent = normalize(mul(float4(input.tangent, 0), ModelData.Transform).xyz);
 	
     return output;
@@ -106,7 +106,7 @@ PixelShaderOutput PSMain(PS_IN input)
     float3 surfaceColor = Material.BaseColor.xyz * Texture.Sample(Sampler, input.tex).xyz;
 
     output.Diffuse = float4(surfaceColor, 1.0f);
-    output.Normal = float4(bumpedNormalW, 0.0);
+    output.Normal = float4(input.normal, 0.0);
     output.MatProp = float4(Material.Shininess, Material.Absorption, Material.Reflection, Material._padding);
     output.WorldPos = float4(input.worldPos, 1.0);
     output.Accum = float4(0.0, 0.0, 0.0, 1.0f);

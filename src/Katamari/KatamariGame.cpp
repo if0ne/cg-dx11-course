@@ -65,16 +65,16 @@ KatamariGame::KatamariGame() : GameComponent() {
         ));
     }
 
-    directionalLight_ = new DirectionalLightComponent(Vector3(-69.0, -100.0, 0.0), Vector3(1.0, 1.0, 1.0), 1.0);
+    directionalLight_ = new DirectionalLightComponent(Vector3(-69.0, -100.0, 0.0), Vector3(1.0, 1.0, 1.0), 0.25);
     ambientLight_ = new AmbientLightComponent(Vector3(0.04, 0.14, 0.72), 0.23);
 
-    for (int i = 0; i < 20; i++) {
-        int x = rand() % 200 - 100;
-        int z = rand() % 200 - 100;
+    for (int i = 0; i < 10; i++) {
+        int x = rand() % 100 - 50;
+        int z = rand() % 100 - 50;
         float r = ((float) rand()) / RAND_MAX;
         float g = ((float)rand()) / RAND_MAX;
         float b = ((float) rand()) / RAND_MAX;
-        auto pointLight = new PointLightComponent(Vector3(x, 2.0, z), 16.0, Vector3(r, g, b), 3.0);
+        auto pointLight = new PointLightComponent(Vector3(x, 2.0, z), 16.0, Vector3(r, g, b), 4.0);
         pointLights_.push_back(pointLight);
         stickyPointLights_.push_back(new StickyPointLight(pointLight, *this));
     }

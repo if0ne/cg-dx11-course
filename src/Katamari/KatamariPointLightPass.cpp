@@ -69,6 +69,7 @@ void KatamariPointLightPass::Initialize() {
 }
 
 void KatamariPointLightPass::Execute() {
+    ctx_.SetViewport(0, 0, ctx_.GetWindow().GetWidth(), ctx_.GetWindow().GetHeight());
     auto gData = game_.mainPass_->geometryPass_->RenderData();
 
     ctx_.GetRenderContext().GetContext()->VSSetShader(vertexShader_, nullptr, 0);
@@ -112,6 +113,26 @@ void KatamariPointLightPass::Execute() {
 
         sphere_->Draw();
     }
+
+    ctx_.GetRenderContext().GetContext()->VSSetShader(nullptr, nullptr, 0);
+    ctx_.GetRenderContext().GetContext()->PSSetShader(nullptr, nullptr, 0);
+
+    ctx_.GetRenderContext().GetContext()->RSSetState(nullptr);
+    ctx_.GetRenderContext().GetContext()->OMSetDepthStencilState(nullptr, 0);
+
+    ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(0, 0, nullptr);
+    ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(1, 0, nullptr);
+
+    ctx_.GetRenderContext().GetContext()->PSSetConstantBuffers(2, 0, nullptr);
+    ctx_.GetRenderContext().GetContext()->PSSetConstantBuffers(3, 0, nullptr);
+
+    ctx_.GetRenderContext().GetContext()->PSSetShaderResources(0, 0, nullptr);
+    ctx_.GetRenderContext().GetContext()->PSSetShaderResources(1, 0, nullptr);
+    ctx_.GetRenderContext().GetContext()->PSSetShaderResources(2, 0, nullptr);
+    ctx_.GetRenderContext().GetContext()->PSSetShaderResources(3, 0, nullptr);
+
+    ctx_.GetRenderContext().GetContext()->IASetIndexBuffer(nullptr, DXGI_FORMAT_R32_UINT, 0);
+    ctx_.GetRenderContext().GetContext()->IASetVertexBuffers(0, 0, nullptr, nullptr, nullptr);
 }
 
 void KatamariPointLightPass::DestroyResources() {

@@ -134,7 +134,7 @@ void KatamariRenderPass::Initialize() {
             D3D11_BLEND_ONE,
             D3D11_BLEND_OP_ADD,
             D3D11_BLEND_ONE,
-            D3D11_BLEND_ONE,
+            D3D11_BLEND_ZERO,
             D3D11_BLEND_OP_ADD,
             D3D11_COLOR_WRITE_ENABLE_ALL
     };
@@ -163,10 +163,8 @@ void KatamariRenderPass::Execute() {
     auto dv = geometryPass_->RenderData().dsv;
     auto rt = geometryPass_->RenderData().rt;
 
-    ctx_.GetRenderContext().GetContext()->OMSetDepthStencilState(nullptr, 0);
     ctx_.GetRenderContext().GetContext()->OMSetRenderTargets(1, &rt, dv);
     ctx_.GetRenderContext().GetContext()->OMSetBlendState(bs_, nullptr, 0xffffffff);
-    ctx_.SetViewport(0, 0, ctx_.GetWindow().GetWidth(), ctx_.GetWindow().GetHeight());
     pointLightPass_->Execute();
 
     ctx_.GetRenderContext().GetContext()->OMSetBlendState(nullptr, nullptr, 0xffffffff);
@@ -195,6 +193,18 @@ void KatamariRenderPass::Execute() {
     ctx_.GetRenderContext().GetContext()->PSSetShaderResources(0, 1, &accum);
     ctx_.GetRenderContext().GetContext()->PSSetSamplers(0, 1, &outSampler_);
     ctx_.GetRenderContext().GetContext()->Draw(3, 0);
+
+    // Unbind
+
+    ctx_.GetRenderContext().GetContext()->OMSetDepthStencilState(nullptr, 0);
+    ctx_.GetRenderContext().GetContext()->OMSetRenderTargets(0, nullptr, nullptr);
+    ctx_.GetRenderContext().GetContext()->RSSetState(nullptr);
+    ctx_.GetRenderContext().GetContext()->OMSetBlendState(nullptr, nullptr, 0xffffffff);
+
+    ctx_.GetRenderContext().GetContext()->VSSetShader(nullptr, nullptr, 0);
+    ctx_.GetRenderContext().GetContext()->PSSetShader(nullptr, nullptr, 0);
+    ctx_.GetRenderContext().GetContext()->PSSetShaderResources(0, 0, nullptr);
+    ctx_.GetRenderContext().GetContext()->PSSetSamplers(0, 0, nullptr);
 
     if (!isFetching) {
         ctx_.GetRenderContext().GetContext()->End(endQuery_);
