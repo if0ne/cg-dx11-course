@@ -16,6 +16,7 @@
 #include "KatamariGeometryPass.h"
 #include "PlayerComponent.h"
 #include "StickyObjectComponent.h"
+#include "StickyPointLight.h"
 
 #include <SimpleMath.h>
 #include <array>
@@ -50,6 +51,7 @@ void KatamariPointLightPass::Initialize() {
     modelBuffer_ = CreateBuffer(sizeof(Matrix));
     viewPosBuffer_ = CreateBuffer(sizeof(Vector4));
     cameraBuffer_ = CreateBuffer(sizeof(Matrix));
+    svBuffer_ = CreateBuffer(sizeof(ScreenToViewParams));
 
     CD3D11_RASTERIZER_DESC pointRastDesc = {};
     pointRastDesc.CullMode = D3D11_CULL_BACK;
@@ -72,6 +74,8 @@ void KatamariPointLightPass::Execute() {
     ctx_.SetViewport(0, 0, ctx_.GetWindow().GetWidth(), ctx_.GetWindow().GetHeight());
     auto gData = game_.mainPass_->geometryPass_->RenderData();
 
+    ctx_.GetRenderContext().GetContext()->IASetInputLayout(layout_);
+
     ctx_.GetRenderContext().GetContext()->VSSetShader(vertexShader_, nullptr, 0);
     ctx_.GetRenderContext().GetContext()->PSSetShader(pixelShader_, nullptr, 0);
 
@@ -80,6 +84,7 @@ void KatamariPointLightPass::Execute() {
 
     ctx_.GetRenderContext().GetContext()->PSSetConstantBuffers(2, 1, &pointLightBuffer_);
     ctx_.GetRenderContext().GetContext()->PSSetConstantBuffers(3, 1, &viewPosBuffer_);
+    ctx_.GetRenderContext().GetContext()->PSSetConstantBuffers(4, 1, &svBuffer_);
 
     ctx_.GetRenderContext().GetContext()->PSSetShaderResources(0, 1, &gData.srvs[0]);
     ctx_.GetRenderContext().GetContext()->PSSetShaderResources(1, 1, &gData.srvs[1]);
@@ -92,16 +97,42 @@ void KatamariPointLightPass::Execute() {
     auto camera = game_.camera_->CameraMatrix();
     UpdateBuffer(cameraBuffer_, &camera, sizeof(Matrix));
 
+    auto invProj = camera.Invert();
+    auto sv = ScreenToViewParams{
+        invProj, Vector4(ctx_.GetWindow().GetWidth(), ctx_.GetWindow().GetHeight(), 0, 0)
+    };
+
+    UpdateBuffer(svBuffer_, &sv, sizeof(ScreenToViewParams));
+
     // foreach loop
-    for (auto& light : game_.pointLights_) {
-        auto pointLightData = light->RenderData();
-        auto translate = Matrix::CreateTranslation(Vector3(pointLightData.position.x, pointLightData.position.y, pointLightData.position.z));
-        auto scale = Matrix::CreateScale(pointLightData.position.w);
-        auto matrix = scale * translate;
+    for (auto& light : game_.stickyPointLights_) {
+        auto pointLightData = light->pointLight_->RenderData();
+        //auto translate = Matrix::CreateTranslation(Vector3(pointLightData.position.x, pointLightData.position.y, pointLightData.position.z));
+        auto scale = Matrix::CreateScale(light->pointLight_->Radius());
+
+        auto matrix = Matrix::Identity;
+
+        if (light->parent_) {
+            auto rotation = light->parent_->Rotation();
+            auto rotMat = Matrix::CreateFromQuaternion(rotation);
+            auto translation = Vector3::Transform(light->position_, rotation) + light->parent_->Position();
+            pointLightData.position.x = translation.x;
+            pointLightData.position.y = translation.y;
+            pointLightData.position.z = translation.z;
+            matrix = scale * rotMat * Matrix::CreateTranslation(translation);
+        }
+        else {
+            auto translation = Matrix::CreateTranslation(light->position_);
+            pointLightData.position.x = light->position_.x;
+            pointLightData.position.y = light->position_.y;
+            pointLightData.position.z = light->position_.z;
+            matrix = scale * translation;
+        }
+
 
         UpdateBuffer(modelBuffer_, &matrix, sizeof(Matrix));
 
-        if (light->IsIntersect(game_.camera_->Position())) {
+        if (light->pointLight_->IsIntersect(game_.camera_->Position())) {
             ctx_.GetRenderContext().GetContext()->RSSetState(insideState_);
             ctx_.GetRenderContext().GetContext()->OMSetDepthStencilState(insideDepthState_, 0);
         } else {

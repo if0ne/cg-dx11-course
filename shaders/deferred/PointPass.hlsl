@@ -19,6 +19,12 @@ struct SCameraData
     float4x4 WorldViewProj;
 };
 
+struct SScreenToViewParams
+{
+    float4x4 InverseProjectionView;
+    float2 ScreenDimensions;
+};
+
 // VS
 cbuffer ModelData : register(b0)
 {
@@ -40,6 +46,12 @@ cbuffer ViewPos : register(b3)
 {
     SViewPos ViewPos;
 }
+
+cbuffer ScreenToViewParams : register(b4)
+{
+    SScreenToViewParams SV;
+}
+
 
 Texture2D DiffuseMap : register(t0);
 Texture2D NormalMap : register(t1);
@@ -86,7 +98,7 @@ float3 CalcPointLight(float3 normal, float3 fragPos, float3 viewDir, float4 mate
     float3 diff = diffFactor * PointLight.Color.xyz;
      
     float3 reflectDir = normalize(reflect(-lightDir, normal));
-    float specFactor = material.y * pow(max(dot(viewDir, reflectDir), 0.0), material.x);
+    float specFactor = pow(max(dot(viewDir, reflectDir), 0.0), material.x);
     float3 spec = specFactor * PointLight.Color.xyz;
     
     float distance = length(position - fragPos);
@@ -97,18 +109,39 @@ float3 CalcPointLight(float3 normal, float3 fragPos, float3 viewDir, float4 mate
     return diff + spec;
 }
 
+float4 ClipToWorld(float4 clip)
+{
+    float4 view = mul(clip, SV.InverseProjectionView);
+
+    view = view / view.w;
+
+    return view;
+}
+
+float4 ScreenToWorld(float4 screen)
+{
+    float2 texCoord = screen.xy / SV.ScreenDimensions;
+
+    float4 clip = float4(float2(texCoord.x, 1.0f - texCoord.y) * 2.0f - 1.0f, screen.z, screen.w);
+
+    return ClipToWorld(clip);
+}
+
 float4 PSMain(PS_IN input) : SV_Target
 {
     int2 texCoord = input.pos.xy;
-   
-    float4 worldPos = WorldPosMap.Load(int3(texCoord, 0));
+  
+    float4 worldPosC = WorldPosMap.Load(int3(texCoord, 0));
     float4 material = MaterialMap.Load(int3(texCoord, 0));
     float4 normal = NormalMap.Load(int3(texCoord, 0));
     float4 diffuse = DiffuseMap.Load(int3(texCoord, 0));
     
-    float3 viewDir = normalize(ViewPos.Pos.xyz - worldPos.xyz);
+    float depth = material.y;
+    float4 worldPos = ScreenToWorld(float4(texCoord, depth, 1.0f));
+    
+    float3 viewDir = normalize(ViewPos.Pos.xyz - worldPosC.xyz);
 
-    float3 pointLight = CalcPointLight(normal.xyz, worldPos.xyz, viewDir, material);
+    float3 pointLight = CalcPointLight(normal.xyz, worldPosC.xyz, viewDir.xyz, material);
     
     float3 finalColor = diffuse.xyz * pointLight;
     

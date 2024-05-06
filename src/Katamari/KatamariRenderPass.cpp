@@ -134,7 +134,7 @@ void KatamariRenderPass::Initialize() {
             D3D11_BLEND_ONE,
             D3D11_BLEND_OP_ADD,
             D3D11_BLEND_ONE,
-            D3D11_BLEND_ZERO,
+            D3D11_BLEND_ONE,
             D3D11_BLEND_OP_ADD,
             D3D11_COLOR_WRITE_ENABLE_ALL
     };

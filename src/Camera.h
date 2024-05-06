@@ -38,5 +38,6 @@ public:
     float Fov() { return fov_; }
     float AspectRatio();
     DirectX::SimpleMath::Matrix View() { return view_; }
+    DirectX::SimpleMath::Matrix Projection() { return proj_; }
 };
 

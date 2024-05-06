@@ -88,7 +88,7 @@ float3 CalcDirLight(float3 normal, float3 viewDir, float4 material)
     float3 diff = diffFactor * Directional.Color.xyz;
     
     float3 reflectDir = normalize(reflect(-lightDir, normal));
-    float specFactor = material.y * pow(max(dot(viewDir, reflectDir), 0.0), material.x);
+    float specFactor = pow(max(dot(viewDir, reflectDir), 0.0), material.x);
     float3 spec = specFactor * Directional.Color.xyz;
     
     float3 amb = Ambient.Color * Ambient.Intensity;

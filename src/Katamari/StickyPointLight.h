@@ -16,6 +16,8 @@ private:
     PointLightComponent* pointLight_;
     PlayerComponent* parent_;
     KatamariGame& game_;
+
+    DirectX::SimpleMath::Vector3 position_;
 public:
     StickyPointLight(PointLightComponent* pointLight, KatamariGame& game);
     ~StickyPointLight();
@@ -27,5 +29,7 @@ public:
     virtual void DestroyResources() override;
 
     DirectX::BoundingSphere GetCollision();
+
+    friend class KatamariPointLightPass;
 };
 

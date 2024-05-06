@@ -12,6 +12,7 @@ StickyPointLight::StickyPointLight(PointLightComponent* pointLight, KatamariGame
     GameComponent()
 {
     parent_ = nullptr;
+    position_ = pointLight_->Position();
 }
 
 StickyPointLight::~StickyPointLight() {
@@ -23,11 +24,15 @@ void StickyPointLight::Initialize() {
 
 void StickyPointLight::Update(float deltaTime) {
     if (parent_) {
-        pointLight_->Position(parent_->Position());
-    }
-    else {
+        pointLight_->Position(position_);
+    } else {
         if (GetCollision().Intersects(game_.Player().GetCollision())) {
             parent_ = &game_.Player();
+
+            auto rotMatInv = Quaternion::Identity;
+            parent_->Rotation().Inverse(rotMatInv);
+            auto pos = Vector3::Transform(position_ - parent_->Position(), rotMatInv);
+            position_ = pos;
         }
     }
 }
