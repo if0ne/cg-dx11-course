@@ -14,6 +14,7 @@
 #include "../AmbientLightComponent.h"
 #include "../PointLightComponent.h"
 #include "../ModelComponent.h"
+#include "../ParticleSystemComponent.h"
 
 #include "PlayerComponent.h"
 #include "StickyObjectComponent.h"
@@ -86,6 +87,7 @@ KatamariGame::KatamariGame() : GameComponent() {
     rastDesc.CullMode = D3D11_CULL_NONE;
     rastDesc.FillMode = D3D11_FILL_SOLID;
     mainPass_ = new KatamariRenderPass(std::move(shaderPath), std::move(vertexAttr), rastDesc, *this);
+    particles_ = new ParticleSystemComponent(camera_);
 }
 
 KatamariGame::~KatamariGame() {
@@ -101,6 +103,8 @@ KatamariGame::~KatamariGame() {
     for (auto& light : pointLights_) {
         delete light;
     }
+
+    delete particles_;
 }
 
 void KatamariGame::Initialize() {
@@ -116,6 +120,8 @@ void KatamariGame::Initialize() {
 
     auto path = std::string("/Floor_plate.fbx");
     ground_ = ctx_.GetAssetLoader().LoadModel(path);
+
+    particles_->Initialize();
 }
 
 void KatamariGame::Update(float deltaTime) {

@@ -131,6 +131,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\ParticleSystemComponent.cpp" />
     <ClCompile Include="src\Katamari\KatamariPointLightPass.cpp" />
     <ClCompile Include="src\QuadComponent.cpp" />
     <ClCompile Include="src\Katamari\KatamariDirectionalLightPass.cpp" />
@@ -170,6 +171,7 @@
     <ClCompile Include="src\Katamari\StickyPointLight.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\ParticleSystemComponent.h" />
     <ClInclude Include="src\Katamari\KatamariPointLightPass.h" />
     <ClInclude Include="src\QuadComponent.h" />
     <ClInclude Include="src\Katamari\KatamariDirectionalLightPass.h" />

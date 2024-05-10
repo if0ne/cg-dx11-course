@@ -18,6 +18,7 @@ class PointLightComponent;
 struct Material;
 class KatamariRenderPass;
 class StickyPointLight;
+class ParticleSystemComponent;
 
 class KatamariGame : public GameComponent
 {
@@ -36,6 +37,8 @@ private:
     std::vector<StickyPointLight*> stickyPointLights_;
 
     KatamariRenderPass* mainPass_;
+    ParticleSystemComponent* particles_;
+
 public:
     KatamariGame();
     ~KatamariGame();

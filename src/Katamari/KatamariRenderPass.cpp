@@ -11,6 +11,7 @@
 #include "../MeshComponent.h"
 #include "../QuadComponent.h"
 #include "../CascadedShadowMap.h"
+#include "../ParticleSystemComponent.h"
 
 #include "SimpleMath.h"
 
@@ -176,6 +177,8 @@ void KatamariRenderPass::Execute() {
 
     ctx_.SetViewport(0, 0, ctx_.GetWindow().GetWidth(), ctx_.GetWindow().GetHeight());
     dirLightPass_->Execute();
+    
+    game_.particles_->Draw();
 
     rt = ctx_.GetWindow().GetRenderTarget();
 

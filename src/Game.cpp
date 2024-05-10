@@ -84,7 +84,7 @@ void Game::Update() {
 
 void Game::UpdateInternal() {
     auto curTime = std::chrono::steady_clock::now();
-    deltaTime_ = std::chrono::duration_cast<std::chrono::microseconds>(curTime - prevTime_).count() / 1000000.0f;
+    deltaTime_ = std::chrono::duration_cast<std::chrono::milliseconds>(curTime - prevTime_).count() / 1000.0;
     prevTime_ = curTime;
 
     totalTime_ += deltaTime_;
