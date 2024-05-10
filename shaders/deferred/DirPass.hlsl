@@ -88,7 +88,7 @@ float3 CalcDirLight(float3 normal, float3 viewDir, float4 material)
     float3 diff = diffFactor * Directional.Color.xyz;
     
     float3 reflectDir = normalize(reflect(-lightDir, normal));
-    float specFactor = material.y * pow(max(dot(viewDir, reflectDir), 0.0), material.x);
+    float specFactor = pow(max(dot(viewDir, reflectDir), 0.0), material.x);
     float3 spec = specFactor * Directional.Color.xyz;
     
     float3 amb = Ambient.Color * Ambient.Intensity;
@@ -126,7 +126,7 @@ float2 ScreenToView(float4 screen)
 
 float4 PSMain(PS_IN input) : SV_Target
 {
-    if (input.pos.x < 256 && input.pos.y < 256)
+    /*if (input.pos.x < 256 && input.pos.y < 256)
     {
         float2 texPos = input.pos.xy / float2(256.0, 256.0);
         texPos.y = texPos.y;
@@ -153,7 +153,7 @@ float4 PSMain(PS_IN input) : SV_Target
         texPos.y = texPos.y;
         float sampled = shadowmapT.SampleCmp(shadowmapS, float3(texPos, 3), 1.0);
         return float4(sampled, 0.0, 0.0, 1.0);
-    }
+    }*/
     
     int2 texCoord = input.pos.xy;
    

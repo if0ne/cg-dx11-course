@@ -18,6 +18,7 @@
 #include "PlayerComponent.h"
 #include "StickyObjectComponent.h"
 #include "KatamariRenderPass.h"
+#include "StickyPointLight.h"
 
 using namespace DirectX::SimpleMath;
 
@@ -64,24 +65,22 @@ KatamariGame::KatamariGame() : GameComponent() {
         ));
     }
 
-    directionalLight_ = new DirectionalLightComponent(Vector3(-69.0, -100.0, 0.0), Vector3(1.0, 1.0, 1.0), 1.0);
+    directionalLight_ = new DirectionalLightComponent(Vector3(-69.0, -100.0, 0.0), Vector3(1.0, 1.0, 1.0), 0.25);
     ambientLight_ = new AmbientLightComponent(Vector3(0.04, 0.14, 0.72), 0.23);
 
-    for (int i = 0; i < 20; i++) {
-        int x = rand() % 200 - 100;
-        int z = rand() % 200 - 100;
+    for (int i = 0; i < 10; i++) {
+        int x = rand() % 100 - 50;
+        int z = rand() % 100 - 50;
         float r = ((float) rand()) / RAND_MAX;
+        float g = ((float)rand()) / RAND_MAX;
         float b = ((float) rand()) / RAND_MAX;
-        pointLights_.push_back(new PointLightComponent(Vector3(x, 4.0, z), 16.0, Vector3(r, 0.24, b), 4.0));
+        auto pointLight = new PointLightComponent(Vector3(x, 2.0, z), 16.0, Vector3(r, g, b), 4.0);
+        pointLights_.push_back(pointLight);
+        stickyPointLights_.push_back(new StickyPointLight(pointLight, *this));
     }
 
-    auto shaderPath = std::string("./shaders/KatamariLightShadow.hlsl");
-    std::vector<std::pair<const char*, DXGI_FORMAT>> vertexAttr{
-        std::make_pair("POSITION", DXGI_FORMAT_R32G32B32_FLOAT),
-        std::make_pair("NORMAL", DXGI_FORMAT_R32G32B32_FLOAT),
-        std::make_pair("TEXCOORD", DXGI_FORMAT_R32G32_FLOAT),
-        std::make_pair("TANGENT", DXGI_FORMAT_R32G32B32_FLOAT)
-    };
+    auto shaderPath = std::string("./shaders/deferred/Oout.hlsl");
+    std::vector<std::pair<const char*, DXGI_FORMAT>> vertexAttr{};
 
     CD3D11_RASTERIZER_DESC rastDesc = {};
     rastDesc.CullMode = D3D11_CULL_NONE;
@@ -134,6 +133,10 @@ void KatamariGame::Update(float deltaTime) {
     player_->Update(deltaTime);
 
     for (auto& object : objects_) {
+        object->Update(deltaTime);
+    }
+
+    for (auto& object : stickyPointLights_) {
         object->Update(deltaTime);
     }
 }

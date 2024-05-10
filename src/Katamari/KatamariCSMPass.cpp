@@ -101,7 +101,6 @@ void KatamariCSMPass::Execute() {
 	auto camera = game_.camera_;
 	auto data = csm_.RenderData(dir, *camera);
 
-
 	for (int i = 0; i < csm_.kCascadeCount; i++) {
 		ctx_.GetRenderContext().GetContext()->OMSetRenderTargets(0, nullptr, dsv_[i]);
 		ctx_.GetRenderContext().GetContext()->ClearDepthStencilView(dsv_[i], D3D11_CLEAR_DEPTH, 1.0, 0);
@@ -137,6 +136,20 @@ void KatamariCSMPass::Execute() {
 			}
 		}
 	}
+
+	ctx_.GetRenderContext().GetContext()->OMSetRenderTargets(0, nullptr, nullptr);
+	ctx_.GetRenderContext().GetContext()->OMSetDepthStencilState(nullptr, 1);
+
+	ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(0, 0, nullptr);
+	ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(1, 0, nullptr);
+
+	ctx_.GetRenderContext().GetContext()->RSSetState(nullptr);
+	ctx_.GetRenderContext().GetContext()->IASetInputLayout(nullptr);
+	ctx_.GetRenderContext().GetContext()->VSSetShader(nullptr, nullptr, 0);
+	ctx_.GetRenderContext().GetContext()->PSSetShader(nullptr, nullptr, 0);
+
+	ctx_.GetRenderContext().GetContext()->IASetIndexBuffer(nullptr, DXGI_FORMAT_R32_UINT, 0);
+	ctx_.GetRenderContext().GetContext()->IASetVertexBuffers(0, 0, nullptr, nullptr, nullptr);
 }
 
 void KatamariCSMPass::DestroyResources() {

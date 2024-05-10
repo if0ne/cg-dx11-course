@@ -17,6 +17,7 @@ class AmbientLightComponent;
 class PointLightComponent;
 struct Material;
 class KatamariRenderPass;
+class StickyPointLight;
 
 class KatamariGame : public GameComponent
 {
@@ -32,6 +33,7 @@ private:
     DirectionalLightComponent* directionalLight_;
     AmbientLightComponent* ambientLight_;
     std::vector<PointLightComponent*> pointLights_;
+    std::vector<StickyPointLight*> stickyPointLights_;
 
     KatamariRenderPass* mainPass_;
 public:
