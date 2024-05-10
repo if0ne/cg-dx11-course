@@ -54,7 +54,7 @@ void KatamariPointLightPass::Initialize() {
     svBuffer_ = CreateBuffer(sizeof(ScreenToViewParams));
 
     CD3D11_RASTERIZER_DESC pointRastDesc = {};
-    pointRastDesc.CullMode = D3D11_CULL_BACK;
+    pointRastDesc.CullMode = D3D11_CULL_NONE;
     pointRastDesc.FillMode = D3D11_FILL_SOLID;
     ctx_.GetRenderContext().GetDevice()->CreateRasterizerState(&pointRastDesc, &insideState_);
 
@@ -116,6 +116,7 @@ void KatamariPointLightPass::Execute() {
             auto rotation = light->parent_->Rotation();
             auto rotMat = Matrix::CreateFromQuaternion(rotation);
             auto translation = Vector3::Transform(light->position_, rotation) + light->parent_->Position();
+            light->pointLight_->Position(translation);
             pointLightData.position.x = translation.x;
             pointLightData.position.y = translation.y;
             pointLightData.position.z = translation.z;
@@ -123,6 +124,7 @@ void KatamariPointLightPass::Execute() {
         }
         else {
             auto translation = Matrix::CreateTranslation(light->position_);
+            light->pointLight_->Position(light->position_);
             pointLightData.position.x = light->position_.x;
             pointLightData.position.y = light->position_.y;
             pointLightData.position.z = light->position_.z;

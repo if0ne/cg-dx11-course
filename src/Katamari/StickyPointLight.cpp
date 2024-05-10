@@ -50,6 +50,6 @@ void StickyPointLight::DestroyResources() {
 
 DirectX::BoundingSphere StickyPointLight::GetCollision() {
     return DirectX::BoundingSphere{
-        pointLight_->Position(), pointLight_->Radius()
+        pointLight_->Position(), pointLight_->Radius() - 2.0f
     };
 }
