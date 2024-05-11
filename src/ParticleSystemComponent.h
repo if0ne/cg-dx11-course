@@ -95,7 +95,18 @@ private:
 
     Camera* camera_;
 
+    ID3D11Buffer* dispatchInfoBuffer_;
+    ID3D11ComputeShader* sortStep_;
+    ID3D11ComputeShader* sort512_;
+    ID3D11ComputeShader* sortInner512_; 
+    ID3D11ComputeShader* sortInitArgs_; 
+
+    ID3D11Buffer* indirectSortArgsBuffer_;
+    ID3D11UnorderedAccessView* indirectSortArgsBufferUAV_;
+
     void Sort();
+    bool SortInitial(unsigned int maxSize);
+    bool SortIncremental(unsigned int presorted, unsigned int maxSize);
     void Emit();
     void Simulate();
 public:

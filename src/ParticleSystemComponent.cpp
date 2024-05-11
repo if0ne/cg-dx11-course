@@ -6,6 +6,11 @@
 #include <WICTextureLoader.h>
 #include <random>
 
+using int4 = struct SortConstants
+{
+    int x, y, z, w;
+};
+
 int align(int value, int alignment)
 {
     return (value + (alignment - 1)) & ~(alignment - 1);
@@ -445,6 +450,98 @@ void ParticleSystemComponent::Initialize()
 
         ctx_.GetRenderContext().GetDevice()->CreateRasterizerState(&rast, &rastState_);
     }
+
+    {
+        D3D11_BUFFER_DESC cbDesc;
+        ZeroMemory(&cbDesc, sizeof(cbDesc));
+        cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+        cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+        cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+        cbDesc.ByteWidth = sizeof(int4);
+        ctx_.GetRenderContext().GetDevice()->CreateBuffer(&cbDesc, nullptr, &dispatchInfoBuffer_);
+    }
+
+    {
+        ID3DBlob* pBlob;
+        ID3DBlob* pErrorBlob;
+
+        // Step sort shader
+        HRESULT hr = D3DCompileFromFile(L"./shaders/particles/SortStep2.hlsl", nullptr, nullptr, "BitonicSortStep",
+            "cs_5_0", 0, 0, &pBlob, &pErrorBlob);
+        if (FAILED(hr))
+        {
+            if (pErrorBlob != nullptr)
+                OutputDebugStringA((char*)pErrorBlob->GetBufferPointer());
+        }
+
+        ctx_.GetRenderContext().GetDevice()->CreateComputeShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &sortStep_);
+    }
+
+    {
+        ID3DBlob* pBlob;
+        ID3DBlob* pErrorBlob;
+
+        const D3D10_SHADER_MACRO innerDefines[2] = { {"SORT_SIZE", "512"}, {nullptr, 0} };
+        HRESULT hr = D3DCompileFromFile(L"./shaders/particles/SortInner.hlsl", innerDefines, nullptr, "BitonicInnerSort",
+            "cs_5_0", 0, 0, &pBlob, &pErrorBlob);
+        if (FAILED(hr))
+        {
+            if (pErrorBlob != NULL)
+                OutputDebugStringA((char*)pErrorBlob->GetBufferPointer());
+        }
+        ctx_.GetRenderContext().GetDevice()->CreateComputeShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &sortInner512_);
+    }
+
+    {
+        ID3DBlob* pBlob;
+        ID3DBlob* pErrorBlob;
+
+        const D3D10_SHADER_MACRO cs512Defines[2] = { {"SORT_SIZE", "512"}, {nullptr, 0} };
+        HRESULT hr = D3DCompileFromFile(L"./shaders/particles/Sort512.hlsl", cs512Defines, nullptr, "BitonicSortLDS", "cs_5_0", 0,
+            0, &pBlob, &pErrorBlob);
+        if (FAILED(hr))
+        {
+            if (pErrorBlob != nullptr)
+                OutputDebugStringA((char*)pErrorBlob->GetBufferPointer());
+        }
+        ctx_.GetRenderContext().GetDevice()->CreateComputeShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &sort512_);
+    }
+
+    {
+        ID3DBlob* pBlob;
+        ID3DBlob* pErrorBlob;
+
+        const D3D10_SHADER_MACRO cs512Defines[2] = { {"SORT_SIZE", "512"}, {nullptr, 0} };
+        HRESULT  hr = D3DCompileFromFile(L"./shaders/particles/InitSort.hlsl", nullptr, nullptr, "InitDispatchArgs",
+            "cs_5_0", 0, 0, &pBlob, &pErrorBlob);
+        if (FAILED(hr))
+        {
+            if (pErrorBlob != nullptr)
+                OutputDebugStringA((char*)pErrorBlob->GetBufferPointer());
+        }
+        ctx_.GetRenderContext().GetDevice()->CreateComputeShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &sortInitArgs_);
+    }
+
+    {
+        D3D11_BUFFER_DESC desc;
+        ZeroMemory(&desc, sizeof(desc));
+        desc.Usage = D3D11_USAGE_DEFAULT;
+        desc.BindFlags = D3D11_BIND_UNORDERED_ACCESS;
+        desc.ByteWidth = 4 * sizeof(UINT);
+        desc.MiscFlags = D3D11_RESOURCE_MISC_DRAWINDIRECT_ARGS;
+        ctx_.GetRenderContext().GetDevice()->CreateBuffer(&desc, nullptr, &indirectSortArgsBuffer_);
+    }
+
+    {
+        D3D11_UNORDERED_ACCESS_VIEW_DESC uav;
+        ZeroMemory(&uav, sizeof(uav));
+        uav.Format = DXGI_FORMAT_R32_UINT;
+        uav.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
+        uav.Buffer.FirstElement = 0;
+        uav.Buffer.NumElements = 4;
+        uav.Buffer.Flags = 0;
+        ctx_.GetRenderContext().GetDevice()->CreateUnorderedAccessView(indirectSortArgsBuffer_, &uav, &indirectSortArgsBufferUAV_);
+    }
 }
 
 void ParticleSystemComponent::Update(float deltaTime)
@@ -509,6 +606,41 @@ void ParticleSystemComponent::DestroyResources()
 
 void ParticleSystemComponent::Sort()
 {
+    ID3D11UnorderedAccessView* prevUAV = nullptr;
+    ctx_.GetRenderContext().GetContext()->CSGetUnorderedAccessViews(0, 1, &prevUAV);
+
+    ID3D11Buffer* prevCBs[] = { nullptr, nullptr };
+    ctx_.GetRenderContext().GetContext()->CSGetConstantBuffers(0, ARRAYSIZE(prevCBs), prevCBs);
+
+    ID3D11Buffer* cbs[] = { aliveCounterBuffer_, dispatchInfoBuffer_ };
+    ctx_.GetRenderContext().GetContext()->CSSetConstantBuffers(0, ARRAYSIZE(cbs), cbs);
+
+    ctx_.GetRenderContext().GetContext()->CSSetUnorderedAccessViews(0, 1, &indirectSortArgsBufferUAV_, nullptr);
+
+    ctx_.GetRenderContext().GetContext()->CSSetShader(sortInitArgs_, nullptr, 0);
+    ctx_.GetRenderContext().GetContext()->Dispatch(1, 1, 1);
+
+
+    ctx_.GetRenderContext().GetContext()->CSSetUnorderedAccessViews(0, 1, &aliveListUAV, nullptr);
+
+    bool bDone = SortInitial(MAX_PARTICLE_COUNT);
+
+    int presorted = 512;
+    while (!bDone)
+    {
+        bDone = SortIncremental(presorted, MAX_PARTICLE_COUNT);
+        presorted *= 2;
+    }
+
+    ctx_.GetRenderContext().GetContext()->CSSetUnorderedAccessViews(0, 1, &prevUAV, nullptr);
+    ctx_.GetRenderContext().GetContext()->CSSetConstantBuffers(0, ARRAYSIZE(prevCBs), prevCBs);
+
+    if (prevUAV)
+        prevUAV->Release();
+
+    for (size_t i = 0; i < ARRAYSIZE(prevCBs); i++)
+        if (prevCBs[i])
+            prevCBs[i]->Release();
 }
 
 void ParticleSystemComponent::Emit()
@@ -561,4 +693,66 @@ void ParticleSystemComponent::UpdateBuffer(ID3D11Buffer* buffer, void* data, siz
 
     memcpy(res.pData, data, size);
     ctx_.GetRenderContext().GetContext()->Unmap(buffer, 0);
+}
+
+bool ParticleSystemComponent::SortInitial(unsigned int maxSize)
+{
+    bool bDone = true;
+
+    unsigned int numThreadGroups = ((maxSize - 1) >> 9) + 1;
+
+    if (numThreadGroups > 1) bDone = false;
+
+    ctx_.GetRenderContext().GetContext()->CSSetShader(sort512_, nullptr, 0);
+    ctx_.GetRenderContext().GetContext()->DispatchIndirect(indirectSortArgsBuffer_, 0);
+
+    return bDone;
+}
+
+bool ParticleSystemComponent::SortIncremental(unsigned int presorted, unsigned int maxSize)
+{
+    bool bDone = true;
+    ctx_.GetRenderContext().GetContext()->CSSetShader(sortStep_, nullptr, 0);
+
+    unsigned int numThreadGroups = 0;
+
+    if (maxSize > presorted)
+    {
+        if (maxSize > presorted * 2)
+            bDone = false;
+
+        unsigned int pow2 = presorted;
+        while (pow2 < maxSize)
+            pow2 *= 2;
+        numThreadGroups = pow2 >> 9;
+    }
+
+    unsigned int nMergeSize = presorted * 2;
+    for (unsigned int nMergeSubSize = nMergeSize >> 1; nMergeSubSize > 256; nMergeSubSize = nMergeSubSize >> 1)
+    {
+        D3D11_MAPPED_SUBRESOURCE MappedResource;
+
+        ctx_.GetRenderContext().GetContext()->Map(dispatchInfoBuffer_, 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource);
+        auto sc = (SortConstants*)MappedResource.pData;
+        sc->x = nMergeSubSize;
+        if (nMergeSubSize == nMergeSize >> 1)
+        {
+            sc->y = (2 * nMergeSubSize - 1);
+            sc->z = -1;
+        }
+        else
+        {
+            sc->y = nMergeSubSize;
+            sc->z = 1;
+        }
+        sc->w = 0;
+        ctx_.GetRenderContext().GetContext()->Unmap(dispatchInfoBuffer_, 0);
+
+        ctx_.GetRenderContext().GetContext()->Dispatch(numThreadGroups, 1, 1);
+    }
+
+    ctx_.GetRenderContext().GetContext()->CSSetShader(sortInner512_, nullptr, 0);
+    ctx_.GetRenderContext().GetContext()->Dispatch(numThreadGroups, 1, 1);
+
+    return bDone;
 }

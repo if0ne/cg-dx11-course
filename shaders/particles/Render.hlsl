@@ -10,12 +10,6 @@ struct Particle
     float distToEye;
 };
 
-struct VS_OUTPUT
-{
-    float4 ViewSpaceCentreAndRadius : TEXCOORD0;
-    float4 Color : COLOR0;
-};
-
 struct PS_INPUT
 {
     float4 ViewSpaceCentreAndRadius : TEXCOORD0;

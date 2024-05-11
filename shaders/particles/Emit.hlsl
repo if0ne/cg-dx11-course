@@ -59,7 +59,7 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
         float2 uv2 = float2((DTid.x + 1) / 1024.0, g_frameTime.x * 1024);
         float3 randomValues1 = g_RandomBuffer.SampleLevel(g_samWrapLinear, uv2, 0).xyz;
 
-        particle.color = float3(1.0f, 1.0f, 1.0f);
+        particle.color = randomValues0;
         particle.positon = emitterProp.position.xyz + (randomValues0.xyz * emitterProp.positionVar.xyz);
         particle.velocity = normalize(emitterProp.velocity.xyz + (randomValues1.xyz * emitterProp.velocityPosVar));
         particle.velocity *= clamp(abs(randomValues0.x) * emitterProp.maxVelocity, emitterProp.minVelocity, emitterProp.maxVelocity);
