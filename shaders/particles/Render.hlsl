@@ -25,13 +25,13 @@ struct PS_INPUT
     float4 Position : SV_POSITION;
 };
 
-cbuffer ActiveListCount : register(b3)
+cbuffer ActiveListCount : register(b0)
 {
     uint g_NumActiveParticles;
     uint3 ActiveListCount_pad;
 };
 
-cbuffer ViewProjectionCB : register(b4)
+cbuffer ViewProjectionCB : register(b1)
 {
     float4x4 View;
     float4x4 Projection;

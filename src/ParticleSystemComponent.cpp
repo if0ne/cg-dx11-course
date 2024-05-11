@@ -17,7 +17,7 @@ void ParticleSystemComponent::Initialize()
         {0.0, 0.0, 0.0},
         {0.0, 1.0, 0.0},
         {1.0, 1.0, 1.0},
-        10,
+        1,
         2,
         1,
         10,
@@ -176,8 +176,7 @@ void ParticleSystemComponent::Initialize()
 
         UINT initCounts[1] = { MAX_PARTICLE_COUNT };
         ctx_.GetRenderContext().GetContext()->CSSetUnorderedAccessViews(1, 1, &deadListUAV, initCounts);
-        ID3D11UnorderedAccessView* nul[1] = { nullptr };
-        ctx_.GetRenderContext().GetContext()->CSSetUnorderedAccessViews(1, 1, nul, 0);
+        ctx_.GetRenderContext().GetContext()->CSSetUnorderedAccessViews(1, 0, nullptr, 0);
     }
 
     {
@@ -481,7 +480,8 @@ void ParticleSystemComponent::Draw()
     UINT offset = 0;
 
     ctx_.GetRenderContext().GetContext()->IASetVertexBuffers(0, 1, &vb, &stride, &offset);
-    ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(3, 1, &aliveCounterBuffer_);
+    ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(0, 1, &aliveCounterBuffer_);
+    ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(1, 1, &viewProjBuffer_);
     ctx_.GetRenderContext().GetContext()->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
     ctx_.GetRenderContext().GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -524,7 +524,7 @@ void ParticleSystemComponent::Emit()
     UpdateBuffer(frameTimeBuffer_, &time, sizeof(DirectX::SimpleMath::Vector4));
     UpdateBuffer(emitterBuffer_, &emitterProps_, sizeof(EmitterProperties));
     UpdateBuffer(viewProjBuffer_, &matrices, 2 * sizeof(DirectX::SimpleMath::Matrix));
-    ctx_.GetRenderContext().GetContext()->CSSetConstantBuffers(0, 4, buffers);
+    ctx_.GetRenderContext().GetContext()->CSSetConstantBuffers(0, ARRAYSIZE(buffers), buffers);
 
     ID3D11ShaderResourceView* srvs[] = { randomSrv_ };
     ctx_.GetRenderContext().GetContext()->CSSetShaderResources(0, 1, srvs);
@@ -549,8 +549,6 @@ void ParticleSystemComponent::Simulate()
     ctx_.GetRenderContext().GetContext()->CSSetUnorderedAccessViews(0, ARRAYSIZE(uavs), uavs, initialCounts);
 
     ctx_.GetRenderContext().GetContext()->CSSetShader(simulateCs_, nullptr, 0);
-    ID3D11Buffer* buffers[] = { frameTimeBuffer_, emitterBuffer_, deadCounterBuffer_, viewProjBuffer_ };
-    ctx_.GetRenderContext().GetContext()->CSSetConstantBuffers(0, 4, buffers);
     ctx_.GetRenderContext().GetContext()->Dispatch(align(MAX_PARTICLE_COUNT, 256) / 256, 1, 1);
 
     ZeroMemory(uavs, sizeof(uavs));

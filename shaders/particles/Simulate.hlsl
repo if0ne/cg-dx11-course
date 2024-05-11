@@ -25,7 +25,7 @@ cbuffer FrameTimeCB : register(b0)
     float4 g_frameTime;
 };
 
-cbuffer ViewProjectionCB : register(b4)
+cbuffer ViewProjectionCB : register(b3)
 {
     float4x4 View;
     float4x4 Projection;
