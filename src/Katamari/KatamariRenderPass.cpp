@@ -166,7 +166,6 @@ void KatamariRenderPass::Execute() {
 
     ctx_.GetRenderContext().GetContext()->OMSetRenderTargets(1, &rt, dv);
     ctx_.GetRenderContext().GetContext()->OMSetBlendState(bs_, nullptr, 0xffffffff);
-    pointLightPass_->Execute();
 
     ctx_.GetRenderContext().GetContext()->OMSetBlendState(nullptr, nullptr, 0xffffffff);
     csmPass_->Execute();
@@ -176,9 +175,14 @@ void KatamariRenderPass::Execute() {
     ctx_.GetRenderContext().GetContext()->OMSetBlendState(bs_, nullptr, 0xffffffff);
 
     ctx_.SetViewport(0, 0, ctx_.GetWindow().GetWidth(), ctx_.GetWindow().GetHeight());
+
     dirLightPass_->Execute();
-    
+    //pointLightPass_->Execute();
+
+    ctx_.GetRenderContext().GetContext()->OMSetRenderTargets(1, &rt, dv);
     game_.particles_->Draw();
+
+    ctx_.GetRenderContext().GetContext()->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     rt = ctx_.GetWindow().GetRenderTarget();
 

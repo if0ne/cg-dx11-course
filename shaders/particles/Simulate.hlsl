@@ -76,7 +76,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
         if (particle.age <= 0.0f || killParticle)
         {
             particle.age = -1;
-            particle.color = float3(1.0f, 0., 0.);
+            particle.color = float3(0.0f, 0.0f, 0.0f);
             particle.distToEye = 100000;
             g_DeadListToAddTo.Append(id.x);
         }

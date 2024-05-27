@@ -6,6 +6,8 @@
 #include <WICTextureLoader.h>
 #include <random>
 
+using namespace DirectX::SimpleMath;
+
 using int4 = struct SortConstants
 {
     int x, y, z, w;
@@ -113,6 +115,19 @@ void ParticleSystemComponent::Initialize()
             nullptr
         );
 
+        ID3DBlob* errorBlob = nullptr;
+        D3DCompileFromFile(
+            L"./shaders/particles/Render.hlsl",
+            nullptr,
+            nullptr,
+            "GSMain",
+            "gs_5_0",
+            D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_PACK_MATRIX_ROW_MAJOR,
+            0,
+            &geometryBlob_,
+            nullptr
+        );
+
         ctx_.GetRenderContext().GetDevice()->CreateVertexShader(
             vertexBlob_->GetBufferPointer(),
             vertexBlob_->GetBufferSize(),
@@ -123,6 +138,12 @@ void ParticleSystemComponent::Initialize()
             pixelBlob_->GetBufferPointer(),
             pixelBlob_->GetBufferSize(),
             nullptr, &pixelShader_
+        );
+
+        ctx_.GetRenderContext().GetDevice()->CreateGeometryShader(
+            geometryBlob_->GetBufferPointer(),
+            geometryBlob_->GetBufferSize(),
+            nullptr, &geometryShader_
         );
     }
 
@@ -437,7 +458,7 @@ void ParticleSystemComponent::Initialize()
         CD3D11_RASTERIZER_DESC rast
         {
             D3D11_FILL_SOLID,
-            D3D11_CULL_BACK,
+            D3D11_CULL_FRONT,
             TRUE,
             D3D11_DEFAULT_DEPTH_BIAS,
             D3D11_DEFAULT_DEPTH_BIAS_CLAMP,
@@ -542,6 +563,46 @@ void ParticleSystemComponent::Initialize()
         uav.Buffer.Flags = 0;
         ctx_.GetRenderContext().GetDevice()->CreateUnorderedAccessView(indirectSortArgsBuffer_, &uav, &indirectSortArgsBufferUAV_);
     }
+
+    {
+        D3D11_BUFFER_DESC bufferDesc{};
+        bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+        bufferDesc.ByteWidth = MAX_PARTICLE_COUNT * sizeof(NewParticle);
+        bufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
+        bufferDesc.CPUAccessFlags = 0;
+        bufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+        bufferDesc.StructureByteStride = sizeof(NewParticle);
+        std::vector<NewParticle> particles;
+        for (uint32_t i = 0; i < MAX_PARTICLE_COUNT; ++i)
+        {
+            particles.push_back({
+                Vector3((float) rand() / RAND_MAX * 60.0, (float)rand() / RAND_MAX * 60.0, (float)rand() / RAND_MAX * 60.0),
+                Vector3()
+            });
+        }
+        D3D11_SUBRESOURCE_DATA initData{};
+        initData.pSysMem = particles.data();
+        ctx_.GetRenderContext().GetDevice()->CreateBuffer(&bufferDesc, &initData, &particleBuffer_);
+
+        D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc;
+        srv_desc.Format = DXGI_FORMAT_UNKNOWN;
+        srv_desc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+        srv_desc.Buffer.ElementOffset = 0;
+        srv_desc.Buffer.NumElements = MAX_PARTICLE_COUNT;
+
+        ctx_.GetRenderContext().GetDevice()->CreateShaderResourceView(particleBuffer_, &srv_desc, &particleBufferSrv_);
+    }
+
+    {
+        D3D11_DEPTH_STENCIL_DESC depthStencilStateDesc{};
+
+        depthStencilStateDesc.DepthEnable = TRUE;
+        depthStencilStateDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+        depthStencilStateDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+        depthStencilStateDesc.StencilEnable = FALSE;
+
+        ctx_.GetRenderContext().GetDevice()->CreateDepthStencilState(&depthStencilStateDesc, &depthState_);
+    }
 }
 
 void ParticleSystemComponent::Update(float deltaTime)
@@ -554,7 +615,38 @@ void ParticleSystemComponent::Draw()
     ID3D11DepthStencilView* dsv = nullptr;
     ctx_.GetRenderContext().GetContext()->OMGetRenderTargets(1, &rtv, &dsv);
 
-    ctx_.GetRenderContext().GetContext()->OMSetRenderTargets(0, nullptr, nullptr);
+    ctx_.GetRenderContext().GetContext()->VSSetShader(vertexShader_, nullptr, 0);
+    ctx_.GetRenderContext().GetContext()->PSSetShader(pixelShader_, nullptr, 0);
+    ctx_.GetRenderContext().GetContext()->GSSetShader(geometryShader_, nullptr, 0);
+
+
+    ctx_.GetRenderContext().GetContext()->RSSetState(rastState_);
+    ctx_.GetRenderContext().GetContext()->OMSetDepthStencilState(depthState_, 0);
+    ctx_.GetRenderContext().GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+
+    ID3D11ShaderResourceView* vs_srv[] = {
+       particleBufferSrv_
+    };
+
+    ctx_.GetRenderContext().GetContext()->OMSetBlendState(blendState_, nullptr, 0xffffffff);
+
+    DirectX::SimpleMath::Matrix matrices[2] = { camera_->View(), camera_->Projection() };
+
+    UpdateBuffer(viewProjBuffer_, &matrices, 2 * sizeof(DirectX::SimpleMath::Matrix));
+
+    ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(1, 1, &viewProjBuffer_);
+    ctx_.GetRenderContext().GetContext()->VSSetShaderResources(0, ARRAYSIZE(vs_srv), vs_srv);
+
+    ctx_.GetRenderContext().GetContext()->PSSetShaderResources(0, 1, &albedoSrv_);
+    ctx_.GetRenderContext().GetContext()->PSSetSamplers(0, 1, &sampler_);
+
+    ctx_.GetRenderContext().GetContext()->GSSetConstantBuffers(1, 1, &viewProjBuffer_);
+
+    ctx_.GetRenderContext().GetContext()->Draw(MAX_PARTICLE_COUNT, 0);
+
+    ctx_.GetRenderContext().GetContext()->OMSetBlendState(nullptr, nullptr, 0xffffffff);
+    ctx_.GetRenderContext().GetContext()->GSSetShader(nullptr, nullptr, 0);
+    /*ctx_.GetRenderContext().GetContext()->OMSetRenderTargets(0, nullptr, nullptr);
 
     Emit();
 
@@ -594,6 +686,7 @@ void ParticleSystemComponent::Draw()
     ctx_.GetRenderContext().GetContext()->VSSetShaderResources(0, ARRAYSIZE(vs_srv), vs_srv);
 
     ctx_.GetRenderContext().GetContext()->OMSetBlendState(nullptr, nullptr, 0xffffffff);
+    */
 }
 
 void ParticleSystemComponent::Reload()

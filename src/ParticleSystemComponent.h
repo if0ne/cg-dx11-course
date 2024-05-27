@@ -33,6 +33,11 @@ struct Particle
     float distToEye;
 };
 
+struct NewParticle {
+    DirectX::SimpleMath::Vector3 positon;
+    DirectX::SimpleMath::Vector3 velocity;
+};
+
 struct alignas(16) SBCounterS
 {
     alignas(16) UINT deadCounter;
@@ -49,9 +54,11 @@ private:
 
     ID3D11VertexShader* vertexShader_;
     ID3D11PixelShader* pixelShader_;
+    ID3D11GeometryShader* geometryShader_;
 
     ID3DBlob* vertexBlob_;
     ID3DBlob* pixelBlob_;
+    ID3DBlob* geometryBlob_;
 
     ID3D11Buffer* particlePool;
     ID3D11UnorderedAccessView* particlePoolUAV;
@@ -92,6 +99,7 @@ private:
     ID3D11SamplerState* sampler_;
 
     ID3D11RasterizerState* rastState_;
+    ID3D11DepthStencilState* depthState_;
 
     Camera* camera_;
 
@@ -103,6 +111,9 @@ private:
 
     ID3D11Buffer* indirectSortArgsBuffer_;
     ID3D11UnorderedAccessView* indirectSortArgsBufferUAV_;
+
+    ID3D11Buffer* particleBuffer_;
+    ID3D11ShaderResourceView* particleBufferSrv_;
 
     void Sort();
     bool SortInitial(unsigned int maxSize);
