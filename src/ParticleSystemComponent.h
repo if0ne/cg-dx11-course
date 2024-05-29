@@ -8,17 +8,11 @@
 
 class Game;
 
-struct EmitterProperties
+struct alignas(16) EmitterProperties
 {
-    alignas(16) DirectX::SimpleMath::Vector3 position;
-    alignas(16) DirectX::SimpleMath::Vector3 velocity;
-    alignas(16) DirectX::SimpleMath::Vector3 positionVar;
+    DirectX::SimpleMath::Vector3 position;
     int maxNumToEmit;
     float particleLifeSpan;
-    float particleInitRadius;
-    float velocityPosVar;
-    float minVelocity;
-    float maxVelocity;
 };
 
 struct Particle
@@ -33,9 +27,10 @@ struct Particle
     float distToEye;
 };
 
-struct NewParticle {
+struct alignas(16) NewParticle {
     DirectX::SimpleMath::Vector3 positon;
     DirectX::SimpleMath::Vector3 velocity;
+    float age;
 };
 
 struct alignas(16) SBCounterS
@@ -52,6 +47,9 @@ private:
     ID3DBlob* simulateBlobCs_;
     ID3D11ComputeShader* simulateCs_;
 
+    ID3DBlob* resetBlboCs_;
+    ID3D11ComputeShader* resetCs_;
+
     ID3D11VertexShader* vertexShader_;
     ID3D11PixelShader* pixelShader_;
     ID3D11GeometryShader* geometryShader_;
@@ -60,33 +58,11 @@ private:
     ID3DBlob* pixelBlob_;
     ID3DBlob* geometryBlob_;
 
-    ID3D11Buffer* particlePool;
-    ID3D11UnorderedAccessView* particlePoolUAV;
-    ID3D11ShaderResourceView* particlePoolSRV;
-
-    ID3D11Buffer* deadList;
-    ID3D11UnorderedAccessView* deadListUAV;
-
-    ID3D11Buffer* aliveList;
-    ID3D11UnorderedAccessView* aliveListUAV;
-    ID3D11ShaderResourceView* aliveListSRV;
-
-    ID3D11Buffer* indirectDraw;
-    ID3D11UnorderedAccessView* indirectDrawUAV;
-
-    ID3D11Buffer* viewSpacePosnR;
-    ID3D11UnorderedAccessView* viewSpacePosnRUAV;
-    ID3D11ShaderResourceView* viewSpacePosnRSRV;
-
-    ID3D11Buffer* indexBuffer;
-
     ID3D11BlendState* blendState_;
 
     EmitterProperties emitterProps_;
     ID3D11Buffer* emitterBuffer_;
 
-    ID3D11Buffer* deadCounterBuffer_;
-    ID3D11Buffer* aliveCounterBuffer_;
     ID3D11Buffer* frameTimeBuffer_;
     ID3D11Buffer* viewProjBuffer_;
 
@@ -109,11 +85,29 @@ private:
     ID3D11ComputeShader* sortInner512_; 
     ID3D11ComputeShader* sortInitArgs_; 
 
-    ID3D11Buffer* indirectSortArgsBuffer_;
-    ID3D11UnorderedAccessView* indirectSortArgsBufferUAV_;
-
     ID3D11Buffer* particleBuffer_;
     ID3D11ShaderResourceView* particleBufferSrv_;
+    ID3D11UnorderedAccessView* particleBufferUav_;
+
+    ID3D11Buffer* deadBuffer_;
+    ID3D11UnorderedAccessView* deadBufferUav_;
+
+    ID3D11Buffer* aliveBuffer_[2];
+    ID3D11ShaderResourceView* aliveBufferSrv_[2];
+    ID3D11UnorderedAccessView* aliveBufferUav_[2];
+
+    ID3D11UnorderedAccessView* aliveBufferSortingUav_[2];
+
+    ID3D11Buffer* aliveCounterBuffer_;
+    ID3D11Buffer* deadCounterBuffer_;
+
+    ID3D11Buffer* indirectBuffer_[2];
+    ID3D11UnorderedAccessView* indirectBufferUav_[2];
+
+    ID3D11Buffer* indirectDrawBuffer_;
+    ID3D11UnorderedAccessView* indirectDrawBufferUav_;
+
+    int currentAliveBuffer_;
 
     void Sort();
     bool SortInitial(unsigned int maxSize);

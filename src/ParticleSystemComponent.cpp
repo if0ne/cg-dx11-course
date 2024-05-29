@@ -22,15 +22,11 @@ void ParticleSystemComponent::Initialize()
 {
     emitterProps_ = {
         {0.0, 0.0, 0.0},
-        {0.0, 1.0, 0.0},
-        {1.0, 1.0, 1.0},
-        1,
-        2,
-        1,
         10,
-        0.1,
-        2.0
+        5.0f
     };
+
+    currentAliveBuffer_ = 0;
 
     {
         ID3DBlob* errorBlob = nullptr;
@@ -91,6 +87,35 @@ void ParticleSystemComponent::Initialize()
     }
 
     {
+        ID3DBlob* errorBlob = nullptr;
+        HRESULT res = D3DCompileFromFile(L"./shaders/particles/Reset.hlsl",
+            nullptr,
+            D3D_COMPILE_STANDARD_FILE_INCLUDE,
+            "CSMain",
+            "cs_5_0",
+            D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,
+            0,
+            &resetBlboCs_,
+            &errorBlob);
+
+        if (FAILED(res)) {
+            if (errorBlob) {
+                char* compileErrors = (char*)(errorBlob->GetBufferPointer());
+
+                std::cout << compileErrors << std::endl;
+
+                assert(false);
+            }
+        }
+
+
+        ctx_.GetRenderContext().GetDevice()->CreateComputeShader(
+            resetBlboCs_->GetBufferPointer(),
+            resetBlboCs_->GetBufferSize(),
+            nullptr, &resetCs_);
+    }
+
+    {
         D3DCompileFromFile(
             L"./shaders/particles/Render.hlsl",
             nullptr,
@@ -148,172 +173,6 @@ void ParticleSystemComponent::Initialize()
     }
 
     {
-        D3D11_BUFFER_DESC bufferDesc{};
-        bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-        bufferDesc.ByteWidth = MAX_PARTICLE_COUNT * sizeof(Particle);
-        bufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
-        bufferDesc.CPUAccessFlags = 0;
-        bufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-        bufferDesc.StructureByteStride = sizeof(Particle);
-
-        ctx_.GetRenderContext().GetDevice()->CreateBuffer(&bufferDesc, nullptr, &particlePool);
-
-        D3D11_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
-        uav_desc.Format = DXGI_FORMAT_UNKNOWN;
-        uav_desc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
-        uav_desc.Buffer.FirstElement = 0;
-        uav_desc.Buffer.Flags = 0;
-        uav_desc.Buffer.NumElements = MAX_PARTICLE_COUNT;
-        ctx_.GetRenderContext().GetDevice()->CreateUnorderedAccessView(particlePool, &uav_desc, &particlePoolUAV);
-
-        D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc;
-        srv_desc.Format = DXGI_FORMAT_UNKNOWN;
-        srv_desc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
-        srv_desc.Buffer.ElementOffset = 0;
-        srv_desc.Buffer.NumElements = MAX_PARTICLE_COUNT;
-
-        ctx_.GetRenderContext().GetDevice()->CreateShaderResourceView(particlePool, &srv_desc, &particlePoolSRV);
-    }
-
-    {
-        D3D11_BUFFER_DESC bufferDesc{};
-        bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-        bufferDesc.ByteWidth = MAX_PARTICLE_COUNT * sizeof(uint32_t);
-        bufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
-        bufferDesc.CPUAccessFlags = 0;
-        bufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-        bufferDesc.StructureByteStride = sizeof(uint32_t);
-        uint32_t indices[MAX_PARTICLE_COUNT];
-        for (uint32_t i = 0; i < MAX_PARTICLE_COUNT; ++i)
-        {
-            indices[i] = i;
-        }
-        D3D11_SUBRESOURCE_DATA initData{};
-        initData.pSysMem = indices;
-        ctx_.GetRenderContext().GetDevice()->CreateBuffer(&bufferDesc, &initData, &deadList);
-
-        D3D11_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
-        uav_desc.Format = DXGI_FORMAT_UNKNOWN;
-        uav_desc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
-        uav_desc.Buffer.FirstElement = 0;
-        uav_desc.Buffer.Flags = D3D11_BUFFER_UAV_FLAG_APPEND;
-        uav_desc.Buffer.NumElements = MAX_PARTICLE_COUNT;
-        ctx_.GetRenderContext().GetDevice()->CreateUnorderedAccessView(deadList, &uav_desc, &deadListUAV);
-
-        UINT initCounts[1] = { MAX_PARTICLE_COUNT };
-        ctx_.GetRenderContext().GetContext()->CSSetUnorderedAccessViews(1, 1, &deadListUAV, initCounts);
-        ctx_.GetRenderContext().GetContext()->CSSetUnorderedAccessViews(1, 0, nullptr, 0);
-    }
-
-    {
-        struct IndexBufferElement
-        {
-            float distance; 
-            float index;
-        };
-
-        D3D11_BUFFER_DESC buff_desc{};
-        buff_desc.ByteWidth = sizeof(IndexBufferElement) * MAX_PARTICLE_COUNT;
-        buff_desc.Usage = D3D11_USAGE_DEFAULT;
-        buff_desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
-        buff_desc.CPUAccessFlags = 0;
-        buff_desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-        buff_desc.StructureByteStride = sizeof(IndexBufferElement);
-
-        ctx_.GetRenderContext().GetDevice()->CreateBuffer(&buff_desc, nullptr, &aliveList);
-
-        D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc;
-        srv_desc.Format = DXGI_FORMAT_UNKNOWN;
-        srv_desc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
-        srv_desc.Buffer.ElementOffset = 0;
-        srv_desc.Buffer.NumElements = MAX_PARTICLE_COUNT;
-
-        ctx_.GetRenderContext().GetDevice()->CreateShaderResourceView(aliveList, &srv_desc, &aliveListSRV);
-
-        D3D11_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
-        uav_desc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
-        uav_desc.Buffer.Flags = D3D11_BUFFER_UAV_FLAG_COUNTER;
-        uav_desc.Buffer.NumElements = MAX_PARTICLE_COUNT;
-        uav_desc.Format = DXGI_FORMAT_UNKNOWN;
-        ctx_.GetRenderContext().GetDevice()->CreateUnorderedAccessView(aliveList, &uav_desc, &aliveListUAV);
-    }
-
-    {
-        D3D11_BUFFER_DESC buff_desc{};
-        buff_desc.Usage = D3D11_USAGE_DEFAULT;
-        buff_desc.BindFlags = D3D11_BIND_UNORDERED_ACCESS;
-        buff_desc.ByteWidth = 5 * sizeof(UINT);
-        buff_desc.MiscFlags = D3D11_RESOURCE_MISC_DRAWINDIRECT_ARGS;
-        ctx_.GetRenderContext().GetDevice()->CreateBuffer(&buff_desc, nullptr, &indirectDraw);
-
-        D3D11_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
-        uav_desc.Format = DXGI_FORMAT_R32_UINT;
-        uav_desc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
-        uav_desc.Buffer.FirstElement = 0;
-        uav_desc.Buffer.NumElements = 5;
-        uav_desc.Buffer.Flags = 0;
-        ctx_.GetRenderContext().GetDevice()->CreateUnorderedAccessView(indirectDraw, &uav_desc, &indirectDrawUAV);
-    }
-
-    {
-        D3D11_BUFFER_DESC buff_desc{};
-        buff_desc.ByteWidth = sizeof(DirectX::SimpleMath::Vector4) * MAX_PARTICLE_COUNT;
-        buff_desc.Usage = D3D11_USAGE_DEFAULT;
-        buff_desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
-        buff_desc.CPUAccessFlags = 0;
-        buff_desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-        buff_desc.StructureByteStride = sizeof(DirectX::SimpleMath::Vector4);
-
-        ctx_.GetRenderContext().GetDevice()->CreateBuffer(&buff_desc, nullptr, &viewSpacePosnR);
-
-        D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc;
-        srv_desc.Format = DXGI_FORMAT_UNKNOWN;
-        srv_desc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
-        srv_desc.Buffer.ElementOffset = 0;
-        srv_desc.Buffer.NumElements = MAX_PARTICLE_COUNT;
-
-        ctx_.GetRenderContext().GetDevice()->CreateShaderResourceView(viewSpacePosnR, &srv_desc, &viewSpacePosnRSRV);
-
-        D3D11_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
-        uav_desc.Buffer.NumElements = MAX_PARTICLE_COUNT;
-        uav_desc.Buffer.Flags = 0;
-        uav_desc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
-        uav_desc.Format = DXGI_FORMAT_UNKNOWN;
-        ctx_.GetRenderContext().GetDevice()->CreateUnorderedAccessView(viewSpacePosnR, &uav_desc, &viewSpacePosnRUAV);
-    }
-
-    {
-        D3D11_BUFFER_DESC buff_desc{};
-        buff_desc.ByteWidth = MAX_PARTICLE_COUNT * 6 * sizeof(UINT);
-        buff_desc.Usage = D3D11_USAGE_IMMUTABLE;
-        buff_desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-        buff_desc.CPUAccessFlags = 0;
-        buff_desc.MiscFlags = 0;
-        D3D11_SUBRESOURCE_DATA data;
-
-        std::vector<UINT> indices(MAX_PARTICLE_COUNT * 6);
-        data.pSysMem = indices.data();
-        data.SysMemPitch = 0;
-        data.SysMemSlicePitch = 0;
-
-        UINT base = 0;
-        for (int i = 0; i < MAX_PARTICLE_COUNT * 6; i += 6)
-        {
-            indices[i] = base + 0;
-            indices[i + 1] = base + 1;
-            indices[i + 2] = base + 2;
-
-            indices[i + 3] = base + 2;
-            indices[i + 4] = base + 1;
-            indices[i + 5] = base + 3;
-
-            base += 4;
-        }
-
-        ctx_.GetRenderContext().GetDevice()->CreateBuffer(&buff_desc, &data, &indexBuffer);
-    }
-
-    {
         D3D11_BLEND_DESC blendDesc{};
         blendDesc.AlphaToCoverageEnable = false;
         blendDesc.IndependentBlendEnable = false;
@@ -338,30 +197,6 @@ void ParticleSystemComponent::Initialize()
         constBufDesc.ByteWidth = sizeof(EmitterProperties);
 
         ctx_.GetRenderContext().GetDevice()->CreateBuffer(&constBufDesc, nullptr, &emitterBuffer_);
-    }
-
-    {
-        D3D11_BUFFER_DESC constBufDesc = {};
-        constBufDesc.Usage = D3D11_USAGE_DYNAMIC;
-        constBufDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-        constBufDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-        constBufDesc.MiscFlags = 0;
-        constBufDesc.StructureByteStride = 0;
-        constBufDesc.ByteWidth = sizeof(SBCounterS);
-
-        ctx_.GetRenderContext().GetDevice()->CreateBuffer(&constBufDesc, nullptr, &deadCounterBuffer_);
-    }
-
-    {
-        D3D11_BUFFER_DESC constBufDesc = {};
-        constBufDesc.Usage = D3D11_USAGE_DYNAMIC;
-        constBufDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-        constBufDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-        constBufDesc.MiscFlags = 0;
-        constBufDesc.StructureByteStride = 0;
-        constBufDesc.ByteWidth = sizeof(SBCounterS);
-
-        ctx_.GetRenderContext().GetDevice()->CreateBuffer(&constBufDesc, nullptr, &aliveCounterBuffer_);
     }
 
     {
@@ -544,27 +379,6 @@ void ParticleSystemComponent::Initialize()
     }
 
     {
-        D3D11_BUFFER_DESC desc;
-        ZeroMemory(&desc, sizeof(desc));
-        desc.Usage = D3D11_USAGE_DEFAULT;
-        desc.BindFlags = D3D11_BIND_UNORDERED_ACCESS;
-        desc.ByteWidth = 4 * sizeof(UINT);
-        desc.MiscFlags = D3D11_RESOURCE_MISC_DRAWINDIRECT_ARGS;
-        ctx_.GetRenderContext().GetDevice()->CreateBuffer(&desc, nullptr, &indirectSortArgsBuffer_);
-    }
-
-    {
-        D3D11_UNORDERED_ACCESS_VIEW_DESC uav;
-        ZeroMemory(&uav, sizeof(uav));
-        uav.Format = DXGI_FORMAT_R32_UINT;
-        uav.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
-        uav.Buffer.FirstElement = 0;
-        uav.Buffer.NumElements = 4;
-        uav.Buffer.Flags = 0;
-        ctx_.GetRenderContext().GetDevice()->CreateUnorderedAccessView(indirectSortArgsBuffer_, &uav, &indirectSortArgsBufferUAV_);
-    }
-
-    {
         D3D11_BUFFER_DESC bufferDesc{};
         bufferDesc.Usage = D3D11_USAGE_DEFAULT;
         bufferDesc.ByteWidth = MAX_PARTICLE_COUNT * sizeof(NewParticle);
@@ -572,25 +386,127 @@ void ParticleSystemComponent::Initialize()
         bufferDesc.CPUAccessFlags = 0;
         bufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
         bufferDesc.StructureByteStride = sizeof(NewParticle);
-        std::vector<NewParticle> particles;
-        for (uint32_t i = 0; i < MAX_PARTICLE_COUNT; ++i)
-        {
-            particles.push_back({
-                Vector3((float) rand() / RAND_MAX * 60.0, (float)rand() / RAND_MAX * 60.0, (float)rand() / RAND_MAX * 60.0),
-                Vector3()
-            });
-        }
-        D3D11_SUBRESOURCE_DATA initData{};
-        initData.pSysMem = particles.data();
-        ctx_.GetRenderContext().GetDevice()->CreateBuffer(&bufferDesc, &initData, &particleBuffer_);
 
-        D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc;
+        ctx_.GetRenderContext().GetDevice()->CreateBuffer(&bufferDesc, nullptr, &particleBuffer_);
+
+        D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc{};
         srv_desc.Format = DXGI_FORMAT_UNKNOWN;
         srv_desc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
         srv_desc.Buffer.ElementOffset = 0;
         srv_desc.Buffer.NumElements = MAX_PARTICLE_COUNT;
 
         ctx_.GetRenderContext().GetDevice()->CreateShaderResourceView(particleBuffer_, &srv_desc, &particleBufferSrv_);
+
+        D3D11_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
+        uav_desc.Format = DXGI_FORMAT_UNKNOWN;
+        uav_desc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
+        uav_desc.Buffer.FirstElement = 0;
+        uav_desc.Buffer.Flags = 0;
+        uav_desc.Buffer.NumElements = MAX_PARTICLE_COUNT;
+        ctx_.GetRenderContext().GetDevice()->CreateUnorderedAccessView(particleBuffer_, &uav_desc, &particleBufferUav_);
+    }
+
+    {
+        D3D11_BUFFER_DESC bufferDesc{};
+        bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+        bufferDesc.ByteWidth = MAX_PARTICLE_COUNT * sizeof(uint32_t);
+        bufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
+        bufferDesc.CPUAccessFlags = 0;
+        bufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+        bufferDesc.StructureByteStride = sizeof(uint32_t);
+
+        ctx_.GetRenderContext().GetDevice()->CreateBuffer(&bufferDesc, nullptr, &deadBuffer_);
+
+        D3D11_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
+        uav_desc.Format = DXGI_FORMAT_UNKNOWN;
+        uav_desc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
+        uav_desc.Buffer.FirstElement = 0;
+        uav_desc.Buffer.Flags = D3D11_BUFFER_UAV_FLAG_APPEND;
+        uav_desc.Buffer.NumElements = MAX_PARTICLE_COUNT;
+        ctx_.GetRenderContext().GetDevice()->CreateUnorderedAccessView(deadBuffer_, &uav_desc, &deadBufferUav_);
+    }
+
+    {
+        struct ParticleIndexElement
+        {
+            float distance;
+            float index;
+        };
+
+        D3D11_BUFFER_DESC aliveIndexBufferDesc{};
+        aliveIndexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+        aliveIndexBufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
+        aliveIndexBufferDesc.CPUAccessFlags = 0;
+        aliveIndexBufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+        aliveIndexBufferDesc.ByteWidth = sizeof(ParticleIndexElement) * MAX_PARTICLE_COUNT;
+        aliveIndexBufferDesc.StructureByteStride = sizeof(ParticleIndexElement);
+
+        ctx_.GetRenderContext().GetDevice()->CreateBuffer(&aliveIndexBufferDesc, nullptr, &aliveBuffer_[0]);
+        ctx_.GetRenderContext().GetDevice()->CreateBuffer(&aliveIndexBufferDesc, nullptr, &aliveBuffer_[1]);
+
+        D3D11_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
+        uav_desc.Format = DXGI_FORMAT_UNKNOWN;
+        uav_desc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
+        uav_desc.Buffer.FirstElement = 0;
+        uav_desc.Buffer.Flags = D3D11_BUFFER_UAV_FLAG_APPEND;
+        uav_desc.Buffer.NumElements = MAX_PARTICLE_COUNT;
+        ctx_.GetRenderContext().GetDevice()->CreateUnorderedAccessView(aliveBuffer_[0], &uav_desc, &aliveBufferUav_[0]);
+        ctx_.GetRenderContext().GetDevice()->CreateUnorderedAccessView(aliveBuffer_[1], &uav_desc, &aliveBufferUav_[1]);
+
+        D3D11_SHADER_RESOURCE_VIEW_DESC aliveIndexSRVDesc{};
+        aliveIndexSRVDesc.Format = DXGI_FORMAT_UNKNOWN;
+        aliveIndexSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+        aliveIndexSRVDesc.Buffer.ElementOffset = 0;
+        aliveIndexSRVDesc.Buffer.NumElements = MAX_PARTICLE_COUNT;
+
+        ctx_.GetRenderContext().GetDevice()->CreateShaderResourceView(aliveBuffer_[0], &aliveIndexSRVDesc, &aliveBufferSrv_[0]);
+        ctx_.GetRenderContext().GetDevice()->CreateShaderResourceView(aliveBuffer_[1], &aliveIndexSRVDesc, &aliveBufferSrv_[1]);
+
+        uav_desc.Buffer.Flags = 0;
+        ctx_.GetRenderContext().GetDevice()->CreateUnorderedAccessView(aliveBuffer_[0], &uav_desc, &aliveBufferSortingUav_[0]);
+        ctx_.GetRenderContext().GetDevice()->CreateUnorderedAccessView(aliveBuffer_[1], &uav_desc, &aliveBufferSortingUav_[1]);
+    }
+
+    {
+        struct DeadListCountConstantBuffer
+        {
+            UINT nbDeadParticles;
+
+            UINT padding[3];
+        };
+
+        D3D11_BUFFER_DESC desc{};  
+        desc.Usage = D3D11_USAGE_DYNAMIC;
+        desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+        desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+        desc.MiscFlags = 0;
+        desc.StructureByteStride = 0;
+        desc.ByteWidth = sizeof(DeadListCountConstantBuffer);
+
+        ctx_.GetRenderContext().GetDevice()->CreateBuffer(&desc, nullptr, &deadCounterBuffer_);
+        ctx_.GetRenderContext().GetDevice()->CreateBuffer(&desc, nullptr, &aliveCounterBuffer_);
+    }
+
+    {
+        D3D11_BUFFER_DESC desc{};
+        ZeroMemory(&desc, sizeof(desc));
+        desc.Usage = D3D11_USAGE_DEFAULT;
+        desc.BindFlags = D3D11_BIND_UNORDERED_ACCESS;
+        desc.ByteWidth = 3 * sizeof(UINT);
+        desc.MiscFlags = D3D11_RESOURCE_MISC_DRAWINDIRECT_ARGS;
+
+        ctx_.GetRenderContext().GetDevice()->CreateBuffer(&desc, nullptr, &indirectBuffer_[0]);
+        ctx_.GetRenderContext().GetDevice()->CreateBuffer(&desc, nullptr, &indirectBuffer_[1]);
+
+        D3D11_UNORDERED_ACCESS_VIEW_DESC indirectDispatchArgsUAVDesc{};
+        indirectDispatchArgsUAVDesc.Format = DXGI_FORMAT_R32_UINT;
+        indirectDispatchArgsUAVDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
+        indirectDispatchArgsUAVDesc.Buffer.FirstElement = 0;
+        indirectDispatchArgsUAVDesc.Buffer.NumElements = 3;
+        indirectDispatchArgsUAVDesc.Buffer.Flags = 0;
+
+        ctx_.GetRenderContext().GetDevice()->CreateUnorderedAccessView(indirectBuffer_[0], &indirectDispatchArgsUAVDesc, &indirectBufferUav_[0]);
+        ctx_.GetRenderContext().GetDevice()->CreateUnorderedAccessView(indirectBuffer_[1], &indirectDispatchArgsUAVDesc, &indirectBufferUav_[1]);
     }
 
     {
@@ -603,6 +519,27 @@ void ParticleSystemComponent::Initialize()
 
         ctx_.GetRenderContext().GetDevice()->CreateDepthStencilState(&depthStencilStateDesc, &depthState_);
     }
+
+    {
+        D3D11_BUFFER_DESC indirectDrawArgsBuffer{};
+        indirectDrawArgsBuffer.Usage = D3D11_USAGE_DEFAULT;
+        indirectDrawArgsBuffer.BindFlags = D3D11_BIND_UNORDERED_ACCESS;
+        indirectDrawArgsBuffer.ByteWidth = 5 * sizeof(UINT);
+        indirectDrawArgsBuffer.MiscFlags = D3D11_RESOURCE_MISC_DRAWINDIRECT_ARGS;
+
+        ctx_.GetRenderContext().GetDevice()->CreateBuffer(&indirectDrawArgsBuffer, nullptr, &indirectDrawBuffer_);
+
+        D3D11_UNORDERED_ACCESS_VIEW_DESC indirectDrawArgsUAVDesc{};
+        indirectDrawArgsUAVDesc.Format = DXGI_FORMAT_R32_UINT;
+        indirectDrawArgsUAVDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
+        indirectDrawArgsUAVDesc.Buffer.FirstElement = 0;
+        indirectDrawArgsUAVDesc.Buffer.NumElements = 5;
+        indirectDrawArgsUAVDesc.Buffer.Flags = 0;
+
+        ctx_.GetRenderContext().GetDevice()->CreateUnorderedAccessView(indirectDrawBuffer_, &indirectDrawArgsUAVDesc, &indirectDrawBufferUav_);
+    }
+
+    Reload();
 }
 
 void ParticleSystemComponent::Update(float deltaTime)
@@ -614,19 +551,27 @@ void ParticleSystemComponent::Draw()
     ID3D11RenderTargetView* rtv = nullptr;
     ID3D11DepthStencilView* dsv = nullptr;
     ctx_.GetRenderContext().GetContext()->OMGetRenderTargets(1, &rtv, &dsv);
+    ctx_.GetRenderContext().GetContext()->OMSetRenderTargets(0, nullptr, nullptr);
+
+    Emit();
+    Simulate();
+
+    ctx_.GetRenderContext().GetContext()->OMSetRenderTargets(1, &rtv, dsv);
 
     ctx_.GetRenderContext().GetContext()->VSSetShader(vertexShader_, nullptr, 0);
     ctx_.GetRenderContext().GetContext()->PSSetShader(pixelShader_, nullptr, 0);
     ctx_.GetRenderContext().GetContext()->GSSetShader(geometryShader_, nullptr, 0);
 
-
     ctx_.GetRenderContext().GetContext()->RSSetState(rastState_);
     ctx_.GetRenderContext().GetContext()->OMSetDepthStencilState(depthState_, 0);
-    ctx_.GetRenderContext().GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 
-    ID3D11ShaderResourceView* vs_srv[] = {
-       particleBufferSrv_
-    };
+    ID3D11Buffer* nullVertexBuffer = nullptr;
+    UINT stride = 0;
+    UINT offset = 0;
+    ctx_.GetRenderContext().GetContext()->IASetVertexBuffers(0, 1, &nullVertexBuffer, &stride, &offset);
+    ctx_.GetRenderContext().GetContext()->IASetIndexBuffer(nullptr, DXGI_FORMAT_UNKNOWN, 0);
+
+    ctx_.GetRenderContext().GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 
     ctx_.GetRenderContext().GetContext()->OMSetBlendState(blendState_, nullptr, 0xffffffff);
 
@@ -635,62 +580,32 @@ void ParticleSystemComponent::Draw()
     UpdateBuffer(viewProjBuffer_, &matrices, 2 * sizeof(DirectX::SimpleMath::Matrix));
 
     ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(1, 1, &viewProjBuffer_);
-    ctx_.GetRenderContext().GetContext()->VSSetShaderResources(0, ARRAYSIZE(vs_srv), vs_srv);
+    ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(3, 1, &aliveCounterBuffer_);
+
+    ctx_.GetRenderContext().GetContext()->VSSetShaderResources(3, 1, &particleBufferSrv_);
+    ctx_.GetRenderContext().GetContext()->VSSetShaderResources(4, 1, &aliveBufferSrv_[currentAliveBuffer_]);
 
     ctx_.GetRenderContext().GetContext()->PSSetShaderResources(0, 1, &albedoSrv_);
     ctx_.GetRenderContext().GetContext()->PSSetSamplers(0, 1, &sampler_);
 
     ctx_.GetRenderContext().GetContext()->GSSetConstantBuffers(1, 1, &viewProjBuffer_);
 
-    ctx_.GetRenderContext().GetContext()->Draw(MAX_PARTICLE_COUNT, 0);
+    ctx_.GetRenderContext().GetContext()->DrawInstancedIndirect(indirectDrawBuffer_, 0);
+    //ctx_.GetRenderContext().GetContext()->Draw(MAX_PARTICLE_COUNT, 0);
 
     ctx_.GetRenderContext().GetContext()->OMSetBlendState(nullptr, nullptr, 0xffffffff);
     ctx_.GetRenderContext().GetContext()->GSSetShader(nullptr, nullptr, 0);
-    /*ctx_.GetRenderContext().GetContext()->OMSetRenderTargets(0, nullptr, nullptr);
-
-    Emit();
-
-    Simulate();
-
-    ctx_.GetRenderContext().GetContext()->OMSetRenderTargets(1, &rtv, dsv);
-    ctx_.GetRenderContext().GetContext()->CopyStructureCount(aliveCounterBuffer_, 0, aliveListUAV);
-
-    Sort();
-
-    ctx_.GetRenderContext().GetContext()->VSSetShader(vertexShader_, nullptr, 0);
-    ctx_.GetRenderContext().GetContext()->PSSetShader(pixelShader_, nullptr, 0);
-
-    ID3D11ShaderResourceView* vs_srv[] = {
-        particlePoolSRV, viewSpacePosnRSRV, aliveListSRV
-    };
-
-    ID3D11Buffer* vb = nullptr;
-    UINT stride = 0;
-    UINT offset = 0;
-
-    ctx_.GetRenderContext().GetContext()->IASetVertexBuffers(0, 1, &vb, &stride, &offset);
-    ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(0, 1, &aliveCounterBuffer_);
-    ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(1, 1, &viewProjBuffer_);
-    ctx_.GetRenderContext().GetContext()->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
-    ctx_.GetRenderContext().GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-    ctx_.GetRenderContext().GetContext()->VSSetShaderResources(0, ARRAYSIZE(vs_srv), vs_srv);
-
-    ctx_.GetRenderContext().GetContext()->PSSetShaderResources(0, 1, &albedoSrv_);
-    ctx_.GetRenderContext().GetContext()->PSSetSamplers(0, 1, &sampler_);
-    ctx_.GetRenderContext().GetContext()->RSSetState(rastState_);
-    ctx_.GetRenderContext().GetContext()->OMSetBlendState(blendState_, nullptr, 0xffffffff);
-    ctx_.GetRenderContext().GetContext()->DrawIndexedInstancedIndirect(indirectDraw, 0);
-
-    ZeroMemory(vs_srv, sizeof(vs_srv));
-    ctx_.GetRenderContext().GetContext()->VSSetShaderResources(0, ARRAYSIZE(vs_srv), vs_srv);
-
-    ctx_.GetRenderContext().GetContext()->OMSetBlendState(nullptr, nullptr, 0xffffffff);
-    */
 }
 
 void ParticleSystemComponent::Reload()
 {
+    UINT initialCount[] = { 0 };
+    ctx_.GetRenderContext().GetContext()->CSSetUnorderedAccessViews(0, 1, &deadBufferUav_, initialCount);
+    ctx_.GetRenderContext().GetContext()->CSSetUnorderedAccessViews(1, 1, &particleBufferUav_, initialCount);
+    ctx_.GetRenderContext().GetContext()->CSSetUnorderedAccessViews(2, 1, &indirectBufferUav_[0], initialCount);
+    int numThreadGroups = align(emitterProps_.maxNumToEmit, 256) / 256;
+    ctx_.GetRenderContext().GetContext()->CSSetShader(resetCs_, nullptr, 0);
+    ctx_.GetRenderContext().GetContext()->Dispatch(numThreadGroups, 1, 1);
 }
 
 void ParticleSystemComponent::DestroyResources()
@@ -699,7 +614,7 @@ void ParticleSystemComponent::DestroyResources()
 
 void ParticleSystemComponent::Sort()
 {
-    ID3D11UnorderedAccessView* prevUAV = nullptr;
+    /*ID3D11UnorderedAccessView* prevUAV = nullptr;
     ctx_.GetRenderContext().GetContext()->CSGetUnorderedAccessViews(0, 1, &prevUAV);
 
     ID3D11Buffer* prevCBs[] = { nullptr, nullptr };
@@ -708,7 +623,7 @@ void ParticleSystemComponent::Sort()
     ID3D11Buffer* cbs[] = { aliveCounterBuffer_, dispatchInfoBuffer_ };
     ctx_.GetRenderContext().GetContext()->CSSetConstantBuffers(0, ARRAYSIZE(cbs), cbs);
 
-    ctx_.GetRenderContext().GetContext()->CSSetUnorderedAccessViews(0, 1, &indirectSortArgsBufferUAV_, nullptr);
+    //ctx_.GetRenderContext().GetContext()->CSSetUnorderedAccessViews(0, 1, &indirectSortArgsBufferUAV_, nullptr);
 
     ctx_.GetRenderContext().GetContext()->CSSetShader(sortInitArgs_, nullptr, 0);
     ctx_.GetRenderContext().GetContext()->Dispatch(1, 1, 1);
@@ -733,13 +648,13 @@ void ParticleSystemComponent::Sort()
 
     for (size_t i = 0; i < ARRAYSIZE(prevCBs); i++)
         if (prevCBs[i])
-            prevCBs[i]->Release();
+            prevCBs[i]->Release();*/
 }
 
 void ParticleSystemComponent::Emit()
 {
-    ID3D11UnorderedAccessView* uavs[] = { particlePoolUAV, deadListUAV };
-    UINT initialCounts[] = { (UINT)-1, (UINT)-1 };
+    ID3D11UnorderedAccessView* uavs[] = { particleBufferUav_, deadBufferUav_, aliveBufferUav_[currentAliveBuffer_], indirectBufferUav_[currentAliveBuffer_] };
+    UINT initialCounts[] = { (UINT)-1, (UINT)-1, (UINT)-1, (UINT)-1 };
     ctx_.GetRenderContext().GetContext()->CSSetUnorderedAccessViews(0, std::size(uavs), uavs, initialCounts);
 
     ID3D11Buffer* buffers[] = { frameTimeBuffer_, emitterBuffer_, deadCounterBuffer_, viewProjBuffer_ };
@@ -757,7 +672,7 @@ void ParticleSystemComponent::Emit()
 
     ctx_.GetRenderContext().GetContext()->CSSetShader(emitCs_, nullptr, 0);
 
-    ctx_.GetRenderContext().GetContext()->CopyStructureCount(deadCounterBuffer_, 0, deadListUAV);
+    ctx_.GetRenderContext().GetContext()->CopyStructureCount(deadCounterBuffer_, 0, deadBufferUav_);
 
     int numThreadGroups = align(emitterProps_.maxNumToEmit, X_NUMTHREADS) / X_NUMTHREADS;
     ctx_.GetRenderContext().GetContext()->Dispatch(numThreadGroups, 1, 1);
@@ -765,19 +680,33 @@ void ParticleSystemComponent::Emit()
 
 void ParticleSystemComponent::Simulate()
 {
-    ID3D11UnorderedAccessView* uavs[] = {
-                particlePoolUAV, deadListUAV, aliveListUAV, viewSpacePosnRUAV, indirectDrawUAV
-    };
+    ctx_.GetRenderContext().GetContext()->CopyStructureCount(aliveCounterBuffer_, 0, aliveBufferUav_[currentAliveBuffer_]);
 
-    UINT initialCounts[] = { (UINT)-1, (UINT)-1, 0, (UINT)-1, (UINT)-1 };
+    UINT initialCount[] = { (UINT)-1 };
 
-    ctx_.GetRenderContext().GetContext()->CSSetUnorderedAccessViews(0, ARRAYSIZE(uavs), uavs, initialCounts);
+    ctx_.GetRenderContext().GetContext()->CSSetUnorderedAccessViews(0, 1, &indirectDrawBufferUav_, initialCount);
+    ctx_.GetRenderContext().GetContext()->CSSetUnorderedAccessViews(2, 1, &deadBufferUav_, initialCount);
+    ctx_.GetRenderContext().GetContext()->CSSetUnorderedAccessViews(3, 1, &particleBufferUav_, initialCount);
+    ctx_.GetRenderContext().GetContext()->CSSetUnorderedAccessViews(4, 1, &aliveBufferUav_[currentAliveBuffer_], initialCount);
+    ctx_.GetRenderContext().GetContext()->CSSetUnorderedAccessViews(5, 1, &indirectBufferUav_[(currentAliveBuffer_ + 1) % 2], initialCount);
+
+    initialCount[0] = 0;
+    ctx_.GetRenderContext().GetContext()->CSSetUnorderedAccessViews(1, 1, &aliveBufferUav_[(currentAliveBuffer_ + 1) % 2], initialCount);
+
+    currentAliveBuffer_ = (currentAliveBuffer_ + 1) % 2;
 
     ctx_.GetRenderContext().GetContext()->CSSetShader(simulateCs_, nullptr, 0);
     ctx_.GetRenderContext().GetContext()->Dispatch(align(MAX_PARTICLE_COUNT, 256) / 256, 1, 1);
 
-    ZeroMemory(uavs, sizeof(uavs));
-    ctx_.GetRenderContext().GetContext()->CSSetUnorderedAccessViews(0, ARRAYSIZE(uavs), uavs, nullptr);
+    ctx_.GetRenderContext().GetContext()->CopyStructureCount(aliveCounterBuffer_, 0, aliveBufferUav_[(currentAliveBuffer_ + 1) % 2]);
+
+    ID3D11UnorderedAccessView* const ruav[1] = { nullptr };
+    ctx_.GetRenderContext().GetContext()->CSSetUnorderedAccessViews(0, 1, ruav, nullptr);
+    ctx_.GetRenderContext().GetContext()->CSSetUnorderedAccessViews(1, 1, ruav, nullptr);
+    ctx_.GetRenderContext().GetContext()->CSSetUnorderedAccessViews(2, 1, ruav, nullptr);
+    ctx_.GetRenderContext().GetContext()->CSSetUnorderedAccessViews(3, 1, ruav, nullptr);
+    ctx_.GetRenderContext().GetContext()->CSSetUnorderedAccessViews(4, 1, ruav, nullptr);
+    ctx_.GetRenderContext().GetContext()->CSSetUnorderedAccessViews(5, 1, ruav, nullptr);
 }
 
 void ParticleSystemComponent::UpdateBuffer(ID3D11Buffer* buffer, void* data, size_t size) {
@@ -797,7 +726,7 @@ bool ParticleSystemComponent::SortInitial(unsigned int maxSize)
     if (numThreadGroups > 1) bDone = false;
 
     ctx_.GetRenderContext().GetContext()->CSSetShader(sort512_, nullptr, 0);
-    ctx_.GetRenderContext().GetContext()->DispatchIndirect(indirectSortArgsBuffer_, 0);
+    //ctx_.GetRenderContext().GetContext()->DispatchIndirect(indirectSortArgsBuffer_, 0);
 
     return bDone;
 }

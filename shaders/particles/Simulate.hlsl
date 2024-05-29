@@ -1,24 +1,23 @@
 struct Particle
 {
     float3 positon;
+    float _pad1;
     float3 velocity;
-    float3 color;
-    float rotation;
     float age;
-    float radius;
-    float maxLife;
-    float distToEye;
 };
 
-RWStructuredBuffer<Particle> g_ParticleBuffer : register(u0);
+struct ParticleIndexElement
+{
+    float distance;
+    float index;
+};
 
-AppendStructuredBuffer<uint> g_DeadListToAddTo : register(u1);
-
-RWStructuredBuffer<float2> g_IndexBuffer : register(u2);
-
-RWStructuredBuffer<float4> g_ViewSpacePositions : register(u3);
-
-RWBuffer<uint> g_DrawArgs : register(u4);
+RWBuffer<uint> indirectDrawArgs : register(u0);
+AppendStructuredBuffer<ParticleIndexElement> aliveParticleIndex : register(u1);
+AppendStructuredBuffer<uint> deadParticleIndex : register(u2);
+RWStructuredBuffer<Particle> particleList : register(u3);
+ConsumeStructuredBuffer<ParticleIndexElement> aliveParticleIndexIn : register(u4);
+RWBuffer<uint> indirectDispatchArgs : register(u5);
 
 cbuffer FrameTimeCB : register(b0)
 {
@@ -36,16 +35,21 @@ void CSMain(uint3 id : SV_DispatchThreadID)
 {
     if (id.x == 0)
     {
-        g_DrawArgs[0] = 0;
-        g_DrawArgs[1] = 1;
-        g_DrawArgs[2] = 0;
-        g_DrawArgs[3] = 0;
-        g_DrawArgs[4] = 0;
+        indirectDrawArgs[0] = 0;
+        indirectDrawArgs[1] = 1;
+        indirectDrawArgs[2] = 0;
+        indirectDrawArgs[3] = 0;
+        indirectDrawArgs[4] = 0;
+
+        indirectDispatchArgs[0] = 0;
+        indirectDispatchArgs[1] = 1;
+        indirectDispatchArgs[2] = 1;
     }
 
     GroupMemoryBarrierWithGroupSync();
 
-    Particle particle = g_ParticleBuffer[id.x];
+    ParticleIndexElement index = aliveParticleIndexIn.Consume();
+    Particle particle = particleList[index.index];
 	
     if (particle.age > 0.0f)
     {
@@ -53,42 +57,26 @@ void CSMain(uint3 id : SV_DispatchThreadID)
 
         float3 vNewPosition = particle.positon;
 
-        float fScaledLife = 1.0 - saturate(particle.age / particle.maxLife);
-		
-        float radius = particle.radius;
-		
-        bool killParticle = false;
-
         vNewPosition = particle.positon + (particle.velocity * g_frameTime.x);
         
         particle.positon = vNewPosition;
-        
-        float3 vec = mul(float4(vNewPosition, 1), View);
-        particle.distToEye = abs(vec.z);
 
-        float4 viewSpacePositionAndRadius;
-
-        viewSpacePositionAndRadius.xyz = mul(float4(vNewPosition, 1), View).xyz;
-        viewSpacePositionAndRadius.w = radius;
-
-        g_ViewSpacePositions[id.x] = viewSpacePositionAndRadius;
-
-        if (particle.age <= 0.0f || killParticle)
+        if (particle.age <= 0.0f)
         {
             particle.age = -1;
-            particle.color = float3(0.0f, 0.0f, 0.0f);
-            particle.distToEye = 100000;
-            g_DeadListToAddTo.Append(id.x);
+            index.distance = 100000;
+            deadParticleIndex.Append(index.index);
         }
         else
         {
-            uint index = g_IndexBuffer.IncrementCounter();
-            g_IndexBuffer[index] = float2(particle.distToEye, (float) id.x);
+            float3 vec = mul(float4(vNewPosition, 1), View);
+            index.distance = abs(vec.z);
+            aliveParticleIndex.Append(index);
 			
-            uint dstIdx = 0;
-            InterlockedAdd(g_DrawArgs[0], 6, dstIdx);
+            InterlockedAdd(indirectDrawArgs[0], 1);
+            InterlockedAdd(indirectDispatchArgs[0], 1);
         }
     }
 
-    g_ParticleBuffer[id.x] = particle;
+    particleList[index.index] = particle;
 }
