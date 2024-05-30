@@ -669,16 +669,15 @@ void ParticleSystemComponent::Simulate()
     ctx_.GetRenderContext().GetContext()->CopyStructureCount(aliveCounterBuffer_, 0, aliveBufferUav_);
 
     UINT initialCount[] = { (UINT)-1 };
+    UINT aliveInitialCount[] = { 0 };
 
     ctx_.GetRenderContext().GetContext()->CSSetUnorderedAccessViews(0, 1, &particleBufferUav_, initialCount);
     ctx_.GetRenderContext().GetContext()->CSSetUnorderedAccessViews(1, 1, &deadBufferUav_, initialCount);
-    ctx_.GetRenderContext().GetContext()->CSSetUnorderedAccessViews(2, 1, &aliveBufferUav_, initialCount);
+    ctx_.GetRenderContext().GetContext()->CSSetUnorderedAccessViews(2, 1, &aliveBufferUav_, aliveInitialCount);
     ctx_.GetRenderContext().GetContext()->CSSetUnorderedAccessViews(3, 1, &indirectDrawBufferUav_, initialCount);
 
     ctx_.GetRenderContext().GetContext()->CSSetShader(simulateCs_, nullptr, 0);
     ctx_.GetRenderContext().GetContext()->Dispatch(align(MAX_PARTICLE_COUNT, 256) / 256, 1, 1);
-
-    ctx_.GetRenderContext().GetContext()->CopyStructureCount(aliveCounterBuffer_, 0, aliveBufferUav_);
 
     ID3D11UnorderedAccessView* const ruav[1] = { nullptr };
     ctx_.GetRenderContext().GetContext()->CSSetUnorderedAccessViews(0, 1, ruav, nullptr);
