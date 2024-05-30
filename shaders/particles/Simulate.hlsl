@@ -12,12 +12,10 @@ struct ParticleIndexElement
     float index;
 };
 
-RWBuffer<uint> indirectDrawArgs : register(u0);
-AppendStructuredBuffer<ParticleIndexElement> aliveParticleIndex : register(u1);
-AppendStructuredBuffer<uint> deadParticleIndex : register(u2);
-RWStructuredBuffer<Particle> particleList : register(u3);
-ConsumeStructuredBuffer<ParticleIndexElement> aliveParticleIndexIn : register(u4);
-RWBuffer<uint> indirectDispatchArgs : register(u5);
+RWStructuredBuffer<Particle> particleList : register(u0);
+AppendStructuredBuffer<uint> deadParticleIndex : register(u1);
+RWStructuredBuffer<ParticleIndexElement> indexBuffer : register(u2);
+RWBuffer<uint> indirectDrawArgs : register(u3);
 
 cbuffer FrameTimeCB : register(b0)
 {
@@ -40,16 +38,11 @@ void CSMain(uint3 id : SV_DispatchThreadID)
         indirectDrawArgs[2] = 0;
         indirectDrawArgs[3] = 0;
         indirectDrawArgs[4] = 0;
-
-        indirectDispatchArgs[0] = 0;
-        indirectDispatchArgs[1] = 1;
-        indirectDispatchArgs[2] = 1;
     }
 
     GroupMemoryBarrierWithGroupSync();
 
-    ParticleIndexElement index = aliveParticleIndexIn.Consume();
-    Particle particle = particleList[index.index];
+    Particle particle = particleList[id.x];
 	
     if (particle.age > 0.0f)
     {
@@ -64,19 +57,18 @@ void CSMain(uint3 id : SV_DispatchThreadID)
         if (particle.age <= 0.0f)
         {
             particle.age = -1;
-            index.distance = 100000;
-            deadParticleIndex.Append(index.index);
+            deadParticleIndex.Append(id.x);
         }
         else
         {
             float3 vec = mul(float4(vNewPosition, 1), View);
-            index.distance = abs(vec.z);
-            aliveParticleIndex.Append(index);
+            uint index = indexBuffer.IncrementCounter();
+            indexBuffer[index].distance = abs(vec.z);
+            indexBuffer[index].index = (float) id.x;
 			
             InterlockedAdd(indirectDrawArgs[0], 1);
-            InterlockedAdd(indirectDispatchArgs[0], 1);
         }
     }
 
-    particleList[index.index] = particle;
+    particleList[id.x] = particle;
 }

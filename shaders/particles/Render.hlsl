@@ -12,8 +12,8 @@ struct ParticleIndexElement
     float index;
 };
 
-StructuredBuffer<Particle> Particles : register(t3);
-StructuredBuffer<ParticleIndexElement> aliveParticlesIndex : register(t4);
+StructuredBuffer<Particle> particles : register(t0);
+StructuredBuffer<ParticleIndexElement> indexBuffer : register(t1);
 
 cbuffer Params : register(b1)
 {
@@ -23,7 +23,7 @@ cbuffer Params : register(b1)
 
 cbuffer aliveListCountConstantBuffer : register(b3)
 {
-    uint nbAliveParticles;
+    uint aliveNumParticles;
     uint3 aliveListPadding;
 };
 
@@ -47,9 +47,9 @@ PixelInput VSMain(VertexInput input)
 {
     PixelInput output = (PixelInput) 0;
 
-    uint index = aliveParticlesIndex[nbAliveParticles - input.VertexID - 1].index;
+    uint index = indexBuffer[aliveNumParticles - input.VertexID - 1].index;
     
-    Particle particle = Particles[index];
+    Particle particle = particles[index];
 
     float4 worldPosition = float4(particle.positon, 1);
     float4 viewPosition = mul(worldPosition, View);

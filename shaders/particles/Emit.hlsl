@@ -13,12 +13,6 @@ struct EmitterProperties
     float particleLifeSpan;
 };
 
-struct ParticleIndexElement
-{
-    float distance;
-    float index;
-};
-
 cbuffer FrameTimeCB : register(b0)
 {
     float4 g_frameTime;
@@ -31,14 +25,8 @@ cbuffer EmitterConstantBuffer : register(b1)
 
 cbuffer DeadListCount : register(b2)
 {
-    uint g_NumDeadParticles;
+    uint deadNumParticles;
     uint3 DeadListCount_pad;
-};
-
-cbuffer AliveListCount : register(b3)
-{
-    uint g_NumAliveParticles;
-    uint3 AliveListCount_pad;
 };
 
 Texture2D g_RandomBuffer : register(t0);
@@ -46,13 +34,11 @@ SamplerState g_samWrapLinear : register(s0);
 
 RWStructuredBuffer<Particle> particleBuffer : register(u0);
 ConsumeStructuredBuffer<uint> deadListBuffer : register(u1);
-AppendStructuredBuffer<ParticleIndexElement> aliveParticleIndex : register(u2);
-RWBuffer<uint> indirectDispatchArgs : register(u3);
 
 [numthreads(1024, 1, 1)]
 void CSMain(uint3 DTid : SV_DispatchThreadID)
 {
-    if (DTid.x < g_NumDeadParticles && DTid.x < emitterProp.maxNumToEmit)
+    if (DTid.x < deadNumParticles && DTid.x < emitterProp.maxNumToEmit)
     {
         Particle particle = (Particle) 0;
 
@@ -69,12 +55,5 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
         uint index = deadListBuffer.Consume();
 
         particleBuffer[index] = particle;
-        
-        ParticleIndexElement pe;
-        pe.index = index;
-        pe.distance = 0;
-        aliveParticleIndex.Append(pe);
-
-        InterlockedAdd(indirectDispatchArgs[0], 1);
     }
 }

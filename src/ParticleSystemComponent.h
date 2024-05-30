@@ -15,19 +15,7 @@ struct alignas(16) EmitterProperties
     float particleLifeSpan;
 };
 
-struct Particle
-{
-    DirectX::SimpleMath::Vector3 positon;
-    DirectX::SimpleMath::Vector3 velocity;
-    DirectX::SimpleMath::Vector3 color;
-    float rotation;
-    float age;
-    float radius;
-    float maxLife;
-    float distToEye;
-};
-
-struct alignas(16) NewParticle {
+struct alignas(16) Particle {
     DirectX::SimpleMath::Vector3 positon;
     DirectX::SimpleMath::Vector3 velocity;
     float age;
@@ -92,22 +80,18 @@ private:
     ID3D11Buffer* deadBuffer_;
     ID3D11UnorderedAccessView* deadBufferUav_;
 
-    ID3D11Buffer* aliveBuffer_[2];
-    ID3D11ShaderResourceView* aliveBufferSrv_[2];
-    ID3D11UnorderedAccessView* aliveBufferUav_[2];
-
-    ID3D11UnorderedAccessView* aliveBufferSortingUav_[2];
+    ID3D11Buffer* aliveBuffer_;
+    ID3D11ShaderResourceView* aliveBufferSrv_;
+    ID3D11UnorderedAccessView* aliveBufferUav_;
 
     ID3D11Buffer* aliveCounterBuffer_;
     ID3D11Buffer* deadCounterBuffer_;
 
-    ID3D11Buffer* indirectBuffer_[2];
-    ID3D11UnorderedAccessView* indirectBufferUav_[2];
-
     ID3D11Buffer* indirectDrawBuffer_;
     ID3D11UnorderedAccessView* indirectDrawBufferUav_;
 
-    int currentAliveBuffer_;
+    ID3D11Buffer* indirectSortArgsBuffer_;
+    ID3D11UnorderedAccessView* indirectSortArgsBufferUav_;
 
     void Sort();
     bool SortInitial(unsigned int maxSize);
