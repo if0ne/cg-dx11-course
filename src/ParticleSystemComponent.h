@@ -19,6 +19,7 @@ struct alignas(16) Particle {
     DirectX::SimpleMath::Vector3 positon;
     DirectX::SimpleMath::Vector3 velocity;
     float age;
+    DirectX::SimpleMath::Vector4 color;
 };
 
 struct alignas(16) SBCounterS

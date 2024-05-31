@@ -4,6 +4,7 @@ struct Particle
     float _pad1;
     float3 velocity;
     float age;
+    float4 color;
 };
 
 struct ParticleIndexElement
@@ -36,6 +37,7 @@ struct PixelInput
 {
     float4 Position : SV_POSITION;
     float2 UV: TEXCOORD0;
+    float3 Color : COLOR;
 };
 
 struct PixelOutput
@@ -55,6 +57,7 @@ PixelInput VSMain(VertexInput input)
     float4 viewPosition = mul(worldPosition, View);
     output.Position = viewPosition;
     output.UV = 0;
+    output.Color = particle.color.xyz;
 
     return output;
 }
@@ -67,7 +70,7 @@ PixelOutput PSMain(PixelInput input)
 {
     PixelOutput output = (PixelOutput) 0;
 
-    float3 particle = particleTexture.Sample(samClampLinear, input.UV).xyz;
+    float3 particle = input.Color * particleTexture.Sample(samClampLinear, input.UV).xyz;
     output.Color = float4(particle, 1);
 	
     return output;

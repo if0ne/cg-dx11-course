@@ -21,9 +21,9 @@ int align(int value, int alignment)
 void ParticleSystemComponent::Initialize()
 {
     emitterProps_ = {
-        {0.0, 0.0, 0.0},
-        10,
-        5.0f
+        {0.0, 5.0, 0.0},
+        1 * 1024 / 2,
+        10.0f
     };
 
     {
@@ -413,6 +413,14 @@ void ParticleSystemComponent::Initialize()
         bufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
         bufferDesc.StructureByteStride = sizeof(uint32_t);
 
+        std::vector<uint32_t> indices;
+        for (uint32_t i = 0; i < MAX_PARTICLE_COUNT; ++i)
+        {
+            indices.push_back(i);
+        }
+        D3D11_SUBRESOURCE_DATA initData{};
+        initData.pSysMem = indices.data();
+
         ctx_.GetRenderContext().GetDevice()->CreateBuffer(&bufferDesc, nullptr, &deadBuffer_);
 
         D3D11_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
@@ -590,7 +598,7 @@ void ParticleSystemComponent::Reload()
     UINT initialCount[] = { 0 };
     ctx_.GetRenderContext().GetContext()->CSSetUnorderedAccessViews(0, 1, &deadBufferUav_, initialCount);
     ctx_.GetRenderContext().GetContext()->CSSetUnorderedAccessViews(1, 1, &particleBufferUav_, initialCount);
-    int numThreadGroups = align(emitterProps_.maxNumToEmit, 256) / 256;
+    int numThreadGroups = align(emitterProps_.maxNumToEmit, 1024) / 1024;
     ctx_.GetRenderContext().GetContext()->CSSetShader(resetCs_, nullptr, 0);
     ctx_.GetRenderContext().GetContext()->Dispatch(numThreadGroups, 1, 1);
 }

@@ -4,6 +4,7 @@ struct Particle
     float _pad1;
     float3 velocity;
     float age;
+    float4 color;
 };
 
 struct EmitterProperties
@@ -51,6 +52,7 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
         particle.positon = emitterProp.position.xyz;
         particle.velocity = normalize(randomValues1.xyz);
         particle.age = emitterProp.particleLifeSpan;
+        particle.color = float4(0.25 + abs(randomValues0.r), 0.25 + abs(randomValues0.g), 0.25 + abs(randomValues0.b), 1);
 
         uint index = deadListBuffer.Consume();
 

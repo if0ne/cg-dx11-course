@@ -4,6 +4,7 @@ struct Particle
     float _pad1;
     float3 velocity;
     float age;
+    float4 color;
 };
 
 struct ParticleIndexElement
@@ -57,6 +58,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
         if (particle.age <= 0.0f)
         {
             particle.age = -1;
+            particle.color = float4(1, 0, 0, 1);
             deadParticleIndex.Append(id.x);
         }
         else
