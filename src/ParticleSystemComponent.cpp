@@ -6,6 +6,10 @@
 #include <WICTextureLoader.h>
 #include <random>
 
+#include "Katamari/KatamariGame.h"
+#include "Katamari/KatamariRenderPass.h"
+#include "Katamari/KatamariGeometryPass.h"
+
 using namespace DirectX::SimpleMath;
 
 using int4 = struct SortConstants
@@ -33,7 +37,7 @@ void ParticleSystemComponent::Initialize()
             D3D_COMPILE_STANDARD_FILE_INCLUDE,
             "CSMain",
             "cs_5_0",
-            D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,
+            D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_PACK_MATRIX_ROW_MAJOR,
             0,
             &emitBlobCs_,
             &errorBlob);
@@ -62,7 +66,7 @@ void ParticleSystemComponent::Initialize()
             D3D_COMPILE_STANDARD_FILE_INCLUDE,
             "CSMain",
             "cs_5_0",
-            D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,
+            D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_PACK_MATRIX_ROW_MAJOR,
             0,
             &simulateBlobCs_,
             &errorBlob);
@@ -216,7 +220,7 @@ void ParticleSystemComponent::Initialize()
         constBufDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
         constBufDesc.MiscFlags = 0;
         constBufDesc.StructureByteStride = 0;
-        constBufDesc.ByteWidth = 2 * sizeof(DirectX::SimpleMath::Matrix);
+        constBufDesc.ByteWidth = 5 * sizeof(DirectX::SimpleMath::Matrix);
 
         ctx_.GetRenderContext().GetDevice()->CreateBuffer(&constBufDesc, nullptr, &viewProjBuffer_);
     }
@@ -547,6 +551,11 @@ void ParticleSystemComponent::Draw()
     ctx_.GetRenderContext().GetContext()->OMGetRenderTargets(1, &rtv, &dsv);
     ctx_.GetRenderContext().GetContext()->OMSetRenderTargets(0, nullptr, nullptr);
 
+    auto invVp = camera_->CameraMatrix().Invert();
+    auto invV = camera_->View().Invert();
+    auto invP = camera_->Projection().Invert();
+    DirectX::SimpleMath::Matrix matrices[5] = { camera_->View(), camera_->Projection(), invVp, invV, invP };
+
     Emit();
     Simulate();
 
@@ -570,10 +579,6 @@ void ParticleSystemComponent::Draw()
     ctx_.GetRenderContext().GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 
     ctx_.GetRenderContext().GetContext()->OMSetBlendState(blendState_, nullptr, 0xffffffff);
-
-    DirectX::SimpleMath::Matrix matrices[2] = { camera_->View(), camera_->Projection() };
-
-    UpdateBuffer(viewProjBuffer_, &matrices, 2 * sizeof(DirectX::SimpleMath::Matrix));
 
     ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(1, 1, &viewProjBuffer_);
     ctx_.GetRenderContext().GetContext()->VSSetConstantBuffers(3, 1, &aliveCounterBuffer_);
@@ -653,11 +658,15 @@ void ParticleSystemComponent::Emit()
 
     ID3D11Buffer* buffers[] = { frameTimeBuffer_, emitterBuffer_, deadCounterBuffer_, viewProjBuffer_ };
     auto time = DirectX::SimpleMath::Vector4(ctx_.GetDeltaTime(), 0.0, 0.0, 0.0);
-    DirectX::SimpleMath::Matrix matrices[2] = {camera_->View(), camera_->Projection()};
+
+    auto invVp = camera_->CameraMatrix().Invert();
+    auto invV = camera_->View().Invert();
+    auto invP = camera_->Projection().Invert();
+    DirectX::SimpleMath::Matrix matrices[5] = { camera_->View(), camera_->Projection(), invVp, invV, invP };
 
     UpdateBuffer(frameTimeBuffer_, &time, sizeof(DirectX::SimpleMath::Vector4));
     UpdateBuffer(emitterBuffer_, &emitterProps_, sizeof(EmitterProperties));
-    UpdateBuffer(viewProjBuffer_, &matrices, 2 * sizeof(DirectX::SimpleMath::Matrix));
+    UpdateBuffer(viewProjBuffer_, &matrices, 5 * sizeof(DirectX::SimpleMath::Matrix));
     ctx_.GetRenderContext().GetContext()->CSSetConstantBuffers(0, ARRAYSIZE(buffers), buffers);
 
     ID3D11ShaderResourceView* srvs[] = { randomSrv_ };
@@ -674,6 +683,7 @@ void ParticleSystemComponent::Emit()
 
 void ParticleSystemComponent::Simulate()
 {
+    auto gData = game_.mainPass_->geometryPass_->RenderData();
     ctx_.GetRenderContext().GetContext()->CopyStructureCount(aliveCounterBuffer_, 0, aliveBufferUav_);
 
     UINT initialCount[] = { (UINT)-1 };
@@ -683,6 +693,9 @@ void ParticleSystemComponent::Simulate()
     ctx_.GetRenderContext().GetContext()->CSSetUnorderedAccessViews(1, 1, &deadBufferUav_, initialCount);
     ctx_.GetRenderContext().GetContext()->CSSetUnorderedAccessViews(2, 1, &aliveBufferUav_, aliveInitialCount);
     ctx_.GetRenderContext().GetContext()->CSSetUnorderedAccessViews(3, 1, &indirectDrawBufferUav_, initialCount);
+
+    ctx_.GetRenderContext().GetContext()->CSSetShaderResources(1, 1, &gData.srvs[1]);
+    ctx_.GetRenderContext().GetContext()->CSSetShaderResources(2, 1, &gData.srvs[2]);
 
     ctx_.GetRenderContext().GetContext()->CSSetShader(simulateCs_, nullptr, 0);
     ctx_.GetRenderContext().GetContext()->Dispatch(align(MAX_PARTICLE_COUNT, 256) / 256, 1, 1);

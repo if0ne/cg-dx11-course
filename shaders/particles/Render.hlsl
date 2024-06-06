@@ -20,6 +20,9 @@ cbuffer Params : register(b1)
 {
     float4x4 View;
     float4x4 Projection;
+    float4x4 InverseProjectionView;
+    float4x4 ViewInv;
+    float4x4 ProjInv;
 };
 
 cbuffer aliveListCountConstantBuffer : register(b3)

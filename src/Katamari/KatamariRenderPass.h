@@ -44,5 +44,6 @@ public:
     
     friend class KatamariDirectionalLightPass;
     friend class KatamariPointLightPass;
+    friend class ParticleSystemComponent;
 };
 

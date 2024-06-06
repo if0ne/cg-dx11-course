@@ -7,6 +7,7 @@
 #include <d3d11.h>
 
 class Game;
+class KatamariGame;
 
 struct alignas(16) EmitterProperties
 {
@@ -94,6 +95,8 @@ private:
     ID3D11Buffer* indirectSortArgsBuffer_;
     ID3D11UnorderedAccessView* indirectSortArgsBufferUav_;
 
+    KatamariGame& game_;
+
     void Sort();
     bool SortInitial(unsigned int maxSize);
     bool SortIncremental(unsigned int presorted, unsigned int maxSize);
@@ -103,7 +106,7 @@ public:
     static constexpr int MAX_PARTICLE_COUNT = 100000;
     static constexpr int X_NUMTHREADS = 1024;
 
-    ParticleSystemComponent(Camera* camera) : camera_(camera), GameComponent() {}
+    ParticleSystemComponent(Camera* camera, KatamariGame& game) : camera_(camera), game_(game), GameComponent() {}
 
     virtual void Initialize();
     virtual void Update(float deltaTime);

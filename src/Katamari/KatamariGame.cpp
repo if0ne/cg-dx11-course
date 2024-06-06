@@ -87,7 +87,7 @@ KatamariGame::KatamariGame() : GameComponent() {
     rastDesc.CullMode = D3D11_CULL_NONE;
     rastDesc.FillMode = D3D11_FILL_SOLID;
     mainPass_ = new KatamariRenderPass(std::move(shaderPath), std::move(vertexAttr), rastDesc, *this);
-    particles_ = new ParticleSystemComponent(camera_);
+    particles_ = new ParticleSystemComponent(camera_, *this);
 }
 
 KatamariGame::~KatamariGame() {
