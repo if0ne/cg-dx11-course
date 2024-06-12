@@ -60,6 +60,8 @@ float LinearizeDepth(const float z)
     return near * far / (far + z * (near - far));
 }
 
+static float GRAVITY = 9.0;
+
 [numthreads(256, 1, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
@@ -81,7 +83,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
         particle.age -= g_frameTime.x;
 
         float3 vNewPosition = particle.positon;
-
+        
         vNewPosition = particle.positon + (particle.velocity * g_frameTime.x);
      
         float4 viewPos = mul(float4(vNewPosition, 1.0f), View);
@@ -99,7 +101,6 @@ void CSMain(uint3 id : SV_DispatchThreadID)
             if ((viewPos.z > depth - 0.1) && (viewPos.z < depth + 0.1))
             {
                 float4 normal = NormalMap.Load(int3(texCoord, 0));
-                normal = normalize(mul(-normal, ViewInv));
             
                 float3 newVelocity = reflect(particle.velocity, normal.xyz);
                 particle.velocity = newVelocity;
@@ -113,11 +114,12 @@ void CSMain(uint3 id : SV_DispatchThreadID)
             particle.positon = vNewPosition;
         }
         
+        particle.velocity.y -= GRAVITY * g_frameTime.x * 0.1;
 
         if (particle.age <= 0.0f)
         {
             particle.age = -1;
-            particle.color = float4(1, 0, 0, 1);
+            //particle.color = float4(1, 0, 0, 1);
             deadParticleIndex.Append(id.x);
         }
         else

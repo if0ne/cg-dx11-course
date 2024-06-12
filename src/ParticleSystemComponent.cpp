@@ -25,9 +25,9 @@ int align(int value, int alignment)
 void ParticleSystemComponent::Initialize()
 {
     emitterProps_ = {
-        {0.0, 5.0, 0.0},
-        1 * 1024 / 2,
-        10.0f
+        {0.0, 15.0, 0.0},
+        1024,
+        20.0f
     };
 
     {
